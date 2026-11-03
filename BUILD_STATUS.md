@@ -11,7 +11,8 @@
 | M0 dependencies, lockfile, git | Done | `package-lock.json`; Next 16.4.4, React 19.3.1, R3F 9.8.2, three 0.187, @supabase/ssr 0.12.7, @openai/agents 0.21.0, zod 4.6, TS 6.0.3 |
 | M0 typecheck / lint / build / unit tests | Passing | see log 2026-11-03 |
 | Preferences store (theme light/dark/system, motion, 3D) | Done (local) | `src/lib/preferences/*`, pre-paint script, verified reload persistence |
-| Nine-route Orbital Atelier UI | Not started | M1 |
+| Nine-route Orbital Atelier UI (M1) | Done — shell, design system, all 9 routes + 404/loading/error, honest empty states (no sample data) | `npm run test:e2e` 18/18 |
+| R3F scene (dashboard orb + universe) | Done — data-driven props, DOM topic list, arrow-key/drag rotation, offscreen pause, demand frameloop for reduced motion/mobile, 3D-off + no-WebGL fallback | E2E fallback test; manual browser check both themes |
 | Auth / RLS / CRUD | Not started | M2 |
 | PDF ingest + RAG | Not started | M3 |
 | Planner scenarios + approval | Not started | M4 (only `assessCapacity` util exists) |
@@ -25,7 +26,8 @@
 - Starter failed lint: 2 × `react-hooks/set-state-in-effect` in `theme-toggle.tsx`/`agent-orb.tsx`. Fixed by a `useSyncExternalStore` preferences store.
 - Next 16 renamed `middleware` → `proxy` (confirmed in bundled `node_modules/next/dist/docs`). Use `src/proxy.ts` for Supabase session refresh.
 - Draft migration gaps to fix in M2: no profile trigger/availability columns; no safe write path for agent runs/proposals (must not be user-insertable); no approval transaction; `study_tasks.course_id` unchecked; anon grants not revoked; bucket lacks size/MIME limits; `embedding NOT NULL` blocks keyless ingest; no `updated_at` staleness; no rate-limit storage.
-- Reference HTML visual defects not to copy: sidebar stops at 900px, overlapping orb labels, clipped bottom node label.
+- Reference HTML: overlapping orb labels and a clipped bottom node label are not copied (labels are now projected and clamped). Correction: the "sidebar stops at 900px" look was a full-page screenshot artifact; the sidebar is `position:fixed`.
+- Reference `--faint`/`--muted` (both themes) and light `--good`/`--warn`/`--coral` failed WCAG AA for small text; raised in `globals.css` (axe now clean).
 
 ## History (starter pack)
 
@@ -83,3 +85,10 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M0 | `npm test` (Vitest, `tests/unit/capacity.test.ts`) | PASS 6/6 | — |
 | 2026-11-03 | M0 | `npm run build` | PASS (`/`, `/api/health`) | — |
 | 2026-11-03 | M0 | Browser pane: `npm run dev`, load `/`, toggle theme, reload, fetch `/api/health` | PASS: light theme persisted, WebGL orb rendered, health JSON ok, zero console errors | — |
+| 2026-11-03 | M1 | `npm run typecheck`, `npm run lint` | PASS (fixed 3 `react-hooks/immutability` errors via `SceneController`) | — |
+| 2026-11-03 | M1 | Browser pane: drei `<Html>` labels threw React 19 `removeChild`/unmount errors on navigation | FIXED: removed drei, labels are a projected DOM overlay | — |
+| 2026-11-03 | M1 | Browser pane: WebGL geometry not drawn | FIXED: `useFrame` positive priority disabled auto-render | — |
+| 2026-11-03 | M1 | `npx playwright test` (first run) | 15/18; axe contrast failures + drawer focus return | fixed |
+| 2026-11-03 | M1 | `npx playwright test` | PASS 18/18: 9-route nav + aria-current, theme persistence across real reload, system theme, 3D-off fallback, motion pref, mobile drawer (Esc + focus return), 404, no overflow at 320/390/1024/1440 × dark/light × 10 pages, axe wcag2a/aa no serious/critical × 10 pages × 2 themes | — |
+| 2026-11-03 | M1 | `npm test`, `npm run build` | PASS (6/6; 12 routes, AI-status pages dynamic) | — |
+

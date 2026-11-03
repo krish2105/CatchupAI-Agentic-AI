@@ -1,119 +1,66 @@
-import AgentOrb from "@/components/agent-orb";
-import PlannerPreview from "@/components/planner-preview";
-import ThemeToggle from "@/components/theme-toggle";
+import { ArrowRight, BookOpenCheck, Scale, ShieldCheck } from "lucide-react";
+import Brand from "@/components/shell/brand";
+import ThemeButton from "@/components/shell/theme-button";
+import LandingOrb from "@/components/landing-orb";
+import { ButtonLink } from "@/components/ui/primitives";
 
 const steps = [
-  {
-    number: "01",
-    eyebrow: "KNOW",
-    title: "Grounded in your lessons",
-    description:
-      "Build a private knowledge base from course PDFs and assignments, then cite the exact source pages that inform responses.",
-  },
-  {
-    number: "02",
-    eyebrow: "PLAN",
-    title: "Fit the work to real time",
-    description:
-      "Combine actual deadlines and study capacity. Detect overload and propose priorities before recommending a schedule.",
-  },
-  {
-    number: "03",
-    eyebrow: "ACT",
-    title: "You stay in control",
-    description:
-      "Review and approve study tasks explicitly. See the agent's true tool activity and track completed work.",
-  },
+  { n: "01", icon: BookOpenCheck, title: "Grounded in your lessons", body: "Upload text-based course PDFs into a private vault. Answers cite the exact source pages that were retrieved — or say they couldn't verify it." },
+  { n: "02", icon: Scale, title: "Fit the work to real time", body: "Deadlines, estimates and your weekly availability go through a deterministic feasibility engine. Three honest routes, with any shortfall shown in minutes." },
+  { n: "03", icon: ShieldCheck, title: "You stay in control", body: "The agent only drafts proposals. Nothing is saved until you approve it, and approval commits exactly once." },
 ];
 
 export default function Home() {
   return (
-    <div className="app-shell">
-      <header className="topbar">
-        <a href="#home" className="brand" aria-label="CatchUp AI home">
-          <span className="brand-mark" aria-hidden="true"><span /></span>
-          <span>catchup<span className="brand-ai">.ai</span></span>
-        </a>
-        <nav aria-label="Primary navigation">
-          <a href="#how-it-works">How it works</a>
-          <a href="/orbital-atelier-preview.html" target="_blank" rel="noopener noreferrer">Interactive design</a>
-          <ThemeToggle />
-        </nav>
+    <div className="lp">
+      <a href="#main" className="skip-link">Skip to content</a>
+      <header className="lp-top">
+        <Brand />
+        <div className="top-actions">
+          <ThemeButton />
+          <ButtonLink href="/login" variant="primary" small>
+            Sign in <ArrowRight className="ic" aria-hidden="true" />
+          </ButtonLink>
+        </div>
       </header>
-
-      <main id="home">
-        <section className="hero" aria-labelledby="hero-heading">
+      <main id="main">
+        <section className="hero lp-hero" aria-labelledby="hero-heading">
           <div className="hero-copy">
-            <div className="pill"><span className="live-dot" /> HACKATHON PRODUCT CONCEPT · NOV 2026</div>
-            <h1 id="hero-heading">Make a little<br /><span>room for progress.</span></h1>
-            <p className="hero-deck">
-              An academic recovery mission control, where every lesson has a place, every plan respects your time, and you approve every action.
+            <div className="eyebrow">Agentic learning recovery</div>
+            <h1 id="hero-heading">Make a little <em>room for progress.</em></h1>
+            <p>
+              CatchUp AI connects your course material, deadlines and available study time, then helps you choose a recovery plan that actually fits —
+              with cited evidence and your approval before anything is saved.
             </p>
-            <div className="hero-actions">
-              <a className="btn btn-primary" href="/orbital-atelier-preview.html" target="_blank" rel="noopener noreferrer">Open nine-screen UI demo <span aria-hidden="true">↗</span></a>
-              <a className="btn btn-secondary" href="#how-it-works">See the workflow <span aria-hidden="true">↓</span></a>
-            </div>
-            <div className="trust-line">
-              <span className="trust-mark" aria-hidden="true">✦</span>
-              Built around real agent tools, verified sources and human-approved actions.
+            <div className="hero-ctas">
+              <ButtonLink href="/login" variant="primary">
+                Get started <ArrowRight className="ic" aria-hidden="true" />
+              </ButtonLink>
+              <ButtonLink href="#how-it-works" variant="ghost">How it works</ButtonLink>
             </div>
           </div>
           <div className="hero-visual">
-            <AgentOrb />
-            <div className="orbit-label orbit-label-top"><span className="node node-cyan" /> KNOWLEDGE</div>
-            <div className="orbit-label orbit-label-middle"><span className="node node-purple" /> AI REASONING</div>
-            <div className="orbit-label orbit-label-bottom"><span className="node node-warm" /> RECOVERY PLAN</div>
+            <LandingOrb />
+            <div className="hud-hint"><i className="live-dot" /> ILLUSTRATION</div>
           </div>
         </section>
 
-        <section className="principle-bar" aria-label="Product promises">
-          <div><span>01</span> Evidence first</div>
-          <i aria-hidden="true" />
-          <div><span>02</span> Feasible planning</div>
-          <i aria-hidden="true" />
-          <div><span>03</span> Approval before action</div>
-        </section>
-
-        <section className="section-block" id="how-it-works" aria-labelledby="how-heading">
-          <div className="section-head">
-            <div>
-              <div className="section-kicker">THE AUTONOMOUS RECOVERY LOOP</div>
-              <h2 id="how-heading">Not another chatbot.<br /><span>A system that helps you act.</span></h2>
-            </div>
-            <p>The agent can investigate a real problem, gather supporting evidence, draft a prioritized recovery path and wait for your approval.</p>
-          </div>
-          <div className="steps">
-            {steps.map((step) => (
-              <article className="step-card" key={step.number}>
-                <div className="step-top"><span className="step-number">{step.number}</span><span>{step.eyebrow}</span></div>
-                <h3>{step.title}</h3>
-                <p>{step.description}</p>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="preview-grid" id="preview" aria-label="Interactive visual concept preview">
-          <div className="preview-copy">
-            <div className="section-kicker">WHY THIS MATTERS</div>
-            <h2>Less panic.<br /><span>More progress.</span></h2>
-            <p>CatchUp AI is designed to calculate study capacity before making commitments. A polished interface should show honest trade-offs, not just AI-generated optimism.</p>
-            <div className="preview-tag"><span aria-hidden="true">◈</span> Live planning calculation below uses fictional data.</div>
-          </div>
-          <PlannerPreview />
-        </section>
-
-        <section className="status-strip" aria-label="Development status">
-          <span className="status-icon" aria-hidden="true">i</span>
-          <div>
-            <strong>This is the honest starter preview.</strong>
-          </div>
+        <section id="how-it-works" className="three-column lp-steps" aria-label="How CatchUp AI works">
+          {steps.map(({ n, icon: Icon, title, body }) => (
+            <article className="card" key={n}>
+              <div className="split-head" style={{ marginBottom: 0 }}>
+                <span className="step-number">{n}</span>
+                <Icon className="ic" aria-hidden="true" style={{ color: "var(--aqua)" }} />
+              </div>
+              <h3>{title}</h3>
+              <p>{body}</p>
+            </article>
+          ))}
         </section>
       </main>
-
-      <footer className="footer">
-        <div className="brand"><span className="brand-mark" aria-hidden="true"><span /></span><span>catchup<span className="brand-ai">.ai</span></span></div>
-        <span>Prototype starter · Synthetic data only · No backend claims</span>
+      <footer className="lp-foot">
+        <span>CatchUp AI · built for the Decoding Data Science Agentic AI Challenge, Nov 2026</span>
+        <a href="/orbital-atelier-preview.html">Original design concept (simulated, no backend) ↗</a>
       </footer>
     </div>
   );

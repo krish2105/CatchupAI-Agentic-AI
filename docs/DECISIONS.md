@@ -32,3 +32,9 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-011** OpenAI runtime retained (doc 14). No key available yet: model and embedder are injectable so the agent loop and tools execute for real in tests with a scripted model; live runs are reported as unverified.
 - **ADR-012** Appearance preferences (theme light/dark/system, motion, 3D) live in one `useSyncExternalStore` store mirrored to `<html data-*>` attributes, applied pre-paint by an inline script; later synced to the profile.
 
+## 2026-11-03: Build session M1
+- **ADR-013** Port the canonical reference CSS (`src/app/orbital.css`) rather than re-expressing it in Tailwind utilities: preserves design fidelity; Tailwind v4 remains for layout utilities with tokens exposed via `@theme inline`.
+- **ADR-014** Production pages never render sample metrics. Missing data shows explicit "no data" states (`StatCard value={null}`, `ProgressArc percent={null}`) until real records exist.
+- **ADR-015** 3D: one `OrbitalScene` (R3F v9) shared by dashboard and universe; props are a typed `UniverseGraph` built from the student's records. No drei (its `<Html>` broke under React 19.3); labels are an `aria-hidden` projected DOM overlay, and the DOM topic list is the accessible path. Continuous animation only on wide fine-pointer screens without reduced motion; otherwise `frameloop="demand"`.
+- **ADR-016** Accessibility token adjustments over the reference palette (see BUILD_STATUS) to meet WCAG AA; enforced by axe in E2E.
+
