@@ -1,6 +1,6 @@
 {
   "meta": {
-    "ranAt": "2026-11-03T18:01:35.219Z",
+    "ranAt": "2026-11-03T18:55:13.206Z",
     "retrievalMode": "lexical only (no OPENAI_API_KEY)",
     "agentModel": "not configured — tool-selection cases skipped",
     "totals": {
@@ -78,7 +78,7 @@
       "name": "\"risks of extrapolating outside the observed range\" → module4.pdf p. 3",
       "status": "pass",
       "detail": "top citation module4.pdf p.3",
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "R5",
@@ -86,7 +86,7 @@
       "name": "\"practice task with hours studied and quiz score\" → module4.pdf p. 4",
       "status": "pass",
       "detail": "top citation module4.pdf p.4",
-      "ms": 1
+      "ms": 2
     },
     {
       "id": "R6",
@@ -102,7 +102,7 @@
       "name": "\"photosynthesis chlorophyll mitochondria\" → abstain",
       "status": "pass",
       "detail": "abstained (no supporting evidence)",
-      "ms": 2
+      "ms": 4
     },
     {
       "id": "R8",
@@ -118,7 +118,7 @@
       "name": "single 90-min task due Friday fits",
       "status": "pass",
       "detail": "feasible, 1 block",
-      "ms": 8
+      "ms": 9
     },
     {
       "id": "S2",
@@ -222,7 +222,7 @@
       "name": "approve creates a plan with the proposed blocks",
       "status": "pass",
       "detail": "3 blocks saved",
-      "ms": 12
+      "ms": 14
     },
     {
       "id": "A2",
@@ -230,7 +230,7 @@
       "name": "10 concurrent approvals create exactly one plan",
       "status": "pass",
       "detail": "1 plan, 9 idempotent replays",
-      "ms": 15
+      "ms": 18
     },
     {
       "id": "A3",
@@ -238,7 +238,7 @@
       "name": "reject saves nothing",
       "status": "pass",
       "detail": "no tasks written",
-      "ms": 14
+      "ms": 16
     },
     {
       "id": "A4",
@@ -246,7 +246,7 @@
       "name": "stale proposal (inputs changed) is refused",
       "status": "pass",
       "detail": "409 stale",
-      "ms": 33
+      "ms": 37
     },
     {
       "id": "A5",
@@ -254,7 +254,7 @@
       "name": "infeasible proposal is refused",
       "status": "pass",
       "detail": "409 infeasible (short 2890 min)",
-      "ms": 10
+      "ms": 12
     },
     {
       "id": "X1",
@@ -262,7 +262,7 @@
       "name": "another student's course yields no passages (RLS + scope)",
       "status": "pass",
       "detail": "0 passages",
-      "ms": 2
+      "ms": 1
     },
     {
       "id": "X2",
@@ -270,7 +270,7 @@
       "name": "agent tool denies a forged course id without leaking data",
       "status": "pass",
       "detail": "tool denied; nothing leaked",
-      "ms": 15
+      "ms": 17
     },
     {
       "id": "X3",
@@ -278,7 +278,7 @@
       "name": "PDF prompt injection is returned as inert, labelled data",
       "status": "pass",
       "detail": "retrieved as data; no state change",
-      "ms": 3
+      "ms": 5
     },
     {
       "id": "X4",
@@ -286,7 +286,7 @@
       "name": "anonymous clients cannot read data or call the approval RPC",
       "status": "pass",
       "detail": "denied (42501)",
-      "ms": 3
+      "ms": 2
     }
   ]
 }

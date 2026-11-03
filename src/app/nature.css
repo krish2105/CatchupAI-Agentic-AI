@@ -7,36 +7,36 @@
 
 :root,
 html[data-theme="dark"] {
-  /* Moonlit forest */
-  --bg: #0d1813;
-  --side: #11201a;
-  --surface: #14251e;
-  --surface2: #1a2e26;
-  --surface3: #20392f;
-  --hero: #122219;
-  --text: #ecf3ec;
-  --muted: #a8c2b3;
-  --faint: #8ea899;
-  --accent: #8fd6b2;
-  --accent-ink: #0d1813;
-  --aqua: #7ed0ca;
-  --violet: #9dbbd8;
-  --coral: #e5bc6a;
-  --good: #8fe0b0;
-  --warn: #e5bc6a;
-  --danger: #ff9e9e;
-  --focus: #8fd6b2;
-  --stroke: rgba(196, 226, 208, 0.11);
-  --stroke-strong: rgba(196, 226, 208, 0.2);
-  --shadow: rgba(0, 0, 0, 0.34);
-  --glow: rgba(126, 208, 202, 0.16);
+  /* Forest at night (reference 08): near-black forest canvas, outlined forest cards, pale-mint primary */
+  --bg: #0b1612;
+  --side: #0f1d17;
+  --surface: #13251e;
+  --surface2: #173029;
+  --surface3: #1e3a31;
+  --hero: #12231c;
+  --text: #f2f6ef;
+  --muted: #b7c9bc;
+  --faint: #9db3a4;
+  --accent: #b9e4c4;
+  --accent-ink: #10241b;
+  --aqua: #86d3cd;
+  --violet: #a9c3dd;
+  --coral: #e9b872;
+  --good: #9fe0b4;
+  --warn: #f0c27a;
+  --danger: #f0a58e;
+  --focus: #b9e4c4;
+  --stroke: rgba(185, 228, 196, 0.13);
+  --stroke-strong: rgba(185, 228, 196, 0.24);
+  --shadow: rgba(0, 0, 0, 0.42);
+  --glow: rgba(185, 228, 196, 0.14);
   --chart-1: #22a47b;
-  --gold: #e5bc6a;
-  --glass: rgba(20, 37, 30, 0.72);
-  --heading: #ecf3ec;
-  --nav-active: #1f3a30;
+  --gold: #e9b872;
+  --glass: rgba(18, 35, 28, 0.8);
+  --heading: #f4f8f1;
+  --nav-active: #1d3a2f;
   --land-far2: #2b4a41;
-  --hero-fade: #0f1d17;
+  --hero-fade: #0e1c16;
 
   /* Landscape illustration */
   --land-sky1: #0b1612;
@@ -347,7 +347,7 @@ html[data-motion="reduce"] .landscape .mist { animation: none; }
 .theme-card > span:last-child { font-size: 10.5px; color: var(--muted); }
 .theme-swatch { width: 100%; height: 46px; border-radius: 10px; overflow: hidden; display: grid; grid-template-rows: 1.2fr 1fr 0.8fr; margin-bottom: 4px; }
 .theme-light .theme-swatch i:nth-child(1) { background: #f6f1df; } .theme-light .theme-swatch i:nth-child(2) { background: #8fb19e; } .theme-light .theme-swatch i:nth-child(3) { background: #9fd0cb; }
-.theme-dark .theme-swatch i:nth-child(1) { background: #0b1612; } .theme-dark .theme-swatch i:nth-child(2) { background: #183028; } .theme-dark .theme-swatch i:nth-child(3) { background: #1b3b38; }
+.theme-dark .theme-swatch i:nth-child(1) { background: #0b1612; } .theme-dark .theme-swatch i:nth-child(2) { background: #173029; } .theme-dark .theme-swatch i:nth-child(3) { background: #b9e4c4; }
 .theme-system .theme-swatch { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr; }
 .theme-system .theme-swatch i:nth-child(1) { background: linear-gradient(#f6f1df, #8fb19e 60%, #9fd0cb); } .theme-system .theme-swatch i:nth-child(2) { background: linear-gradient(#0b1612, #183028 60%, #1b3b38); } .theme-system .theme-swatch i:nth-child(3) { display: none; }
 @media (max-width: 520px) { .theme-cards { grid-template-columns: 1fr; } }
@@ -588,3 +588,12 @@ button.focus-pill[aria-pressed="true"] { border-color: var(--accent); color: var
 .nf-replan h2 { margin: 0 0 4px; font-size: 16px; font-weight: 800; color: var(--heading); }
 .nf-replan p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
 @media (max-width: 720px) { .nf-replan { flex-wrap: wrap; } .nf-replan .btn { width: 100%; justify-content: center; } }
+
+/* ---------- Forest at night refinements (dark theme) ---------- */
+html[data-theme="dark"] .card, html[data-theme="dark"] .nf-stat, html[data-theme="dark"] .scenario { border-color: var(--stroke); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 18px 40px -28px rgba(0, 0, 0, 0.7); }
+html[data-theme="dark"] .nf-stat { background: var(--surface2); }
+html[data-theme="dark"] .nf-stat-icon { background: var(--surface3); }
+html[data-theme="dark"] .photo-hero { border-color: var(--stroke-strong); }
+html[data-theme="dark"] .btn.primary { color: var(--accent-ink); }
+html[data-theme="dark"] .sidebar { border-right: 1px solid var(--stroke); }
+html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) inset; }

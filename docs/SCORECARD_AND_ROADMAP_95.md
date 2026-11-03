@@ -1,37 +1,52 @@
-# CatchUp AI: honest scorecard and the path to 95
+# CatchUp AI: honest scorecard and the path to 95+
 
-_Assessed 2026-11-03 from the repository, test runs and the running app. Scores judge what is verifiable today, not what the code could do._
+_Re-assessed 2026-11-03 after Nature Flow 3.0, the smart replanner and focus session recovery. Scores judge what is verifiable today, not what the code could do._
 
-## Where it stands: **72 / 100**
+## Where it stands: **76 / 100** (was 72)
 
 | Lens | Score | What earns points | What costs points |
 | --- | --- | --- | --- |
-| **CEO** (problem, story, market) | 74 | Sharp, relatable problem (missed class → realistic recovery); approval-first trust story; distinctive Nature Flow brand | No users yet, no pricing or go-to-market, no outcome evidence |
-| **CTO** (architecture, security) | 86 | Composite-FK tenancy + RLS on every table; SECURITY DEFINER approval RPC, idempotent under 10 concurrent requests; server-only keys; rate limits; session-key recovery | No CSP header, no CI pipeline, no error monitoring |
-| **Senior PM** (scope, UX, delivery) | 76 | Nine screens, honest empty states, keyboard + axe-clean, mobile drawer, 171 automated tests | Some screens busier than the references; no calendar export; no notifications |
-| **COO** (operability) | 50 | Deployment guide, preflight, demo cleanup cron, cost ceiling per student | **Not deployed**, no monitoring/alerting, no support or privacy page |
-| **AI engineer** | 74 | Typed tool contracts, structured output, scripted-model tests, budget limits | **No live model run yet**, so no latency, cost or quality numbers |
-| **Agentic AI engineer** | 78 | One agent with five scoped tools, traces persisted, agent proposes and human approves | No re-planning when a block is missed; tool-selection eval cases skipped (need a real LLM) |
-| **RAG specialist** | 72 | Hybrid lexical + vector with RRF, page-faithful chunks, abstention, 30-case eval found and fixed a recall bug | Embeddings unused without a key; no reranker; no faithfulness (claim-to-citation) metric |
-| **Competition judge** | 68 | Real working software, not slideware; security tests; honest README | No live URL, no demo video, no user feedback |
+| **CEO** (problem, story, market) | 76 | Missed-lecture recovery is a gap competitors leave open; approval-first trust story; distinctive brand | No users, pricing or outcome evidence |
+| **CTO** (architecture, security) | 87 | Composite-FK tenancy + RLS, idempotent approval RPC (10 concurrent → 1 plan), session-key recovery, server-only keys | No CSP header, no CI pipeline, no error monitoring |
+| **Senior PM** (scope, UX) | 82 | Reference-matched screens, light/dark, phone bottom nav, missed-session replan, resumable focus | No calendar export; Teach-It-Back and Rubric Decoder not built |
+| **COO** (operability) | 50 | Deployment guide, preflight, demo cleanup cron, per-student limits | **Not deployed**, no monitoring or support page |
+| **AI engineer** | 74 | Typed tools, structured output, scripted-model tests, budgets | **No live model run yet** |
+| **Agentic AI engineer** | 80 | Five scoped tools, persisted traces, propose → human approve; replans never apply without approval | Tool-selection eval cases still need a real LLM |
+| **RAG specialist** | 72 | Hybrid lexical + vector with RRF, page citations, abstention, eval-driven recall fix | Embeddings unused without a key; no claim-to-citation check |
+| **Learning scientist** | 78 | Spaced revision (1/3/7/14), adaptive retests, baseline vs latest, focus tracking | No explain-it-back (generation effect); no reflection loop |
+| **Competition judge** | 70 | Real working software with security tests and honest README | No live URL, no demo video, no user feedback |
 
-## Roadmap to 95 (ordered by points per hour)
+## Feature audit (enhancement brief)
+
+| # | Feature | Status | Notes |
+| --- | --- | --- | --- |
+| P0-1 | Smart Recovery Replanner | **Done (tested)** | Completed block minutes are subtracted; missed blocks surface on Mission Control and the bell; replan goes through the same approval |
+| P0-2 | Teach-It-Back | Missing | Achievable: compare the student's explanation with the key terms of retrieved passages (deterministic), cite pages, then an adaptive retest on missed concepts. LLM only phrases feedback |
+| P0-3 | Assignment Rubric Decoder | Partial | Syllabus import already extracts dates; criteria/weights/word-count extraction with confirmation is the extension |
+| P0-4 | Interactive What-If Planning | **Done** | Recovery Lab slider recomputes server-side with the deterministic engine; save-this-availability |
+| P1-5 | Evidence and Trust Drawer | Partial | Citations, tool events and proposal status exist; needs one drawer with approval history |
+| P1-6 | Learning Trail (prerequisites) | Partial | 3D/List universe from real courses; user-confirmed prerequisite links not built |
+| P1-7 | Adaptive Revision Queue | **Done** | From graded quiz answers |
+| P1-8 | Weekly reflection | Missing | Insights has the data; reflection prompt + next steps not built |
+| P1-9 | Session auto-save | **Done (tested)** | Focus sessions resume after refresh or connection loss |
+| P1-10 | Guided judge demo | Partial | One-click synthetic demo exists; a guided tour overlay is not built |
+
+## Roadmap to 95+ (ordered by points per hour)
 
 | # | Work | Gain | Who |
 | --- | --- | --- | --- |
 | 1 | **Go live**: Supabase cloud + Vercel, smoke test, URL in README | +7 | You log in; I do the rest |
-| 2 | **Live agent**: OpenAI key → live copilot run, embeddings, eval T1–T5, real latency/cost per run | +5 | You add the key; I run and record |
-| 3 | **Nature Flow 3.0** visual pass (photographic heroes, serif display type, the six reference screens, mobile bottom nav, moonlit dark) | +3 | Me (in progress) |
-| 4 | **Calendar export** (.ics feed for approved plans → Google/Apple/Outlook) | +2 | Me |
-| 5 | **Missed-block re-plan**: mark a block missed → deterministic reschedule proposal → approval | +2 | Me |
-| 6 | **Notifications bell** from real data (due revisions, pending proposals, deadlines in 48 h) | +1 | Me |
-| 7 | **Ops**: CSP header, GitHub Actions CI (typecheck, lint, unit, E2E against local Supabase), privacy page | +2 | Me |
-| 8 | **RAG quality**: claim-to-citation faithfulness check in the eval with the live model; optional reranker | +1 | Me, after #2 |
-| 9 | **Evidence**: 3–5 volunteer tests (real notes), 3–4 minute demo video, LinkedIn post | +3 | You (I prepare scripts) |
+| 2 | **Live agent**: OpenAI key → live copilot runs, embeddings, eval T1–T5, latency/cost per run | +5 | You add the key |
+| 3 | **Teach-It-Back** with cited feedback and a targeted retest | +3 | Me |
+| 4 | **Rubric Decoder** (criteria → editable, source-linked checklist) | +2 | Me |
+| 5 | **Ops**: CSP header, GitHub Actions CI, privacy page | +2 | Me |
+| 6 | **Trust drawer** + calendar (.ics) export | +2 | Me |
+| 7 | **Evidence**: 3–5 volunteer tests, 3–4 minute demo video, LinkedIn post | +3 | You (scripts ready) |
 
-Reaching 95 requires #1, #2 and #9. They depend on your accounts and on real people, and can't be simulated.
+76 + 24 = **100 possible**; **95+ requires #1, #2 and #7**, which depend on your accounts and real people.
 
 ## Research notes
-- Agentic-AI hackathon rubrics consistently reward a **working, deployable demo over slides**, technical depth, real-world usefulness and presentation; some score production signals such as fabricated tool calls ([NANDA Hack](https://nandahack.media.mit.edu/), [GOSIM Paris](https://luma.com/6wdrnx9j), [FAU](https://www.fau.edu/engineering/pdf/agentic-ai-hackathon.pdf), [AngelHack](https://angelhack.com/blog/ai-agent-hackathon/)).
-- Study-planner products commonly offer calendar sync, syllabus/LMS import and spaced repetition; **missed-lecture recovery is not a common feature**, which is CatchUp's differentiator ([MyStudyLife](https://mystudylife.com/the-best-ai-study-tools-for-students-in-2026-apps-websites-and-resources-by-use-case/), [Dormway](https://dormway.app/blog/best-ai-study-planner-apps-2026)).
-- RAG evaluation guidance separates retrieval quality from **citation faithfulness** (whether the cited passage supports the claim) and recommends running the same set as a CI gate ([DeepEval](https://deepeval.com/docs/metrics-citation-faithfulness), [OneUptime](https://oneuptime.com/blog/post/2026-08-31-rag-faithfulness-retrieval-vs-answer-quality/view), [alphaXiv summary](https://alphaxiv.org/overview/2412.18004v1)).
+- Agentic-AI hackathon rubrics reward a **working, deployable demo**, technical depth, usefulness and presentation; some score fabricated tool calls ([NANDA Hack](https://nandahack.media.mit.edu/), [GOSIM Paris](https://luma.com/6wdrnx9j), [FAU](https://www.fau.edu/engineering/pdf/agentic-ai-hackathon.pdf), [AngelHack](https://angelhack.com/blog/ai-agent-hackathon/)).
+- Study planners commonly offer calendar sync, syllabus import and spaced repetition; **missed-lecture recovery is not a common feature** ([MyStudyLife](https://mystudylife.com/the-best-ai-study-tools-for-students-in-2026-apps-websites-and-resources-by-use-case/), [Dormway](https://dormway.app/blog/best-ai-study-planner-apps-2026)).
+- RAG evaluation should separate retrieval from **citation faithfulness** ([DeepEval](https://deepeval.com/docs/metrics-citation-faithfulness), [OneUptime](https://oneuptime.com/blog/post/2026-08-31-rag-faithfulness-retrieval-vs-answer-quality/view)).
+- Dark UI: express elevation through lighter surfaces and borders rather than shadows, avoid pure black, desaturate accents ([UXcel](https://uxcel.com/blog/12-principles-of-dark-mode-design-627), [Onething](https://www.onething.design/post/best-practices-for-dark-mode-ui-design), [UX Planet](https://uxplanet.org/dark-mode-masterclass-d746227bac8f)).
