@@ -54,3 +54,11 @@ test("preferences show usage against fair-use limits", async ({ page }) => {
   await expect(usage).toContainText("AI copilot runs");
   await expect(usage).toContainText("/ 30");
 });
+
+test("email-link landing refuses invalid codes and open redirects", async ({ request }) => {
+  const bad = await request.get("/auth/confirm?code=not-a-real-code&next=/dashboard", { maxRedirects: 0 });
+  expect(bad.status()).toBe(307);
+  expect(bad.headers()["location"]).toContain("/login?error=link");
+  const evil = await request.get("/auth/confirm?code=x&next=//evil.example", { maxRedirects: 0 });
+  expect(evil.headers()["location"]).not.toContain("evil.example");
+});
