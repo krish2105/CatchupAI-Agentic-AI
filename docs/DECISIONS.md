@@ -38,3 +38,10 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-015** 3D: one `OrbitalScene` (R3F v9) shared by dashboard and universe; props are a typed `UniverseGraph` built from the student's records. No drei (its `<Html>` broke under React 19.3); labels are an `aria-hidden` projected DOM overlay, and the DOM topic list is the accessible path. Continuous animation only on wide fine-pointer screens without reduced motion; otherwise `frameloop="demand"`.
 - **ADR-016** Accessibility token adjustments over the reference palette (see BUILD_STATUS) to meet WCAG AA; enforced by axe in E2E.
 
+## 2026-11-03: Build session M2
+- **ADR-017** Passwordless auth: 6-digit email code (primary, works across devices) plus magic link via `/auth/confirm` (token_hash). No passwords, no demo bypass. Sign-out uses local scope.
+- **ADR-018** Tenancy enforced in the schema: every child row carries `owner_id` and references its parent by composite `(id, owner_id)` FK; RLS is `owner_id = auth.uid()`; `authenticated` receives column-level INSERT/UPDATE grants only. `document.storage_path` is a generated column, and storage INSERT requires a matching pending document row.
+- **ADR-019** Server-written tables (chunks, agent runs, proposals, plans, tasks, quizzes) are SELECT-only for students. Writes go through the `server-only` admin client after ownership checks, or SECURITY DEFINER RPCs that re-check `auth.uid()` (approval, rate limit). This supersedes the plan note about invoker RPCs for agent runs.
+- **ADR-020** Rate limits are per-student fixed windows in Postgres (`consume_rate_limit`), so they hold across serverless instances.
+- **ADR-021** Times are stored as UTC instants; entry/display use the profile's IANA zone via `@date-fns/tz` (DST-safe, unit tested).
+

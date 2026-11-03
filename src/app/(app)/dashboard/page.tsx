@@ -3,10 +3,19 @@ import { ArrowRight, CalendarClock, Clock3, Layers, Orbit, Target } from "lucide
 import OrbPanel from "@/components/three/orb-panel";
 import { ButtonLink, Chip, EmptyCard, ProgressArc, StatCard } from "@/components/ui/primitives";
 import Link from "next/link";
+import { requirePageUser } from "@/lib/auth/session";
+import { getOverview } from "@/lib/db/overview";
+import { getProfile } from "@/lib/db/profiles";
+import { formatMinutes } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Mission control" };
 
-export default function DashboardPage() {
+const COURSE_COLORS = ["var(--aqua)", "var(--violet)", "var(--coral)", "var(--accent)"];
+
+export default async function DashboardPage() {
+  const { supabase, user } = await requirePageUser("/dashboard");
+  const [overview, profile] = await Promise.all([getOverview(supabase), getProfile(supabase, user.id)]);
+  const weekly = profile.weeklyMinutes.reduce((sum, m) => sum + m, 0);
   return (
     <>
       <section className="hero" aria-labelledby="dash-heading">
@@ -20,15 +29,15 @@ export default function DashboardPage() {
           </div>
         </div>
         <div className="hero-visual">
-          <OrbPanel graph={{ nodes: [] }} />
+          <OrbPanel graph={overview.graph} />
         </div>
       </section>
 
       <div className="stat-row">
-        <StatCard label="Study capacity" value={null} caption="Set your weekly availability" icon={Clock3} />
-        <StatCard label="Coming up" value={null} caption="Assignments due in 14 days" icon={CalendarClock} />
-        <StatCard label="Recovery outlook" value={null} caption="Share of work that fits" icon={Target} />
-        <StatCard label="Learning worlds" value={null} caption="Courses in your orbit" icon={Layers} />
+        <StatCard label="Study capacity" value={formatMinutes(weekly)} caption="Available per week (your settings)" icon={Clock3} />
+        <StatCard label="Coming up" value={String(overview.upcomingCount).padStart(2, "0")} caption="Assignments due in 14 days" icon={CalendarClock} />
+        <StatCard label="Recovery outlook" value={null} caption="Compare routes in the lab" icon={Target} />
+        <StatCard label="Learning worlds" value={String(overview.courses.length).padStart(2, "0")} caption="Courses in your orbit" icon={Layers} />
       </div>
 
       <div className="trajectory">
@@ -58,9 +67,30 @@ export default function DashboardPage() {
           <h3 style={{ fontSize: 18 }}>Your learning worlds</h3>
           <Link className="text-link" href="/courses">Open knowledge vault <ArrowRight className="ic" aria-hidden="true" /></Link>
         </div>
-        <EmptyCard icon={Layers} title="No courses yet" action={<ButtonLink href="/courses" variant="primary" small>Create a course</ButtonLink>}>
-          Each course becomes a world in your learning universe, with its documents and assignments orbiting around it.
-        </EmptyCard>
+        {overview.courses.length === 0 ? (
+          <EmptyCard icon={Layers} title="No courses yet" action={<ButtonLink href="/courses" variant="primary" small>Create a course</ButtonLink>}>
+            Each course becomes a world in your learning universe, with its documents and assignments orbiting around it.
+          </EmptyCard>
+        ) : (
+          <div className="three-column">
+            {overview.graph.nodes.slice(0, 6).map((node, i) => {
+              const course = overview.courses.find((c) => c.id === node.id)!;
+              return (
+                <Link key={node.id} href={node.href} className="card course-card" style={{ textDecoration: "none" }}>
+                  <div className="course-art" style={{ color: COURSE_COLORS[i % COURSE_COLORS.length] }}><Layers className="ic" aria-hidden="true" /></div>
+                  <div>
+                    <h4>{course.title}</h4>
+                    <p>{course.assignmentCount} assignment{course.assignmentCount === 1 ? "" : "s"} · {course.documentCount} document{course.documentCount === 1 ? "" : "s"}</p>
+                    <div className="microbar" aria-hidden="true"><span style={{ width: `${node.progress ?? 0}%`, background: COURSE_COLORS[i % COURSE_COLORS.length] }} /></div>
+                    <div className="course-footer">
+                      <span>{node.progress === null ? "No active plan" : `${node.progress}% of plan tasks done`}</span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        )}
       </div>
 
       <div className="two-column section-space">

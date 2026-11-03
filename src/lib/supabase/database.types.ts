@@ -1,0 +1,767 @@
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
+
+export type Database = {
+  graphql_public: {
+    Tables: {
+      [_ in never]: never
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      graphql: {
+        Args: {
+          extensions?: Json
+          operationName?: string
+          query?: string
+          variables?: Json
+        }
+        Returns: Json
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+  public: {
+    Tables: {
+      action_proposals: {
+        Row: {
+          applied_plan_id: string | null
+          approval_key: string | null
+          created_at: string
+          decided_at: string | null
+          expires_at: string
+          feasible: boolean
+          id: string
+          input_hash: string
+          kind: string
+          owner_id: string
+          payload: Json
+          payload_hash: string
+          run_id: string | null
+          scenario: string
+          schema_version: number
+          status: string
+        }
+        Insert: {
+          applied_plan_id?: string | null
+          approval_key?: string | null
+          created_at?: string
+          decided_at?: string | null
+          expires_at: string
+          feasible: boolean
+          id?: string
+          input_hash: string
+          kind?: string
+          owner_id: string
+          payload: Json
+          payload_hash: string
+          run_id?: string | null
+          scenario: string
+          schema_version?: number
+          status?: string
+        }
+        Update: {
+          applied_plan_id?: string | null
+          approval_key?: string | null
+          created_at?: string
+          decided_at?: string | null
+          expires_at?: string
+          feasible?: boolean
+          id?: string
+          input_hash?: string
+          kind?: string
+          owner_id?: string
+          payload?: Json
+          payload_hash?: string
+          run_id?: string | null
+          scenario?: string
+          schema_version?: number
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "action_proposals_run_id_owner_id_fkey"
+            columns: ["run_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "agent_runs"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "proposals_applied_plan_fk"
+            columns: ["applied_plan_id"]
+            isOneToOne: true
+            referencedRelation: "study_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_runs: {
+        Row: {
+          citations: Json
+          completed_at: string | null
+          course_id: string | null
+          created_at: string
+          error_code: string | null
+          id: string
+          input_tokens: number | null
+          model: string | null
+          output_tokens: number | null
+          owner_id: string
+          request_text: string
+          status: string
+          summary: string | null
+          tool_events: Json
+        }
+        Insert: {
+          citations?: Json
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          input_tokens?: number | null
+          model?: string | null
+          output_tokens?: number | null
+          owner_id: string
+          request_text: string
+          status?: string
+          summary?: string | null
+          tool_events?: Json
+        }
+        Update: {
+          citations?: Json
+          completed_at?: string | null
+          course_id?: string | null
+          created_at?: string
+          error_code?: string | null
+          id?: string
+          input_tokens?: number | null
+          model?: string | null
+          output_tokens?: number | null
+          owner_id?: string
+          request_text?: string
+          status?: string
+          summary?: string | null
+          tool_events?: Json
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_runs_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      assignments: {
+        Row: {
+          course_id: string
+          created_at: string
+          due_at: string
+          estimated_minutes: number
+          id: string
+          notes: string
+          owner_id: string
+          required: boolean
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          due_at: string
+          estimated_minutes?: number
+          id?: string
+          notes?: string
+          owner_id?: string
+          required?: boolean
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          due_at?: string
+          estimated_minutes?: number
+          id?: string
+          notes?: string
+          owner_id?: string
+          required?: boolean
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignments_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      courses: {
+        Row: {
+          created_at: string
+          description: string
+          id: string
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string
+          id?: string
+          owner_id?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          id?: string
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      document_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          content_tsv: unknown
+          course_id: string
+          created_at: string
+          document_id: string
+          embedding: string | null
+          id: string
+          owner_id: string
+          page_end: number
+          page_start: number
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          content_tsv?: unknown
+          course_id: string
+          created_at?: string
+          document_id: string
+          embedding?: string | null
+          id?: string
+          owner_id: string
+          page_end: number
+          page_start: number
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          content_tsv?: unknown
+          course_id?: string
+          created_at?: string
+          document_id?: string
+          embedding?: string | null
+          id?: string
+          owner_id?: string
+          page_end?: number
+          page_start?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_chunks_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "document_chunks_document_id_owner_id_fkey"
+            columns: ["document_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      documents: {
+        Row: {
+          chunk_count: number | null
+          course_id: string
+          created_at: string
+          embedding_model: string | null
+          error_code: string | null
+          filename: string
+          id: string
+          owner_id: string
+          page_count: number | null
+          processed_at: string | null
+          processing_started_at: string | null
+          sha256: string | null
+          size_bytes: number
+          status: string
+          storage_path: string | null
+          updated_at: string
+        }
+        Insert: {
+          chunk_count?: number | null
+          course_id: string
+          created_at?: string
+          embedding_model?: string | null
+          error_code?: string | null
+          filename: string
+          id?: string
+          owner_id?: string
+          page_count?: number | null
+          processed_at?: string | null
+          processing_started_at?: string | null
+          sha256?: string | null
+          size_bytes: number
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Update: {
+          chunk_count?: number | null
+          course_id?: string
+          created_at?: string
+          embedding_model?: string | null
+          error_code?: string | null
+          filename?: string
+          id?: string
+          owner_id?: string
+          page_count?: number | null
+          processed_at?: string | null
+          processing_started_at?: string | null
+          sha256?: string | null
+          size_bytes?: number
+          status?: string
+          storage_path?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "documents_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          display_name: string | null
+          id: string
+          onboarded_at: string | null
+          study_start_time: string
+          timezone: string
+          updated_at: string
+          weekly_minutes: number[]
+        }
+        Insert: {
+          created_at?: string
+          display_name?: string | null
+          id: string
+          onboarded_at?: string | null
+          study_start_time?: string
+          timezone?: string
+          updated_at?: string
+          weekly_minutes?: number[]
+        }
+        Update: {
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          onboarded_at?: string | null
+          study_start_time?: string
+          timezone?: string
+          updated_at?: string
+          weekly_minutes?: number[]
+        }
+        Relationships: []
+      }
+      quiz_attempts: {
+        Row: {
+          answers: Json
+          created_at: string
+          id: string
+          owner_id: string
+          quiz_id: string
+          results: Json
+          score_percent: number
+        }
+        Insert: {
+          answers: Json
+          created_at?: string
+          id?: string
+          owner_id: string
+          quiz_id: string
+          results: Json
+          score_percent: number
+        }
+        Update: {
+          answers?: Json
+          created_at?: string
+          id?: string
+          owner_id?: string
+          quiz_id?: string
+          results?: Json
+          score_percent?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_attempts_quiz_id_owner_id_fkey"
+            columns: ["quiz_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      quizzes: {
+        Row: {
+          course_id: string
+          created_at: string
+          id: string
+          owner_id: string
+          questions: Json
+          run_id: string | null
+          title: string
+          topic: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          id?: string
+          owner_id: string
+          questions: Json
+          run_id?: string | null
+          title: string
+          topic: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          id?: string
+          owner_id?: string
+          questions?: Json
+          run_id?: string | null
+          title?: string
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quizzes_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      rate_limit_counters: {
+        Row: {
+          bucket: string
+          hits: number
+          owner_id: string
+          window_start: string
+        }
+        Insert: {
+          bucket: string
+          hits?: number
+          owner_id: string
+          window_start: string
+        }
+        Update: {
+          bucket?: string
+          hits?: number
+          owner_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
+      study_plans: {
+        Row: {
+          created_at: string
+          feasibility: Json
+          id: string
+          owner_id: string
+          proposal_id: string
+          scenario: string
+          status: string
+          superseded_at: string | null
+          title: string
+        }
+        Insert: {
+          created_at?: string
+          feasibility?: Json
+          id?: string
+          owner_id: string
+          proposal_id: string
+          scenario: string
+          status?: string
+          superseded_at?: string | null
+          title: string
+        }
+        Update: {
+          created_at?: string
+          feasibility?: Json
+          id?: string
+          owner_id?: string
+          proposal_id?: string
+          scenario?: string
+          status?: string
+          superseded_at?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_plans_proposal_id_owner_id_fkey"
+            columns: ["proposal_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "action_proposals"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      study_tasks: {
+        Row: {
+          active: boolean
+          assignment_id: string | null
+          completed_at: string | null
+          course_id: string
+          created_at: string
+          duration_minutes: number | null
+          ends_at: string
+          evidence: Json
+          id: string
+          kind: string
+          owner_id: string
+          plan_id: string
+          position: number
+          starts_at: string
+          status: string
+          title: string
+        }
+        Insert: {
+          active?: boolean
+          assignment_id?: string | null
+          completed_at?: string | null
+          course_id: string
+          created_at?: string
+          duration_minutes?: number | null
+          ends_at: string
+          evidence?: Json
+          id?: string
+          kind: string
+          owner_id: string
+          plan_id: string
+          position: number
+          starts_at: string
+          status?: string
+          title: string
+        }
+        Update: {
+          active?: boolean
+          assignment_id?: string | null
+          completed_at?: string | null
+          course_id?: string
+          created_at?: string
+          duration_minutes?: number | null
+          ends_at?: string
+          evidence?: Json
+          id?: string
+          kind?: string
+          owner_id?: string
+          plan_id?: string
+          position?: number
+          starts_at?: string
+          status?: string
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "study_tasks_assignment_id_owner_id_fkey"
+            columns: ["assignment_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "study_tasks_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "study_tasks_plan_id_owner_id_fkey"
+            columns: ["plan_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "study_plans"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+    }
+    Views: {
+      [_ in never]: never
+    }
+    Functions: {
+      consume_rate_limit: {
+        Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
+        Returns: boolean
+      }
+    }
+    Enums: {
+      [_ in never]: never
+    }
+    CompositeTypes: {
+      [_ in never]: never
+    }
+  }
+}
+
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
+
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
+
+export type Tables<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+      Row: infer R
+    }
+    ? R
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+        Row: infer R
+      }
+      ? R
+      : never
+    : never
+
+export type TablesInsert<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Insert: infer I
+    }
+    ? I
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Insert: infer I
+      }
+      ? I
+      : never
+    : never
+
+export type TablesUpdate<
+  DefaultSchemaTableNameOrOptions extends
+    | keyof DefaultSchema["Tables"]
+    | { schema: keyof DatabaseWithoutInternals },
+  TableName extends DefaultSchemaTableNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+    : never = never,
+> = DefaultSchemaTableNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
+      Update: infer U
+    }
+    ? U
+    : never
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+        Update: infer U
+      }
+      ? U
+      : never
+    : never
+
+export type Enums<
+  DefaultSchemaEnumNameOrOptions extends
+    | keyof DefaultSchema["Enums"]
+    | { schema: keyof DatabaseWithoutInternals },
+  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+    : never = never,
+> = DefaultSchemaEnumNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+    : never
+
+export type CompositeTypes<
+  PublicCompositeTypeNameOrOptions extends
+    | keyof DefaultSchema["CompositeTypes"]
+    | { schema: keyof DatabaseWithoutInternals },
+  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+    schema: keyof DatabaseWithoutInternals
+  }
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+    : never = never,
+> = PublicCompositeTypeNameOrOptions extends {
+  schema: keyof DatabaseWithoutInternals
+}
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+    : never
+
+export const Constants = {
+  graphql_public: {
+    Enums: {},
+  },
+  public: {
+    Enums: {},
+  },
+} as const
+

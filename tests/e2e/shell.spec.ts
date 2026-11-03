@@ -49,7 +49,8 @@ test.describe("app shell", () => {
     await page.goto("/universe");
     await expect(page.getByText("3D VIEW OFF · SEE PREFERENCES")).toBeVisible();
     await expect(page.locator("canvas")).toHaveCount(0);
-    await expect(page.getByRole("link", { name: "Create a course" })).toBeVisible();
+    // The DOM inspector (empty state or topic list) remains the full-featured path.
+    await expect(page.locator(".inspector")).toBeVisible();
   });
 
   test("reduced motion preference is applied to the document", async ({ page }) => {
@@ -74,6 +75,17 @@ test.describe("app shell", () => {
     await page.getByRole("link", { name: "Recovery lab" }).click();
     await expect(page).toHaveURL(/\/recovery$/);
     await expect(page.locator("#sidebar")).not.toHaveClass(/open/);
+  });
+
+  test("signing out ends the session", async ({ browser }) => {
+    const context = await browser.newContext({ storageState: "playwright/.auth/user.json" });
+    const page = await context.newPage();
+    await page.goto("/settings");
+    await page.getByRole("button", { name: "Sign out" }).click();
+    await expect(page).toHaveURL(/\/$/);
+    await page.goto("/dashboard");
+    await expect(page).toHaveURL(/\/login/);
+    await context.close();
   });
 
   test("unknown routes render the 404 view", async ({ page }) => {

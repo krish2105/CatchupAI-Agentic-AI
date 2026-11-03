@@ -13,7 +13,10 @@
 | Preferences store (theme light/dark/system, motion, 3D) | Done (local) | `src/lib/preferences/*`, pre-paint script, verified reload persistence |
 | Nine-route Orbital Atelier UI (M1) | Done — shell, design system, all 9 routes + 404/loading/error, honest empty states (no sample data) | `npm run test:e2e` 18/18 |
 | R3F scene (dashboard orb + universe) | Done — data-driven props, DOM topic list, arrow-key/drag rotation, offscreen pause, demand frameloop for reduced motion/mobile, 3D-off + no-WebGL fallback | E2E fallback test; manual browser check both themes |
-| Auth / RLS / CRUD | Not started | M2 |
+| Auth (passwordless email code + magic link), proxy session refresh, onboarding | Done (local) | E2E setup signs up via real UI + Mailpit code |
+| Schema + RLS + grants + private storage (M2) | Done (local) — composite owner FKs, column grants, server-owned tables SELECT-only, generated storage paths, PDF-only 10 MB bucket | `npm run test:integration` 24/24 |
+| Courses / assignments / profile CRUD + APIs | Done — Zod strict validation, structured errors, per-user DB rate limits, timezone-correct due dates | E2E CRUD + cross-tenant API tests |
+| Synthetic demo seed | Done — `npm run seed:demo -- --email ...` (local only by default) | manual run |
 | PDF ingest + RAG | Not started | M3 |
 | Planner scenarios + approval | Not started | M4 (only `assessCapacity` util exists) |
 | Agent + tools | Not started | M5 |
@@ -91,4 +94,9 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M1 | `npx playwright test` (first run) | 15/18; axe contrast failures + drawer focus return | fixed |
 | 2026-11-03 | M1 | `npx playwright test` | PASS 18/18: 9-route nav + aria-current, theme persistence across real reload, system theme, 3D-off fallback, motion pref, mobile drawer (Esc + focus return), 404, no overflow at 320/390/1024/1440 × dark/light × 10 pages, axe wcag2a/aa no serious/critical × 10 pages × 2 themes | — |
 | 2026-11-03 | M1 | `npm test`, `npm run build` | PASS (6/6; 12 routes, AI-status pages dynamic) | — |
+| 2026-11-03 | M2 | `supabase start` (Docker) + `supabase db reset` | PASS: migration `20261103000001_core_schema.sql` applied | — |
+| 2026-11-03 | M2 | `npm run test:integration` | PASS 24/24 (two real users: profile isolation, cross-tenant read/update/delete/insert blocked, owner_id spoof 42501, anon denied, server-owned tables 42501, generated storage path, rate limit, storage path/MIME/cross-folder denial) | — |
+| 2026-11-03 | M2 | Browser pane: /dashboard → /login → emailed code (Mailpit) → dashboard with seeded data | PASS | — |
+| 2026-11-03 | M2 | `npx playwright test` | PASS 25/25 (adds signed-out redirect + 401, open-redirect refusal, UI course/assignment CRUD + reload persistence + UTC instant check, strict validation 400/413, cross-tenant direct API URLs 404, sign out) | — |
+| 2026-11-03 | M2 | `npm run typecheck`, `lint`, `test` (14/14), `build` | PASS | — |
 

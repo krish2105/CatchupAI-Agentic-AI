@@ -1,13 +1,18 @@
 import type { Metadata } from "next";
+import { LogOut } from "lucide-react";
 import AppearanceCard from "@/components/features/settings/appearance-card";
+import ProfileForm from "@/components/features/profile/profile-form";
 import PageHeading from "@/components/ui/page-heading";
 import { Chip } from "@/components/ui/primitives";
+import { requirePageUser } from "@/lib/auth/session";
+import { getProfile } from "@/lib/db/profiles";
 import { aiRuntimeStatus } from "@/lib/server/env";
 
 export const metadata: Metadata = { title: "Preferences" };
 
 export default async function SettingsPage() {
-  const ai = await aiRuntimeStatus();
+  const { supabase, user } = await requirePageUser("/settings");
+  const [ai, profile] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id)]);
   return (
     <>
       <PageHeading
@@ -28,7 +33,18 @@ export default async function SettingsPage() {
           <div className="setting-line">
             <div><strong>Your data</strong><p>Courses, documents and plans are private to your account and protected by row-level security.</p></div>
           </div>
+          <div className="setting-line">
+            <div><strong>Signed in</strong><p>{user.email}</p></div>
+            <form action="/auth/signout" method="post">
+              <button type="submit" className="btn small"><LogOut className="ic" aria-hidden="true" /> Sign out</button>
+            </form>
+          </div>
         </div>
+      </div>
+      <div className="card setting-card section-space">
+        <div className="split-head"><h3>Your week</h3></div>
+        <p className="muted" style={{ fontSize: 12, lineHeight: 1.7, marginBottom: 18 }}>The planner never schedules more than these minutes per day, in your time zone.</p>
+        <ProfileForm profile={profile} />
       </div>
     </>
   );
