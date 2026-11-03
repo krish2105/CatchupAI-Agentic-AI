@@ -382,3 +382,32 @@ test("learning trail: a confirmed prerequisite shows in the universe with a stud
     await s.cleanup();
   }
 });
+
+test("catch-up pack: cited summary, key terms, self-check and a 30-minute plan sent for approval", async ({ browser }) => {
+  test.setTimeout(90_000);
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Worksheet", dueAt: new Date(Date.now() + 4 * 86400_000).toISOString(), estimatedMinutes: 60 } });
+    await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
+    await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
+    await expect(s.page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
+
+    await s.page.goto("/catch-up");
+    await s.page.getByRole("navigation", { name: "Lecture documents" }).getByRole("link").first().click();
+    await expect(s.page.getByRole("heading", { name: "Summary" })).toBeVisible();
+    await expect(s.page.getByRole("link", { name: /^p\. \d$/ }).first()).toBeVisible();
+    await expect(s.page.getByRole("heading", { name: "Key terms" })).toBeVisible();
+    const first = s.page.getByRole("group", { name: "Answers for question 1" });
+    await first.getByRole("button").first().click();
+    await expect(s.page.getByText(/Correct\.|The answer is/).first()).toBeVisible();
+
+    await s.page.getByRole("button", { name: "Add a 30-minute catch-up to my plan" }).click();
+    await expect(s.page).toHaveURL(/\/recovery\?proposal=/);
+    const dialog = s.page.getByRole("dialog", { name: /Approve/ });
+    await expect(dialog).toContainText("Catch up: statistics_module_4.pdf");
+  } finally {
+    await s.cleanup();
+  }
+});

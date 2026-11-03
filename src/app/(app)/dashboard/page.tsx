@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen, CalendarDays, Check, Clock3, Leaf, Play, RefreshCcw, Sparkles, Target } from "lucide-react";
 import PhotoHero from "@/components/nature/photo-hero";
+import ListenButton from "@/components/ui/listen-button";
 import { ButtonLink } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
 import { listAgentRuns } from "@/lib/db/agent-runs";
@@ -66,7 +67,13 @@ export default async function DashboardPage() {
           <ButtonLink href={hasWork ? "/recovery" : "/courses"}><Target className="ic" aria-hidden="true" /> {hasWork ? "Plan recovery" : "Add a course"}</ButtonLink>
           <ButtonLink href="/focus"><Play className="ic" aria-hidden="true" /> Focus sprint</ButtonLink>
         </div>
-        <p className="nf-hero-status"><Leaf className="ic" aria-hidden="true" /> {status}</p>
+        <div className="nf-hero-foot">
+          <p className="nf-hero-status"><Leaf className="ic" aria-hidden="true" /> {status}</p>
+          <ListenButton
+            label="Listen to my briefing"
+            text={`${behind ? "Back on track" : "Good to see you"}, ${firstName}. ${briefing} ${status}. ${todays.length ? `Today: ${todays.map((t) => `${timeFmt.format(new Date(t.startsAt))}, ${t.title}`).join("; ")}.` : "Nothing is scheduled for today."}`}
+          />
+        </div>
       </PhotoHero>
 
       {missed.length ? (

@@ -1,7 +1,7 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED = ["/dashboard", "/universe", "/assistant", "/recovery", "/courses", "/planner", "/quizzes", "/insights", "/settings", "/focus", "/onboarding"];
+const PROTECTED = ["/dashboard", "/universe", "/assistant", "/recovery", "/courses", "/planner", "/quizzes", "/insights", "/settings", "/focus", "/onboarding", "/catch-up"];
 const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
 
 /**
