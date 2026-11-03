@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/controls";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import type { ProposalDto } from "@/lib/planner/service";
+import TrustDrawer from "./trust-drawer";
 import { formatDateTime, formatMinutes } from "@/lib/time";
 
 /** The human approval gate. One idempotency key per dialog, so double clicks/retries apply once. */
@@ -96,6 +97,7 @@ export default function ApprovalDialog({
       {error ? <div style={{ marginTop: 12 }}><Notice tone="danger" title={error} /></div> : null}
       <div className="modal-actions" style={{ flexWrap: "wrap" }}>
         <Chip>Expires {formatDateTime(proposal.expiresAt, timezone, { weekday: undefined })}</Chip>
+        <TrustDrawer proposalId={proposal.id} />
         <button type="button" className="btn ghost" onClick={reject} disabled={busy !== null}>
           {busy === "reject" ? <span className="spinner" aria-hidden="true" /> : null} Reject
         </button>

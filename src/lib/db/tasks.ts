@@ -17,7 +17,7 @@ export type StudyTask = {
   completedAt: string | null;
 };
 
-export type ActivePlan = { id: string; title: string; scenario: string; createdAt: string; feasibility: Record<string, unknown>; tasks: StudyTask[] };
+export type ActivePlan = { id: string; proposalId: string; title: string; scenario: string; createdAt: string; feasibility: Record<string, unknown>; tasks: StudyTask[] };
 
 const TASK_SELECT = "id, plan_id, course_id, assignment_id, title, kind, starts_at, ends_at, duration_minutes, status, evidence, completed_at";
 
@@ -44,12 +44,12 @@ function toTask(r: TaskRow): StudyTask {
 }
 
 export async function getActivePlan(supabase: ServerSupabase): Promise<ActivePlan | null> {
-  const { data: plan, error } = await supabase.from("study_plans").select("id, title, scenario, created_at, feasibility").eq("status", "active").maybeSingle();
+  const { data: plan, error } = await supabase.from("study_plans").select("id, proposal_id, title, scenario, created_at, feasibility").eq("status", "active").maybeSingle();
   if (error) throw fromDbError(error);
   if (!plan) return null;
   const { data: tasks, error: tErr } = await supabase.from("study_tasks").select(TASK_SELECT).eq("plan_id", plan.id).order("starts_at");
   if (tErr) throw fromDbError(tErr);
-  return { id: plan.id, title: plan.title, scenario: plan.scenario, createdAt: plan.created_at, feasibility: plan.feasibility as Record<string, unknown>, tasks: tasks.map(toTask) };
+  return { id: plan.id, proposalId: plan.proposal_id, title: plan.title, scenario: plan.scenario, createdAt: plan.created_at, feasibility: plan.feasibility as Record<string, unknown>, tasks: tasks.map(toTask) };
 }
 
 export async function setTaskStatus(supabase: ServerSupabase, id: string, status: "todo" | "completed"): Promise<StudyTask> {

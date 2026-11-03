@@ -687,3 +687,20 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .tour-pill { position: fixed; right: 20px; bottom: 20px; z-index: 35; display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; border-radius: 999px; border: 1px solid var(--stroke-strong); background: var(--surface); color: var(--heading); font-weight: 700; font-size: 13px; box-shadow: 0 14px 30px -16px rgba(0, 0, 0, 0.4); }
 .tour-pill .ic { color: var(--accent); }
 @media (max-width: 720px) { .tour-panel, .tour-pill { right: 12px; left: 12px; bottom: calc(80px + env(safe-area-inset-bottom)); width: auto; } .tour-pill { left: auto; } }
+
+/* ---------- Evidence and trust drawer ---------- */
+.modal:has(.trust) { width: min(calc(100% - 32px), 640px); }
+.trust { display: grid; gap: 16px; }
+.trust-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; }
+.trust-head h2 { margin: 4px 0 0; }
+.trust section { display: grid; gap: 8px; }
+.trust h3 { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted); }
+.trust-timeline { list-style: none; margin: 0; padding: 0 0 0 14px; border-left: 2px solid var(--stroke-strong); display: grid; gap: 8px; font-size: 14px; color: var(--text); }
+.trust-timeline li { position: relative; }
+.trust-timeline li::before { content: ""; position: absolute; left: -20px; top: 6px; width: 10px; height: 10px; border-radius: 50%; background: var(--chart-1); }
+.trust-timeline b { color: var(--heading); }
+.trust-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13.5px; }
+.trust-list li { display: inline-flex; align-items: center; gap: 6px; }
+.trust-list .ic { width: 15px; height: 15px; color: var(--good); }
+.trust-list .cite-chip { margin: 0; }
+.trust-notes { margin: 0; padding-left: 18px; display: grid; gap: 6px; font-size: 13.5px; line-height: 1.55; color: var(--muted); }

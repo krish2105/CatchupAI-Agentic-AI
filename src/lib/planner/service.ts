@@ -143,6 +143,7 @@ export type ProposalDto = {
   createdAt: string;
   runId: string | null;
   appliedPlanId: string | null;
+  decidedAt: string | null;
   payload: ProposalPayload;
 };
 
@@ -163,6 +164,7 @@ type ProposalRow = {
   created_at: string;
   run_id: string | null;
   applied_plan_id: string | null;
+  decided_at: string | null;
   payload: Json;
 };
 
@@ -177,11 +179,12 @@ export function toProposal(row: ProposalRow, now: number): ProposalDto {
     createdAt: row.created_at,
     runId: row.run_id,
     appliedPlanId: row.applied_plan_id,
+    decidedAt: row.decided_at,
     payload: row.payload as unknown as ProposalPayload,
   };
 }
 
-export const PROPOSAL_COLUMNS = "id, status, scenario, feasible, expires_at, created_at, run_id, applied_plan_id, payload";
+export const PROPOSAL_COLUMNS = "id, status, scenario, feasible, expires_at, created_at, decided_at, run_id, applied_plan_id, payload";
 
 /**
  * Creates a pending proposal from a server-side recomputation with the SAVED availability (never a what-if).

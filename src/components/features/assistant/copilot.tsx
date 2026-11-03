@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
+import TrustDrawer from "@/components/features/recovery/trust-drawer";
 import type { ToolEvent } from "@/lib/agents/context";
 import type { AgentRunDto } from "@/lib/db/agent-runs";
 
@@ -131,6 +132,7 @@ function Decision({ run, onDecided }: { run: AgentRunDto; onDecided: (status: st
       <div className="decision-actions">
         <Link className="btn primary small" href={`/recovery?proposal=${proposal.id}`}><ArrowRight className="ic" aria-hidden="true" /> Review in lab</Link>
         <button type="button" className="btn small" onClick={reject} disabled={busy}><X className="ic" aria-hidden="true" /> Reject</button>
+        <TrustDrawer proposalId={proposal.id} />
       </div>
     </div>
   );

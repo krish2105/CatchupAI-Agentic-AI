@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { CalendarDays } from "lucide-react";
 import CalendarCard from "@/components/features/planner/calendar-card";
 import PlannerView from "@/components/features/planner/planner-view";
+import TrustDrawer from "@/components/features/recovery/trust-drawer";
 import PageHeading from "@/components/ui/page-heading";
 import { ButtonLink, EmptyCard, Notice } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -30,7 +31,7 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
         eyebrow="Your time / your terms"
         title="A calmer kind of calendar."
         description="Approved recovery tasks become your study schedule, shown in your own time zone. Tick blocks off as you complete them."
-        actions={<ButtonLink href="/recovery" variant="primary" small>Compare plans</ButtonLink>}
+        actions={<>{plan ? <TrustDrawer proposalId={plan.proposalId} label="Why this plan?" /> : null}<ButtonLink href="/recovery" variant="primary" small>Compare plans</ButtonLink></>}
       />
       {params.approved && plan ? <div style={{ marginBottom: 16 }}><Notice tone="info" title="Plan approved and saved.">Your schedule below is stored in your account.</Notice></div> : null}
       {plan ? <CalendarCard hasFeed={Boolean(feed.data)} feedCreatedAt={feed.data?.created_at ?? null} /> : null}

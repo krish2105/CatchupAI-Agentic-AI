@@ -42,6 +42,15 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     await s.page.getByRole("group", { name: "Schedule view" }).getByRole("button", { name: "List" }).click();
     await expect(s.page.getByRole("link", { name: /statistics_module_4\.pdf · p\. 2/ })).toBeVisible();
 
+    // The trust drawer explains the saved plan from the server's own records.
+    await s.page.getByRole("button", { name: "Why this plan?" }).click();
+    const trust = s.page.getByRole("dialog", { name: "Why you can trust this plan" });
+    await expect(trust).toContainText("Approved by you");
+    await expect(trust).toContainText("by the copilot, from your request");
+    await expect(trust.getByText("Searched your course notes")).toBeVisible();
+    await expect(trust.getByRole("link", { name: /statistics_module_4\.pdf · p\. 2/ }).first()).toBeVisible();
+    await expect(trust).toContainText("calculated by a fixed algorithm");
+
     const { data: runs } = await s.db.from("agent_runs").select("status, tool_events").eq("owner_id", s.userId);
     expect(runs).toHaveLength(1);
     expect(runs![0].status).toBe("completed");
