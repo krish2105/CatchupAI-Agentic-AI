@@ -86,7 +86,6 @@ export default function Home() {
       <footer className="lp-foot">
         <span>CatchUp AI · built for the Decoding Data Science Agentic AI Challenge, Nov 2026</span>
         <Link href="/quality">Quality and trust: tests, evaluation, live status</Link>
-        <a href="/orbital-atelier-preview.html">Original design concept (simulated, no backend) ↗</a>
       </footer>
     </div>
   );

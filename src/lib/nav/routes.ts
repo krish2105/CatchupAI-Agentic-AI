@@ -22,7 +22,7 @@ export type AppRoute = {
   group: "workspace" | "explore";
 };
 
-/** The nine Orbital Atelier screens (docs/11_UI_SCREEN_MAPPING.md). */
+/** The app screens shown in the sidebar and command palette. */
 export const APP_ROUTES: AppRoute[] = [
   { href: "/dashboard", label: "Mission control", crumb: "Mission control", icon: House, group: "workspace" },
   { href: "/universe", label: "Learning universe", crumb: "Learning universe", icon: Orbit, badge: "3D", group: "workspace" },

@@ -54,7 +54,7 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
                   </button>
                 </li>
               ))}
-              {graph.nodes.length === 0 ? <li className="nf-empty">No courses yet.</li> : null}
+              {graph.nodes.length === 0 ? <li className="nf-empty">No courses yet. <Link className="text-link" href="/courses">Create one in the Knowledge vault</Link> and it becomes an island here.</li> : null}
             </ul>
           )}
           <div className="atlas-legend" aria-hidden="true">

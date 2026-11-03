@@ -58,4 +58,4 @@ Primary user: a student with two or more courses, missed lectures, inconsistent 
 Use synthetic student data from `data/demo_scenario.json`. No institution-owned or real student material without written permission.
 
 ## Orbital Atelier V2 visual requirement addendum
-The final product experience must implement the nine routes and full light/dark/system themes in `docs/15_ORBITAL_ATELIER_VISUAL_REDESIGN.md`, with a functioning accessible React Three Fiber Learning Universe and interactive three-scenario recovery lab. The standalone HTML is purely simulated and must never substitute for backend P0 completion. Theme/motion preferences, meaningful data-driven 3D nodes, no-WebGL fallback and approved plan persistence are the acceptance criteria.
+The final product experience must implement the nine routes and full light/dark/system themes (Nature Flow 3.0), with a functioning accessible React Three Fiber Learning Universe and interactive three-scenario recovery lab. Theme/motion preferences, meaningful data-driven 3D nodes, no-WebGL fallback and approved plan persistence are the acceptance criteria.

@@ -1,6 +1,6 @@
 {
   "meta": {
-    "ranAt": "2026-11-03T22:04:50.344Z",
+    "ranAt": "2026-11-03T22:31:07.714Z",
     "retrievalMode": "lexical only (no OPENAI_API_KEY)",
     "agentModel": "not configured — tool-selection cases skipped",
     "totals": {
@@ -69,7 +69,7 @@
       "name": "\"explain the intercept and slope of the regression line\" → module4.pdf p. 1",
       "status": "pass",
       "detail": "top citation module4.pdf p.1",
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "R3",
@@ -93,7 +93,7 @@
       "name": "\"practice task with hours studied and quiz score\" → module4.pdf p. 4",
       "status": "pass",
       "detail": "top citation module4.pdf p.4",
-      "ms": 4
+      "ms": 2
     },
     {
       "id": "R6",
@@ -109,7 +109,7 @@
       "name": "\"photosynthesis chlorophyll mitochondria\" → abstain",
       "status": "pass",
       "detail": "abstained (no supporting evidence)",
-      "ms": 3
+      "ms": 2
     },
     {
       "id": "R8",
@@ -117,7 +117,7 @@
       "name": "\"What does a residual mean?\" → abstain",
       "status": "pass",
       "detail": "abstained (no supporting evidence)",
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "S1",
@@ -253,7 +253,7 @@
       "name": "approve creates a plan with the proposed blocks",
       "status": "pass",
       "detail": "3 blocks saved",
-      "ms": 14
+      "ms": 13
     },
     {
       "id": "A2",
@@ -261,7 +261,7 @@
       "name": "10 concurrent approvals create exactly one plan",
       "status": "pass",
       "detail": "1 plan, 9 idempotent replays",
-      "ms": 18
+      "ms": 17
     },
     {
       "id": "A3",
@@ -269,7 +269,7 @@
       "name": "reject saves nothing",
       "status": "pass",
       "detail": "no tasks written",
-      "ms": 17
+      "ms": 16
     },
     {
       "id": "A4",
@@ -277,7 +277,7 @@
       "name": "stale proposal (inputs changed) is refused",
       "status": "pass",
       "detail": "409 stale",
-      "ms": 35
+      "ms": 36
     },
     {
       "id": "A5",
@@ -301,7 +301,7 @@
       "name": "agent tool denies a forged course id without leaking data",
       "status": "pass",
       "detail": "tool denied; nothing leaked",
-      "ms": 17
+      "ms": 18
     },
     {
       "id": "X3",
@@ -309,7 +309,7 @@
       "name": "PDF prompt injection is returned as inert, labelled data",
       "status": "pass",
       "detail": "retrieved as data; no state change",
-      "ms": 5
+      "ms": 6
     },
     {
       "id": "X4",
@@ -317,7 +317,7 @@
       "name": "anonymous clients cannot read data or call the approval RPC",
       "status": "pass",
       "detail": "denied (42501)",
-      "ms": 4
+      "ms": 3
     },
     {
       "id": "B1",
@@ -325,7 +325,7 @@
       "name": "invalid tool arguments are rejected by the schema, nothing runs",
       "status": "pass",
       "detail": "run completed; tool not executed",
-      "ms": 6
+      "ms": 7
     },
     {
       "id": "B2",
@@ -349,7 +349,7 @@
       "name": "facts citing unretrieved or unsupporting sources are removed (malicious document)",
       "status": "pass",
       "detail": "2 injected facts removed; no draft",
-      "ms": 10
+      "ms": 9
     },
     {
       "id": "B5",

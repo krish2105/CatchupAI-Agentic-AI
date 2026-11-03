@@ -19,7 +19,7 @@ cd ios && xcodegen && open CatchUpAI.xcodeproj
 Pick an iPhone simulator and press Run. For a device, set your team under Signing & Capabilities.
 
 ## Status
-- Written and syntax-checked with `swiftc -parse`. **Not yet built or run:** this Mac has only the Command Line Tools,
-  not Xcode.
+- Built with Xcode (`xcodebuild`, iOS Simulator SDK, no errors or warnings) and run on an iPhone 17 Pro simulator on
+  2026-11-04: it opens the live site and shows the sign-in screen with the bot check.
 - App Store: a web-view shell risks rejection under guideline 4.2 (minimum functionality). To publish, add native
   value first, such as push reminders for study blocks, a home-screen widget for today's plan, or offline viewing of the schedule.

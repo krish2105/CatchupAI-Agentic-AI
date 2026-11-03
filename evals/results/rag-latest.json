@@ -1,6 +1,6 @@
 {
   "metrics": {
-    "ranAt": "2026-11-03T22:04:50.842Z",
+    "ranAt": "2026-11-03T22:31:08.203Z",
     "retrievalMode": "lexical only (no embedding key)",
     "k": 3,
     "evidenceThreshold": {
@@ -18,7 +18,7 @@
     "falseAbstentions": [],
     "latencyMs": {
       "p50": 2,
-      "p95": 3
+      "p95": 2
     },
     "tokensAndCost": "0 tokens, $0 (lexical retrieval runs in Postgres)",
     "claimChecker": {
@@ -325,7 +325,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 3
+      "ms": 2
     },
     {
       "id": "G18",
@@ -339,7 +339,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 3
+      "ms": 2
     }
   ]
 }
