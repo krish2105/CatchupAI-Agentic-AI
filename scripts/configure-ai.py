@@ -15,8 +15,8 @@ import urllib.error
 import urllib.request
 
 BASE = "https://generativelanguage.googleapis.com/v1beta/openai"
-PREFERRED = ["gemini-2.5-flash", "gemini-flash-latest", "gemini-2.0-flash"]
-SKIP = ("lite", "image", "tts", "live", "audio", "embedding", "thinking", "preview", "exp", "vision", "learnlm", "gemma")
+PREFERRED = ["gemini-flash-latest", "gemini-3-flash", "gemini-2.5-flash", "gemini-2.0-flash"]
+SKIP = ("lite", "image", "tts", "live", "audio", "embedding", "thinking", "exp", "vision", "learnlm", "gemma", "robotics", "computer-use")
 
 
 def call(path, key, body=None):
@@ -26,15 +26,23 @@ def call(path, key, body=None):
         return json.load(r)
 
 
-def pick_model(key):
+def candidates(key):
+    """Flash models this key can see: the preferred names first, then the newest other Flash models (previews last)."""
     ids = [m["id"].removeprefix("models/") for m in call("models", key).get("data", [])]
-    for name in PREFERRED:
-        if name in ids:
-            return name, ids
-    flash = sorted((i for i in ids if "flash" in i and not any(s in i for s in SKIP)), reverse=True)
-    if not flash:
+    flash = sorted((i for i in ids if "flash" in i and not any(s in i for s in SKIP)), key=lambda i: ("preview" in i, [-ord(c) for c in i]))
+    ordered = [m for m in PREFERRED if m in ids] + [m for m in flash if m not in PREFERRED]
+    if not ordered:
         sys.exit("No suitable Gemini Flash model is available to this key.")
-    return flash[0], ids
+    return ordered
+
+
+def google_error(e):
+    try:
+        body = json.loads(e.read().decode())
+        body = body[0] if isinstance(body, list) else body
+        return body.get("error", {}).get("message", "")[:200]
+    except Exception:
+        return ""
 
 
 def tool_call_works(key, model):
@@ -67,14 +75,39 @@ def main():
     if not key:
         sys.exit("No key entered.")
     try:
-        model, _ = pick_model(key)
-        print(f"  ✓ key works · model: {model}")
-        print("  ✓ tool calling works" if tool_call_works(key, model) else "  ! the model answered without calling the tool (the copilot may be weaker)")
+        models = candidates(key)
     except urllib.error.HTTPError as e:
-        sys.exit(f"Google rejected the request ({e.code}). Check the key and try again.")
+        sys.exit(f"Google rejected the key ({e.code}): {google_error(e)}")
+    print(f"  ✓ key works · {len(models)} Flash model(s) visible")
+    model = None
+    for name in models[:6]:
+        try:
+            used_tool = tool_call_works(key, name)
+            model = name
+            print(f"  ✓ {name} answers" + (" and calls tools" if used_tool else " (but didn't call the tool in this test)"))
+            break
+        except urllib.error.HTTPError as e:
+            print(f"  · {name}: not usable ({e.code}) {google_error(e)}")
+    if not model:
+        sys.exit("None of the Flash models accepted a request from this key. Check the key's project in AI Studio and try again.")
+    embedding = None
+    for name in ("gemini-embedding-001", "gemini-embedding-2"):
+        try:
+            vec = call("embeddings", key, {"model": name, "input": "residual", "dimensions": 1536})["data"][0]["embedding"]
+            if len(vec) >= 1536:
+                embedding = name
+                print(f"  ✓ embeddings: {name} ({len(vec)} values)")
+                break
+        except (urllib.error.HTTPError, KeyError, IndexError) as e:
+            print(f"  · embeddings {name}: not usable {google_error(e) if isinstance(e, urllib.error.HTTPError) else ''}")
+    if not embedding:
+        print("  ! no embedding model worked; search stays keyword-only")
 
     print("→ Saving to Vercel and redeploying (about 1 minute)…")
-    for name, value, extra in [("GEMINI_API_KEY", key, ["--sensitive"]), ("GEMINI_MODEL", model, ["--type", "config"]), ("AI_PROVIDER", "gemini", ["--type", "config"])]:
+    settings = [("GEMINI_API_KEY", key, ["--sensitive"]), ("GEMINI_MODEL", model, ["--type", "config"]), ("AI_PROVIDER", "gemini", ["--type", "config"])]
+    if embedding:
+        settings.append(("GEMINI_EMBEDDING_MODEL", embedding, ["--type", "config"]))
+    for name, value, extra in settings:
         vercel("env", "rm", name, "production", "--yes")
         added = vercel("env", "add", name, "production", "--value", value, "--yes", *extra)
         if added.returncode != 0:
@@ -84,8 +117,8 @@ def main():
     print("  ✓ live copilot enabled at https://catchupai-chi.vercel.app/assistant")
 
     if input("Also save the key to .env.local so the live evaluation can run on this Mac? [Y/n]: ").strip().lower() in ("", "y", "yes"):
-        lines = [l for l in open(".env.local").read().splitlines() if not l.startswith(("GEMINI_API_KEY=", "GEMINI_MODEL=", "AI_PROVIDER="))]
-        lines += [f"GEMINI_API_KEY={key}", f"GEMINI_MODEL={model}", "AI_PROVIDER=gemini"]
+        lines = [l for l in open(".env.local").read().splitlines() if not l.startswith(("GEMINI_API_KEY=", "GEMINI_MODEL=", "AI_PROVIDER=", "GEMINI_EMBEDDING_MODEL="))]
+        lines += [f"GEMINI_API_KEY={key}", f"GEMINI_MODEL={model}", "AI_PROVIDER=gemini"] + ([f"GEMINI_EMBEDDING_MODEL={embedding}"] if embedding else [])
         open(".env.local", "w").write("\n".join(lines) + "\n")
         print("  ✓ saved to .env.local (git-ignored)")
     print("\nDone.")

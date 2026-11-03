@@ -10,7 +10,7 @@ What it does:
 ✅ Nothing is saved until you approve it, and approval commits exactly once
 🌲 Progress you can see: finished study blocks grow a forest, and a recovery score shows if you're keeping up
 
-How I tested it: 264 automated tests, a 38-case evaluation (8 cases are waiting on a live model and are reported as
+How I tested it: 267 automated tests, a 38-case evaluation (8 cases are waiting on a live model and are reported as
 skipped, not passed), a RAG evaluation with page-level ground truth, and an AI red-team pass.
 Everything is public: https://catchupai-chi.vercel.app/quality
 
