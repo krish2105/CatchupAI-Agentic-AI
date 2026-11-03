@@ -29,7 +29,7 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
         eyebrow="Your time / your terms"
         title="A calmer"
         accent="kind of calendar."
-        accentColor="aqua"
+       
         description="Approved recovery tasks become your study schedule, shown in your own time zone. Tick blocks off as you complete them."
         actions={<ButtonLink href="/recovery" variant="primary" small>Compare plans</ButtonLink>}
       />

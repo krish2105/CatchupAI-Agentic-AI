@@ -20,7 +20,7 @@ export default async function QuizzesPage() {
         eyebrow="Low pressure / high learning"
         title="Practice makes"
         accent="progress visible."
-        accentColor="coral"
+       
         description="Short knowledge checks built only from passages in your uploaded material, with the source page shown after each answer. Graded on the server; every attempt is saved."
       />
       <PracticeArena courses={courses.map((c) => ({ id: c.id, title: c.title, ready: ready.has(c.id) }))} quizzes={quizzes} revision={evidence.revision} progress={evidence.progress} />

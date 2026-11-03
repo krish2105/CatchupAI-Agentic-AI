@@ -20,7 +20,7 @@ export default async function SettingsPage() {
         eyebrow="Personalize the experience"
         title="Make this space"
         accent="yours."
-        accentColor="violet"
+       
         description="Every view adapts to your theme and motion preferences. Immersive when you want it, calm when you don't."
       />
       <div className="settings-grid">

@@ -22,7 +22,7 @@ export default async function InsightsPage() {
         eyebrow="The signal behind your progress"
         title="Celebrate the"
         accent="small wins."
-        accentColor="aqua"
+       
         description="Every number here is calculated from your completed study blocks and graded knowledge checks. Nothing is estimated or illustrative."
         actions={<ButtonLink href="/quizzes" small>Take a knowledge check</ButtonLink>}
       />

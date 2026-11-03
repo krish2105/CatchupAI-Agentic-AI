@@ -19,6 +19,7 @@ export default function RecoveryLab({
   savedWeekly,
   courseNames,
   currentPlan = null,
+  replan = null,
 }: {
   initialProposal?: ProposalDto | null;
   initialPlan: ComputedPlan;
@@ -26,6 +27,8 @@ export default function RecoveryLab({
   courseNames: Record<string, string>;
   /** Unfinished/completed blocks of the plan an approval would replace. */
   currentPlan?: { todo: number; todoMinutes: number; completed: number } | null;
+  /** Missed blocks of the active plan (time passed, not completed). */
+  replan?: { count: number; minutes: number; completed: number } | null;
 }) {
   const router = useRouter();
   const savedTotal = savedWeekly.reduce((s, m) => s + m, 0);
@@ -96,6 +99,13 @@ export default function RecoveryLab({
 
   return (
     <>
+      {replan ? (
+        <div style={{ marginBottom: 16 }}>
+          <Notice title={`Replanning around ${replan.count} missed block${replan.count === 1 ? "" : "s"} (${formatMinutes(replan.minutes)})`}>
+            These routes start from now. Time from {replan.completed} completed block{replan.completed === 1 ? "" : "s"} is already counted, and the work you missed is rescheduled. Approving replaces only the unfinished blocks of your current plan.
+          </Notice>
+        </div>
+      ) : null}
       {plan.overdue.length ? (
         <div style={{ marginBottom: 16 }}>
           <Notice title={`${plan.overdue.length} required item${plan.overdue.length === 1 ? " is" : "s are"} already past due`}>

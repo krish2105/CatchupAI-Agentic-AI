@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowRight, BookOpen, CalendarDays, Check, Clock3, Leaf, Play, Sparkles, Target } from "lucide-react";
+import { ArrowRight, BookOpen, CalendarDays, Check, Clock3, Leaf, Play, RefreshCcw, Sparkles, Target } from "lucide-react";
 import PhotoHero from "@/components/nature/photo-hero";
 import { ButtonLink } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -9,6 +9,7 @@ import { getPracticeEvidence } from "@/lib/quiz/service";
 import { getOverview } from "@/lib/db/overview";
 import { getProfile } from "@/lib/db/profiles";
 import { getActivePlan } from "@/lib/db/tasks";
+import { missedBlocks } from "@/lib/planner/progress";
 import { computePlan } from "@/lib/planner/service";
 import { renderTime } from "@/lib/server/clock";
 import { formatDateTime, formatMinutes } from "@/lib/time";
@@ -40,6 +41,8 @@ export default async function DashboardPage() {
   const behind = hasWork && !balanced.feasible;
   const mastery = practice.progress.length ? Math.round(practice.progress.reduce((s, p) => s + p.latest, 0) / practice.progress.length) : null;
   const dueRevision = practice.revision.filter((r) => r.due).length;
+  const missed = missedBlocks(tasks, now);
+  const missedMinutes = missed.reduce((sum, t) => sum + t.durationMinutes, 0);
 
   const briefing = !overview.courses.length
     ? "Start by adding a course with its deadlines. Your briefing builds itself from your real work."
@@ -65,6 +68,17 @@ export default async function DashboardPage() {
         </div>
         <p className="nf-hero-status"><Leaf className="ic" aria-hidden="true" /> {status}</p>
       </PhotoHero>
+
+      {missed.length ? (
+        <section className="card nf-replan" aria-labelledby="replan-head">
+          <span className="nf-replan-icon" aria-hidden="true"><RefreshCcw className="ic" /></span>
+          <div>
+            <h2 id="replan-head">You missed {missed.length} study block{missed.length === 1 ? "" : "s"} · {formatMinutes(missedMinutes)}</h2>
+            <p>That&apos;s okay. Replanning starts from now, keeps what you completed, and reschedules the rest. Nothing changes until you approve.</p>
+          </div>
+          <ButtonLink href="/recovery?replan=1" variant="primary">Replan from now <ArrowRight className="ic" aria-hidden="true" /></ButtonLink>
+        </section>
+      ) : null}
 
       <ul className="nf-stats" aria-label="This week at a glance">
         <Stat label="Capacity" value={formatMinutes(weekly)} caption="Study time this week" icon={<Clock3 className="ic" />} />

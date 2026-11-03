@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { Bell, CalendarClock, ClipboardCheck, Clock3 } from "lucide-react";
+import { Bell, CalendarClock, ClipboardCheck, Clock3, RefreshCcw } from "lucide-react";
 import { useEffect, useId, useRef, useState } from "react";
 import type { Notice } from "@/lib/db/notifications";
 
-const ICONS = { approval: ClipboardCheck, deadline: CalendarClock, today: Clock3 } as const;
+const ICONS = { approval: ClipboardCheck, deadline: CalendarClock, today: Clock3, missed: RefreshCcw } as const;
 
 /** Header bell: real attention items (pending drafts, deadlines within 48 h, upcoming blocks). */
 export default function NotificationBell({ notices }: { notices: Notice[] }) {

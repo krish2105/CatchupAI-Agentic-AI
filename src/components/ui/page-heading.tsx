@@ -1,17 +1,13 @@
-type Accent = "accent" | "violet" | "aqua" | "coral";
-
 export default function PageHeading({
   eyebrow,
   title,
   accent,
-  accentColor = "accent",
   description,
   actions,
 }: {
   eyebrow: string;
   title: string;
   accent?: string;
-  accentColor?: Accent;
   description?: React.ReactNode;
   actions?: React.ReactNode;
 }) {
@@ -21,7 +17,7 @@ export default function PageHeading({
         <div className="eyebrow">{eyebrow}</div>
         <h1>
           {title}
-          {accent ? <> <span className="serif" style={{ color: `var(--${accentColor})` }}>{accent}</span></> : null}
+          {accent ? <> <span className="serif">{accent}</span></> : null}
         </h1>
         {description ? <p>{description}</p> : null}
       </div>

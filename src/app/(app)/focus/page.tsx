@@ -35,7 +35,13 @@ export default async function FocusPage() {
         description="Pick a study block, start the timer and step away from everything else. Each session is saved to your history and can complete the block it belongs to."
       />
       <section className="focus-stage" aria-label="Focus timer">
-        <div className="photo-hero-art" aria-hidden="true" />
+        {/* Theme-specific landscapes; only the visible one is fetched (lazy + display:none for the other).
+            Plain <img>: the files are already sized WebP, and next/image can't switch on the client theme. */}
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="focus-scene theme-light-only" src="/nature-flow/focus_sanctuary_light.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" width={1672} height={464} />
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img className="focus-scene theme-dark-only" src="/nature-flow/focus_sanctuary_dark.webp" alt="" aria-hidden="true" loading="lazy" decoding="async" width={1672} height={464} />
+        <div className="focus-veil" aria-hidden="true" />
         <FocusTimer blocks={blocks} />
         <div className="focus-pills">
           <span className="focus-pill"><Clock3 className="ic" aria-hidden="true" /> Today: {today.length} session{today.length === 1 ? "" : "s"} · {formatMinutes(today.reduce((s, x) => s + x.focusedMinutes, 0))} focused</span>

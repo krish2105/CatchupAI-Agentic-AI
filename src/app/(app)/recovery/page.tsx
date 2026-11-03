@@ -7,6 +7,7 @@ import { requirePageUser } from "@/lib/auth/session";
 import { listCourses } from "@/lib/db/courses";
 import { getProfile } from "@/lib/db/profiles";
 import { getActivePlan } from "@/lib/db/tasks";
+import { missedBlocks } from "@/lib/planner/progress";
 import { computePlan, getProposal } from "@/lib/planner/service";
 import { uuid } from "@/lib/validation/common";
 import { renderTime } from "@/lib/server/clock";
@@ -18,6 +19,8 @@ export default async function RecoveryPage({ searchParams }: { searchParams: Pro
   const now = await renderTime();
   const [plan, profile, courses, active] = await Promise.all([computePlan(supabase, user.id, { now }), getProfile(supabase, user.id), listCourses(supabase), getActivePlan(supabase)]);
   const todo = (active?.tasks ?? []).filter((t) => t.status === "todo");
+  const missed = missedBlocks(active?.tasks ?? [], now);
+  const replan = missed.length ? { count: missed.length, minutes: missed.reduce((s, t) => s + t.durationMinutes, 0), completed: (active?.tasks ?? []).filter((t) => t.status === "completed").length } : null;
   const currentPlan = active ? { todo: todo.length, todoMinutes: todo.reduce((s, t) => s + t.durationMinutes, 0), completed: active.tasks.filter((t) => t.status === "completed").length } : null;
   const hasWork = plan.scenarios[2].requiredMinutes > 0 || plan.overdue.length > 0;
   const requested = (await searchParams).proposal;
@@ -32,7 +35,7 @@ export default async function RecoveryPage({ searchParams }: { searchParams: Pro
         actions={<ButtonLink href="/assistant" small><Sparkles className="ic" aria-hidden="true" /> Ask copilot</ButtonLink>}
       />
       {hasWork ? (
-        <RecoveryLab initialProposal={initialProposal?.status === "pending" ? initialProposal : null} initialPlan={plan} savedWeekly={profile.weeklyMinutes} courseNames={Object.fromEntries(courses.map((c) => [c.id, c.title]))} currentPlan={currentPlan} />
+        <RecoveryLab initialProposal={initialProposal?.status === "pending" ? initialProposal : null} initialPlan={plan} savedWeekly={profile.weeklyMinutes} courseNames={Object.fromEntries(courses.map((c) => [c.id, c.title]))} currentPlan={currentPlan} replan={replan} />
       ) : (
         <EmptyCard icon={FlaskConical} title="Nothing to plan yet" action={<ButtonLink href="/courses" variant="primary" small>Add a course and assignments</ButtonLink>}>
           The lab needs at least one upcoming assignment. Your weekly availability comes from Preferences.

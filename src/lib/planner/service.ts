@@ -8,6 +8,7 @@ import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { planScenarios, scaleWeekly, type PlanResult, type ScenarioKey, type WorkItem } from "./engine";
+import { applyCompletedWork } from "./progress";
 
 export const PROPOSAL_TTL_MS = 6 * 60 * 60_000;
 export const REVIEW_MINUTES = 30;
@@ -82,7 +83,13 @@ export async function buildCandidateItems(supabase: ServerSupabase, assignments:
       });
     }
   }
-  return [...required, ...recommended, ...optional];
+  // Completed study blocks (from any plan, current or superseded) count toward their assignment.
+  const { data: done, error: doneError } = await supabase.from("study_tasks").select("assignment_id, duration_minutes").eq("status", "completed").not("assignment_id", "is", null);
+  if (doneError) throw fromDbError(doneError);
+  return applyCompletedWork(
+    [...required, ...recommended, ...optional],
+    done.map((t) => ({ assignmentId: t.assignment_id, durationMinutes: t.duration_minutes ?? 0 })),
+  );
 }
 
 function canonical(value: unknown): string {

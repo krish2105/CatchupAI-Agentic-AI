@@ -64,6 +64,10 @@ test("focus sanctuary saves a session and the API can complete a block", async (
     await s.page.getByLabel("Study block").selectOption({ index: 1 });
     await s.page.getByRole("button", { name: "Start focus" }).click();
     await expect(s.page.getByRole("timer")).not.toHaveText("25:00");
+    // A refresh resumes the running session instead of losing it.
+    await s.page.reload();
+    await expect(s.page.getByText("Resumed your session from where you left off.")).toBeVisible();
+    await expect(s.page.getByRole("timer")).not.toHaveText("25:00");
     await s.page.getByRole("button", { name: "Pause" }).click();
     await s.page.getByRole("button", { name: "End and save" }).click();
     await expect(s.page.getByText(/Saved \d+ focused minute/)).toBeVisible();
@@ -185,4 +189,34 @@ test.describe("one-click demo", () => {
     expect((await request.get("/api/cron/cleanup-demo")).status()).toBe(403);
     expect((await request.get("/api/cron/cleanup-demo", { headers: { authorization: "Bearer wrong" } })).status()).toBe(403);
   });
+});
+
+test("smart replanner counts completed blocks and offers a replan after a missed session", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Long essay", dueAt: new Date(Date.now() + 4 * 86400_000).toISOString(), estimatedMinutes: 180 } });
+    const draft = await (await s.page.request.post("/api/proposals", { data: { scenario: "essential" } })).json();
+    expect((await s.page.request.post(`/api/proposals/${draft.proposal.id}/approve`, { headers: { "idempotency-key": "replan-e2e-0001" } })).ok()).toBeTruthy();
+
+    const { plan } = await (await s.page.request.get("/api/study-tasks")).json();
+    const [first, second] = plan.tasks as { id: string; durationMinutes: number }[];
+    expect((await s.page.request.patch(`/api/study-tasks/${first.id}`, { data: { status: "completed" } })).ok()).toBeTruthy();
+
+    // Completed time is no longer required.
+    const recovery = await (await s.page.request.get("/api/recovery")).json();
+    const essential = recovery.plan.scenarios.find((x: { key: string }) => x.key === "essential");
+    expect(essential.requiredMinutes).toBe(180 - first.durationMinutes);
+
+    // Move the next block into the past: it is now a missed session.
+    const yesterday = Date.now() - 86400_000;
+    await s.db.from("study_tasks").update({ starts_at: new Date(yesterday).toISOString(), ends_at: new Date(yesterday + second.durationMinutes * 60_000).toISOString() }).eq("id", second.id);
+    await s.page.goto("/dashboard");
+    await expect(s.page.getByRole("heading", { name: /You missed 1 study block/ })).toBeVisible();
+    await s.page.getByRole("link", { name: /Replan from now/ }).click();
+    await expect(s.page).toHaveURL(/\/recovery\?replan=1/);
+    await expect(s.page.getByText(/Replanning around 1 missed block/)).toBeVisible();
+  } finally {
+    await s.cleanup();
+  }
 });
