@@ -8,9 +8,9 @@
 | --- | --- |
 | `npm run typecheck` | PASS (exit 0) |
 | `npm run lint` | PASS (exit 0) |
-| `npm test` (Vitest unit) | **82 / 82 passed** (18 files) |
-| `npm run test:integration` (real local Supabase) | **82 / 82 passed** (14 files) |
-| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **60 / 60 passed** (includes production build) |
+| `npm test` (Vitest unit) | **91 / 91 passed** (20 files) |
+| `npm run test:integration` (real local Supabase) | **92 / 92 passed** (15 files) |
+| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **65 / 65 passed** (includes production build) |
 | `npm run eval` (30-case evaluation, see `evals/REPORT.md`) | **25 passed · 0 failed · 5 skipped** (tool-selection cases need a real LLM; not simulated) |
 | Secret scan (tracked files + `.next/static`) against the real local secret values and key patterns | 0 hits |
 
@@ -18,13 +18,15 @@ Nothing was skipped. No test hard-codes a passing result for missing behaviour.
 
 ## What the suites cover
 
+**Sprint 2 (integration + E2E):** study-email preferences private and owner-only (owner spoofing and `last_sent_on` writes 42501); nudge run emails only opted-in, non-anonymous students with something to say, once a day, with an HMAC unsubscribe; feedback private and forge-proof; copilot memory private, 40-item cap, students cannot forge copilot suggestions; MCP tokens hash-only, rotation kills the old token, MCP tools return only the owner's rows, HTTP 401 without/after revoke.
+
 **Access control (integration + E2E):** two real users; cross-tenant reads, updates, deletes and inserts blocked on every table (including via direct API URLs, which return 404); `owner_id` spoofing rejected (42501); anonymous access denied; server-owned tables not writable by students; quiz answer keys unreadable; storage upload restricted to the exact pending-document path; other tenants' files can't be downloaded, listed, signed or written; non-PDF MIME rejected by the bucket.
 
 **Documents and RAG:** page extraction; rejection of non-PDF, empty, scanned (no text), >50-page, truncated and >10 MB files; idempotent processing; exactly one of two concurrent processing requests wins (409); duplicate files; correct page citation ("residual" → p. 2); abstention on unrelated questions; prompt-injection text stored and returned as inert data.
 
 **Planner and approval:** time-zone/DST windows, midnight wrap, ≤90-minute blocks with breaks, EDF ordering, honest shortfall, 200 randomized invariant runs (no overlap, inside windows, before deadlines, minutes conserved); proposals are server-created; approval is idempotent across retries and **10 concurrent requests create exactly one plan**; reject saves nothing; expired, stale (inputs changed) and infeasible proposals are refused; another student can't approve, reject or read a proposal; a double-click approval in the UI creates one plan.
 
-**Agent:** only five read-or-draft tools exist; the real tool chain runs with a scripted model; facts citing unretrieved sources are removed; another student's course id is denied without leaking data; drafts must cite retrieved evidence; model failure → failed run and expired draft; turn and search budgets enforced; runs are private. E2E: live SSE timeline, page citation, persistence after reload, draft → lab → approve → planner evidence link.
+**Agent:** only seven read, draft or suggest tools exist (memory suggestions are unused until the student keeps them); the real tool chain runs with a scripted model; facts citing unretrieved sources are removed; another student's course id is denied without leaking data; drafts must cite retrieved evidence; model failure → failed run and expired draft; turn and search budgets enforced; runs are private. E2E: live SSE timeline, page citation, persistence after reload, draft → lab → approve → planner evidence link.
 
 **UX and accessibility:** navigation across all nine screens; theme persistence (light/dark/system); mobile drawer focus handling; no horizontal overflow at 320/390/720 (200% zoom)/1024/1440 px in both themes; axe (WCAG 2.0/2.1 A/AA) with no serious or critical violations on all pages in both themes; no-WebGL and 3D-off fallbacks; the approval loop completed using only the keyboard with reduced motion and 3D off.
 

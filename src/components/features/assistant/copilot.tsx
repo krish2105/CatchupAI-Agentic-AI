@@ -289,7 +289,7 @@ export default function Copilot({
           <div className="split-head"><h3>Agent activity</h3><Chip tone={running ? "warn" : "good"}>{running ? "Live" : shown ? (shown.status === "failed" ? "Failed" : "Complete") : "Idle"}</Chip></div>
           <Timeline events={live ? live.events : (shown?.events ?? [])} running={running} />
           {!live && shown?.meta.model && shown.status !== "running" ? (
-            <p className="trust-meta">Ran on <b>{shown.meta.model}</b>{shown.meta.durationMs !== null ? ` · ${(shown.meta.durationMs / 1000).toFixed(1)} s` : ""}{shown.meta.inputTokens !== null ? ` · ${((shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens` : ""}</p>
+            <p className="trust-meta">Ran on <b>{shown.meta.model}</b>{shown.meta.durationMs !== null ? ` · ${(shown.meta.durationMs / 1000).toFixed(1)} s` : ""}{(shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0) > 0 ? ` · ${((shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens` : ""}</p>
           ) : null}
           {!live && shown?.status === "failed" ? <p className="field-error" style={{ marginTop: 8 }}><OctagonX className="ic" aria-hidden="true" style={{ display: "inline", width: 12 }} /> Run failed: {shown.errorCode}</p> : null}
         </div>

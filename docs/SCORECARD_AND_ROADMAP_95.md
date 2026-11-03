@@ -1,20 +1,20 @@
 # CatchUp AI: honest scorecard and the path to 95+
 
-_Re-assessed 2026-11-04 after the feature batch (calendar export, guided tour, trust drawer, weekly review, learning trail, PWA) and the security pass. Scores judge what is verifiable today, not what the code could do._
+_Re-assessed 2026-11-04 after sprint 2 (catch-up pack, study emails, feedback, copilot memory, MCP, quality page, forest, demo video). Scores judge what is verifiable today, not what the code could do._
 
-## Where it stands: **91 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91: live, with email and bot protection)
+## Where it stands: **94 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91 → 94: sprint 2 shipped and deployed with green CI; live AI still unmeasured)
 
 | Lens | Score | What earns points | What costs points |
 | --- | --- | --- | --- |
-| **CEO** (problem, story, market) | 79 | Missed-lecture recovery is a gap competitors leave open; guided demo tells the story in 3 minutes; calendar sync makes plans real | No users, pricing or outcome evidence |
-| **CTO** (architecture, security) | 92 | RLS + composite keys everywhere, idempotent approval RPC, nonce CSP, Origin checks, rate-limit allowlist, CI on every push (unit → integration → E2E → eval) | No error monitoring; not yet proven on hosted infrastructure |
-| **Senior PM** (scope, UX) | 90 | Ten reference-matched screens, light/forest-night themes, mobile bottom nav, every P0 and P1 feature shipped and tested | Volunteer usability evidence missing |
-| **COO** (operability) | 84 | Live on Vercel + Supabase (Seoul) with custom SMTP, 6-digit code emails, Turnstile CAPTCHA, CI, demo cleanup cron, usage/limit visibility, health check | No error alerting; Gmail SMTP caps ~500 mails/day |
-| **AI engineer** | 75 | Typed tools, structured output, budgets, scripted-model tests | **No live model run yet** (latency, cost, quality unmeasured) |
-| **Agentic AI engineer** | 85 | Scoped tools, persisted traces, propose → human approve, replanner, trust drawer showing exactly which tools ran | Tool-selection eval cases need a real LLM |
+| **CEO** (problem, story, market) | 84 | Missed-lecture catch-up pack makes the core story concrete; captioned demo video; calendar sync, study emails | No users, pricing or outcome evidence yet |
+| **CTO** (architecture, security) | 94 | RLS on 23 tables, idempotent approval RPC, nonce CSP, hash-only tokens (calendar, MCP), signed unsubscribe, CI on every push, public quality page with live CI and health | No error monitoring |
+| **Senior PM** (scope, UX) | 93 | Every P0/P1 feature plus catch-up pack, memory panel, feedback in the flow; volunteer kit ready | Volunteer sessions not run yet |
+| **COO** (operability) | 88 | Live with SMTP, CAPTCHA, CI, two crons (demo cleanup, nudges), usage limits, public health/quality page, feedback totals | No error alerting; nudge SMTP env not yet set |
+| **AI engineer** | 80 | Gemini/OpenAI runtime switch, typed tools, structured output, budgets, per-run model/time/tokens surfaced | **No live model run yet** (key not entered) |
+| **Agentic AI engineer** | 91 | 7 scoped tools incl. student-controlled memory (suggest → keep), read-only MCP server, persisted traces, propose → approve | Tool-selection eval cases need a real LLM |
 | **RAG specialist** | 74 | Hybrid retrieval with RRF, page citations, abstention, eval-driven recall fix, citations in teach-back/rubric/trust drawer | Embeddings unused without a key; no claim-to-citation faithfulness metric |
-| **Learning scientist** | 88 | Spaced revision, adaptive retests, Teach-It-Back (self-explanation), weekly reflection, prerequisite-aware study order | No measured learning outcomes with real students |
-| **Competition judge** | 84 | Live URL with a one-click guided demo, security reports, 224 tests + green CI | No demo video yet |
+| **Learning scientist** | 90 | Catch-up pack with retrieval practice, spaced revision, Teach-It-Back, reflection, recovery score | No measured learning outcomes with real students |
+| **Competition judge** | 92 | Live URL, one-click demo, captioned demo video, public quality page, 248 tests + green CI | Live AI not shown yet |
 
 ## Feature audit (enhancement brief)
 
@@ -36,11 +36,11 @@ _Re-assessed 2026-11-04 after the feature batch (calendar export, guided tour, t
 | # | Work | Gain | Who |
 | --- | --- | --- | --- |
 | 1 | ~~Go live, SMTP, Turnstile~~ (done: https://catchupai-chi.vercel.app) | +5 earned | — |
-| 2 | **Live agent**: OpenAI key → live runs, embeddings, eval T1–T5, latency/cost recorded | +4 | You add the key |
-| 3 | **Evidence**: 3–5 volunteer tests, 3–4 minute demo video, LinkedIn post | +3 | You (scripts ready) |
-| 4 | Error monitoring (e.g. Sentry free tier) | +1 | You create the account; I wire it |
+| 2 | **Live agent**: enter the Gemini key (`python3 scripts/configure-ai.py`, waiting in your terminal) → live runs, eval T1–T5, latency/tokens recorded | +3 | You type the key |
+| 3 | **Evidence**: 3–5 volunteer sessions with `docs/VOLUNTEER_KIT.md`; LinkedIn post with the demo video | +2 | You run the sessions |
+| 4 | Error monitoring (Sentry free tier) and nudge SMTP (`python3 scripts/configure-nudge-email.py`) | +1 | You create the account / type the app password |
 
-91 + 8 = **99 possible**; **95 needs the OpenAI key (#2) and the demo video + volunteer tests (#3)**.
+94 + 6 = **100 possible**; **96 needs only the Gemini key (#2)**.
 
 ## Research notes
 - Agentic-AI hackathon rubrics reward a **working, deployable demo**, technical depth, usefulness and presentation ([NANDA Hack](https://nandahack.media.mit.edu/), [GOSIM Paris](https://luma.com/6wdrnx9j), [FAU](https://www.fau.edu/engineering/pdf/agentic-ai-hackathon.pdf), [AngelHack](https://angelhack.com/blog/ai-agent-hackathon/)).

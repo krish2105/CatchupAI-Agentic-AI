@@ -1,6 +1,6 @@
 # CatchUp AI implementation status
 
-**Last updated:** 2026-11-03 (build session). Milestone plan: M0 env → M1 frontend → M2 auth/RLS → M3 RAG → M4 planner/approval → M5 agent → M6 universe/insights/quiz → M7 hardening.
+**Last updated:** 2026-11-04 (milestones M1–M6 of the second sprint). Milestone plan: M0 env → M1 frontend → M2 auth/RLS → M3 RAG → M4 planner/approval → M5 agent → M6 universe/insights/quiz → M7 hardening.
 
 **Session decisions:** local Supabase (Docker) first; OpenAI runtime kept but **no API key yet** — agent/embeddings are built and tested with injected fakes, live model runs are unverified until a key is added; git commit per verified milestone, never pushed.
 
@@ -55,7 +55,14 @@
 | Weekly review + reflection | Done: week stats, deterministic next steps, saved reflection per week (RLS) | unit 4 + integration 2 + E2E 1 |
 | Learning trail (prerequisites) | Done: student-confirmed links, loops refused, 3D arcs, study order | unit 2 + integration 2 + E2E 1 |
 | PWA, usage card, landing refresh, CI action bump | Done: manifest + icons, usage vs limits in Preferences, panorama landing with features + security strip | E2E 2 |
-| Deployment | **Live** at https://catchupai-chi.vercel.app (Vercel `catchupai`, Supabase `keczcmggohfmgyjsdevk`, Seoul). 12 migrations pushed; auth URLs + anonymous sign-ins set; demo verified live. Custom SMTP (Gmail) + 6-digit code template + Turnstile CAPTCHA enabled. Pending: OpenAI key | live smoke test |
+| Deployment | **Live** at https://catchupai-chi.vercel.app (Vercel `catchupai`, Supabase `keczcmggohfmgyjsdevk`, Seoul). 14 migrations pushed; auth URLs + anonymous sign-ins set; demo verified live. Custom SMTP (Gmail) + 6-digit code template + Turnstile CAPTCHA enabled. Pending: Gemini key, nudge SMTP env | live smoke test |
+| Sprint 2 · M1 live AI on Gemini | Code done: Gemini via its OpenAI-compatible endpoint (`AI_PROVIDER`, `GEMINI_API_KEY`, `GEMINI_MODEL`), model/time/tokens per run in the copilot and trust drawer, `scripts/configure-ai.py` (hidden key prompt, tool-call smoke test, Vercel env, redeploy). **Live runs and eval T1–T5 not yet measured: the key hasn't been entered** | unit 5 (runtime gating) |
+| Sprint 2 · M2 catch-up pack + audio | Done: `/catch-up` pack from one document (summary round-robin across pages, key terms, 5 cloze checks, 30-min plan → draft proposal), browser read-aloud on the pack and the dashboard briefing | unit 3 + E2E 1 |
+| Sprint 2 · M3 nudges + feedback | Done: migration 0013 (`notification_prefs`, `feedback`; column grants), opt-in digest + missed alert at most once a day (`/api/cron/nudges`, CRON_SECRET, RFC 8058 headers, HMAC unsubscribe), 👍/👎 on answers/plans/packs, feedback form, both in the data export. Sending needs `SMTP_*` on Vercel | unit 3 + integration 4 + E2E 1 |
+| Sprint 2 · M4 memory + MCP | Done: migration 0014 (`copilot_memories` with 40-item cap, `mcp_tokens` hash-only). Copilot tools `get_student_memory` + `suggest_memory` (suggestions unused until kept); memory panel; `/api/mcp` (mcp-handler 2.3, Streamable HTTP, bearer token, 6 read-only tools, owner-filtered); token create/replace/revoke in Preferences. ChatGPT connectors need OAuth (not built) | integration 6 + E2E 1 (HTTP initialize/list/call, 401 before and after revoke) |
+| Sprint 2 · M5 quality + forest | Done: public `/quality` (build-time snapshot of test definitions, eval and RLS facts; live CI for the deployed commit, DB round trip, config flags, rating totals), one tree per finished block on each island, recovery-score timeline on Insights | unit 2 + E2E 2 (+ axe and overflow on /quality) |
+| Sprint 2 · M6 demo + volunteer kit | Done: `npm run demo:record` records a captioned walkthrough of the real app (local production build, synthetic student, scripted test model labelled in the captions) → MP4 + SRT; `docs/VOLUNTEER_KIT.md`. Volunteer sessions themselves not run | recording run |
+| Error monitoring (Sentry) | Not started: needs your Sentry account and DSN | — |
 | Submission | Not performed (Nas.io / LinkedIn are yours to submit) | — |
 
 ## M0 audit findings
@@ -197,3 +204,8 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-04 | Deploy | `scripts/configure-production-auth.py` (keys typed hidden by the owner): Turnstile site key on Vercel (config) + redeploy; Supabase SMTP smtp.gmail.com, sender set, email rate limit 30/h, 6-digit template, CAPTCHA turnstile. Verified via Management API (secrets present, not read back) | PASS | — |
 | 2026-11-04 | Deploy | Live: Turnstile script loads under the nonce CSP, a test-key render returns a token, both login widgets render; demo/sign-in buttons stay disabled until a token exists. Human completion of the challenge not performed by the agent | PASS (partial) | owner to click through once |
 
+| 2026-11-04 | Sprint 2 M3 | `supabase migration up` 0013; nodemailer 7 had a high advisory → 10.3.1 (audit 0); `npm test` 89, `test:integration` 86, `test:e2e` 63; `supabase db push` 0013; CI run 41719264204 | PASS | SMTP env on Vercel |
+| 2026-11-04 | Sprint 2 M4 | migration 0014 local + cloud; first full integration run 1 FAIL (tool-count assertion still 5) and E2E rescue count 4 → updated to the new 7-tool set; E2E memory edit raced the reload in the test → waits for the save; `npm test` 89, `test:integration` 92, `test:e2e` 64, eval 25/0/5 | PASS | — |
+| 2026-11-04 | CI | Run 41720717000 FAILED: command palette E2E. Two causes found from the CI trace: (1) Ctrl+K pressed 19 ms after load, before hydration (client-only controls not yet rendered) → test now waits; (2) a real bug: the dialog's asynchronous `close` event closed a palette reopened within the same frame → stale events ignored. 8/8 repeats locally, CI 41722936260 PASS | PASS | — |
+| 2026-11-04 | Sprint 2 M5 | `npm test` 91, `test:integration` 92, `test:e2e` 65, build with quality snapshot (85/85/56 test definitions, 23 RLS tables); forest checked by screenshot with 7 completed blocks | PASS | — |
+| 2026-11-04 | Sprint 2 M6 | `npm run demo:record`: first run timed out (blocks are checkboxes, not buttons) → fixed. Review of the recording found the scripted test model reporting placeholder token counts (shown as "840 tokens") → it now reports 0 and the UI hides zero counts | PASS | — |

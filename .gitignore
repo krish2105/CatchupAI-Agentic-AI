@@ -15,3 +15,6 @@ supabase/.temp/
 supabase/.branches/
 supabase/signing_keys.json
 .vercel
+
+# Recorded demo video (npm run demo:record)
+demo/out/

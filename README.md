@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-224%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-248%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
 
 **Live:** [catchupai-chi.vercel.app](https://catchupai-chi.vercel.app) · click **Try the demo, no sign-up** for a guided tour on synthetic data.
 
@@ -35,7 +35,7 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 | Deterministic planner: **essential / balanced / full** routes, honest shortfall in minutes, what-if availability | ✅ |
 | Human approval gate: atomic, idempotent, refuses stale/expired/infeasible plans | ✅ |
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
-| **LearningRecoveryAgent** (OpenAI Agents SDK): 5 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval | ✅ code + tests · ⚠️ **live OpenAI runs unverified (no API key yet)** |
+| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 7 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ code + tests · ⚠️ **live model runs unverified until a Gemini key is added** (`python3 scripts/configure-ai.py`) |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
@@ -51,7 +51,13 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 | One-click judge demo (anonymous account + synthetic data, Turnstile-ready, 24 h cleanup) | ✅ |
 | 30-case evaluation (`npm run eval` → `evals/REPORT.md`) | ✅ 25 pass · 0 fail · 5 tool-selection cases pending a real LLM |
 | Light / dark / system themes, reduced motion, 3D on/off, no-WebGL fallback, keyboard + screen-reader paths | ✅ |
-| Public deployment | ❌ not done (needs your approval and cloud accounts) |
+| Missed Lecture Catch-up Pack: page-cited summary, key terms, self-check questions and a 30-minute plan (built without AI), plus read-aloud | ✅ |
+| Opt-in study emails (morning digest, missed-block alert, signed one-click unsubscribe) and 👍/👎 + written feedback | ✅ (sending needs SMTP on the server: `python3 scripts/configure-nudge-email.py`) |
+| Copilot memory the student controls: the copilot can only suggest; the student keeps, edits or deletes | ✅ |
+| Read-only MCP server (`/api/mcp`) with a personal, revocable token for MCP apps | ✅ |
+| Public [quality page](https://catchupai-chi.vercel.app/quality): tests, evaluation, CI, security and live health; a forest that grows with finished blocks; recovery-score timeline | ✅ |
+| Captioned demo video recorded automatically from the real app (`npm run demo:record`) and a [volunteer test kit](docs/VOLUNTEER_KIT.md) | ✅ |
+| Public deployment | ✅ https://catchupai-chi.vercel.app (Vercel + Supabase, CI on every push) |
 
 See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` for the test evidence.
 

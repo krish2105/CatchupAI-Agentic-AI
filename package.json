@@ -25,7 +25,8 @@
     "fixtures:pdf": "tsx scripts/make-fixture-pdfs.ts",
     "preflight": "tsx scripts/preflight.ts",
     "prebuild": "node scripts/quality-snapshot.mjs",
-    "quality:snapshot": "node scripts/quality-snapshot.mjs"
+    "quality:snapshot": "node scripts/quality-snapshot.mjs",
+    "demo:record": "bash scripts/make-demo-video.sh"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",

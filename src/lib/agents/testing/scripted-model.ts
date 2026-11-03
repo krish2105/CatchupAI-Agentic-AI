@@ -40,7 +40,8 @@ export class ScriptedModel implements Model {
     this.turn++;
     if (!step) throw new Error("Script exhausted");
     if ("fail" in step) throw Object.assign(new Error(step.fail), { code: "model_error" });
-    const usage = new Usage({ requests: 1, inputTokens: 100, outputTokens: 20, totalTokens: 120 });
+    // No language model runs, so no tokens are used (the UI then shows no token count).
+    const usage = new Usage({ requests: 1, inputTokens: 0, outputTokens: 0, totalTokens: 0 });
     if ("call" in step) {
       const args = typeof step.args === "function" ? step.args(ctx) : step.args;
       return {

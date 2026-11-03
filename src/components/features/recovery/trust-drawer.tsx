@@ -107,7 +107,7 @@ export default function TrustDrawer({ proposalId, label = "Why trust this?" }: {
                   <p className="trust-meta">
                     Model <b>{data.run.meta.model}</b>
                     {data.run.meta.durationMs !== null ? <> · {(data.run.meta.durationMs / 1000).toFixed(1)} s</> : null}
-                    {data.run.meta.inputTokens !== null ? <> · {((data.run.meta.inputTokens ?? 0) + (data.run.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens</> : null}
+                    {(data.run.meta.inputTokens ?? 0) + (data.run.meta.outputTokens ?? 0) > 0 ? <> · {((data.run.meta.inputTokens ?? 0) + (data.run.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens</> : null}
                   </p>
                 ) : null}
               </section>
