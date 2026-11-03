@@ -12,6 +12,7 @@
 | `npm run eval` | 25 pass · 0 fail · 5 skipped (need a real LLM) |
 | `npm audit --omit=dev --audit-level=high` | 0 vulnerabilities |
 | Bundle scan for key material (`sb_secret_…`, `sk-…`) in `.next/static` | clean |
+| GitHub Actions CI run 41703194162 (both jobs: checks/build, then integration + E2E + eval on a fresh local Supabase) | PASS (2m17s + 4m35s) |
 
 ## Adversarial scenarios → tests
 | Scenario | Test(s) | Result |
@@ -34,4 +35,3 @@
 ## Coverage gaps
 - No live-LLM jailbreak or tool-selection testing (no API key).
 - No dynamic scanner (DAST), fuzzing or load testing; no test of the hosted deployment.
-- The CI workflow's first run on GitHub is the verification of the pipeline itself.
