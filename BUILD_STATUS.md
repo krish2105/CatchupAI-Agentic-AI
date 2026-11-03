@@ -55,7 +55,8 @@
 | Weekly review + reflection | Done: week stats, deterministic next steps, saved reflection per week (RLS) | unit 4 + integration 2 + E2E 1 |
 | Learning trail (prerequisites) | Done: student-confirmed links, loops refused, 3D arcs, study order | unit 2 + integration 2 + E2E 1 |
 | PWA, usage card, landing refresh, CI action bump | Done: manifest + icons, usage vs limits in Preferences, panorama landing with features + security strip | E2E 2 |
-| Deployment / submission | **Not performed** — blocked on your accounts (Supabase/Vercel logins, OpenAI key, Resend, Turnstile) | docs/DEPLOYMENT.md |
+| Deployment | **Live** at https://catchupai-chi.vercel.app (Vercel `catchupai`, Supabase `keczcmggohfmgyjsdevk`, Seoul). 12 migrations pushed; auth URLs + anonymous sign-ins set; demo verified live. Pending (needs your accounts): custom SMTP (Resend), Turnstile CAPTCHA, OpenAI key | live smoke test |
+| Submission | Not performed (Nas.io / LinkedIn are yours to submit) | — |
 
 ## M0 audit findings
 - `^0.x` ranges froze stale versions (`@openai/agents ^0.3`, `@supabase/ssr ^0.6`, `three ^0.175`); `openai ^6` conflicted with Agents SDK 0.21 (`openai ^7.2`). All updated and pinned.
@@ -190,4 +191,7 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-04 | Feature batch | Migrations 0010 (calendar_feeds), 0011 (weekly_reflections; upsert needed UPDATE on week_start, fixed before any deploy), 0012 (course_prerequisites) | PASS | — |
 | 2026-11-04 | Feature batch | Dev server served stale SSR (hydration mismatch on the new demo banner button) → restarted; production build unaffected | PASS | — |
 | 2026-11-04 | Feature batch | `typecheck`, `lint`, `npm test` 82/82, `test:integration` 82/82, `test:e2e` 60/60, `npm run eval` 25/0/5, prod audit 0, bundle key scan clean | PASS | — |
+| 2026-11-04 | Deploy | `supabase link` + `supabase db push` (12 migrations) to keczcmggohfmgyjsdevk; auth config via Management API (site URL, redirects, anonymous sign-ins, 6-digit OTP, 15 min); custom email templates refused on free tier without SMTP → `/auth/confirm` now accepts the default PKCE `?code=` link | PASS | SMTP for templates |
+| 2026-11-04 | Deploy | Vercel production env set via CLI (values piped, never printed). First live demo failed: `projects api-keys` returns the secret key masked unless `--reveal` → re-set with the revealed key, redeployed | PASS | — |
+| 2026-11-04 | Deploy | Live smoke test: `/api/health` ok, nonce CSP header present, Try the demo → seeded dashboard + guided tour, Knowledge vault 1/1 indexed, Recovery Lab routes computed | PASS | Turnstile, SMTP, OpenAI |
 
