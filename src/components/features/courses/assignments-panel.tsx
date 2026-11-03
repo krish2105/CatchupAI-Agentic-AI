@@ -6,7 +6,9 @@ import { useState } from "react";
 import { Dialog } from "@/components/ui/controls";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
+import type { ChecklistItem } from "@/lib/db/checklist";
 import type { Assignment } from "@/lib/db/types";
+import { AssignmentChecklist, RubricDecoder } from "./rubric-decoder";
 import { dueLabel, formatDateTime, formatMinutes, isoToLocalInput, localInputToIso } from "@/lib/time";
 
 type Draft = { title: string; notes: string; due: string; hours: number; minutes: number; required: boolean };
@@ -17,7 +19,22 @@ function emptyDraft(tz: string): Draft {
   return { title: "", notes: "", due: isoToLocalInput(due.toISOString(), tz), hours: 2, minutes: 0, required: true };
 }
 
-export default function AssignmentsPanel({ courseId, assignments, timezone, now }: { courseId: string; assignments: Assignment[]; timezone: string; now: number }) {
+export default function AssignmentsPanel({
+  courseId,
+  assignments,
+  timezone,
+  now,
+  checklists = {},
+  briefs = [],
+}: {
+  courseId: string;
+  assignments: Assignment[];
+  timezone: string;
+  now: number;
+  checklists?: Record<string, ChecklistItem[]>;
+  /** Indexed documents of this course that can be decoded as briefs. */
+  briefs?: { id: string; filename: string }[];
+}) {
   const router = useRouter();
   const [editing, setEditing] = useState<Assignment | "new" | null>(null);
   const [draft, setDraft] = useState<Draft>(() => emptyDraft(timezone));
@@ -110,9 +127,11 @@ export default function AssignmentsPanel({ courseId, assignments, timezone, now 
                     <option value="in_progress">In progress</option>
                     <option value="completed">Completed</option>
                   </select>
+                  <RubricDecoder assignment={{ id: a.id, title: a.title }} documents={briefs} />
                   <button type="button" className="icon-btn" aria-label={`Edit ${a.title}`} onClick={() => openEdit(a)}><Pencil className="ic" aria-hidden="true" /></button>
                   <button type="button" className="icon-btn" aria-label={`Delete ${a.title}`} onClick={() => remove(a)}><Trash2 className="ic" aria-hidden="true" /></button>
                 </span>
+                {checklists[a.id]?.length ? <AssignmentChecklist key={checklists[a.id].map((i) => i.id).join()} title={a.title} items={checklists[a.id]} /> : null}
               </li>
             );
           })}

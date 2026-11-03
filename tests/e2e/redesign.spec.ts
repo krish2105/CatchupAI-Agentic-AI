@@ -250,3 +250,40 @@ test("teach-it-back checks an explanation against cited pages and starts a targe
     await s.cleanup();
   }
 });
+
+test("rubric decoder turns a brief into an editable, page-linked checklist the student can tick off", async ({ browser }) => {
+  test.setTimeout(90_000);
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Regression report", dueAt: new Date(Date.now() + 6 * 86400_000).toISOString(), estimatedMinutes: 240 } });
+    await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
+    await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/assignment_brief.pdf");
+    await expect(s.page.getByText(/Indexed · 2 pages/)).toBeVisible({ timeout: 30_000 });
+
+    await s.page.getByRole("button", { name: "Decode brief for Regression report" }).click();
+    const dialog = s.page.getByRole("dialog", { name: "Turn the brief into a checklist" });
+    await dialog.getByRole("button", { name: "Decode brief" }).click();
+    const rows = dialog.getByRole("list", { name: "Decoded items" }).getByRole("listitem");
+    await expect(rows.filter({ hasText: "Criterion · 40%" })).toHaveCount(1);
+    const total = await rows.count();
+    expect(total).toBeGreaterThanOrEqual(8);
+    // Drop one item; only the kept ones are saved.
+    await dialog.getByLabel("Keep item 1", { exact: true }).uncheck();
+    await dialog.getByRole("button", { name: `Save checklist (${total - 1})` }).click();
+    await expect(dialog).toBeHidden();
+
+    const summary = s.page.getByText(new RegExp(`Preparation checklist · 0/${total - 1} ready`));
+    await expect(summary).toBeVisible();
+    await summary.click();
+    const list = s.page.getByRole("list", { name: "Checklist for Regression report" });
+    await expect(list.getByRole("link", { name: "p. 2" }).first()).toBeVisible();
+    await list.getByRole("checkbox").first().check();
+    await expect(s.page.getByText(new RegExp(`Preparation checklist · 1/${total - 1} ready`))).toBeVisible();
+    await s.page.reload();
+    await expect(s.page.getByText(new RegExp(`Preparation checklist · 1/${total - 1} ready`))).toBeVisible();
+  } finally {
+    await s.cleanup();
+  }
+});

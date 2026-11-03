@@ -47,6 +47,7 @@
 | Focus sanctuary landscapes + session recovery | Done: theme-specific WebP (only visible one loads), ring timer, reset/play/end controls, local session resume after refresh | E2E (resume after reload) |
 | Dark theme: Forest at night (user-selected option B) | Done: tokens AA-checked (worst text pair 5.5:1), outlined cards, pale-mint primary | E2E axe both themes |
 | Teach-It-Back | Done: explanation checked deterministically against key concepts of the retrieved passages (body sentences only), each cited to its page; abstains without evidence; server-owned attempts (RLS select/delete only); missing concepts → targeted retest | unit 4 + integration 4 + E2E 1 |
+| Rubric Decoder | Done: indexed brief → deterministic candidates (weighted criteria, deadline, deliverables, requirements, each with page); weight-total check; student edits/drops then saves; checklist under the assignment with page links and tick-off progress; RLS + column grants (done/text only) | unit 5 + integration 3 + E2E 1 |
 | Deployment / submission | **Not performed** — blocked on your accounts (Supabase/Vercel logins, OpenAI key, Resend, Turnstile) | docs/DEPLOYMENT.md |
 
 ## M0 audit findings
@@ -173,4 +174,7 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | Enhancement | `typecheck`, `lint`, `npm test` 63/63, `test:integration` 67/67, `test:e2e` 50/50, `npm run eval` 25 pass / 0 fail / 5 skipped | PASS | OpenAI key for 5 eval cases |
 | 2026-11-04 | Teach-It-Back | `supabase migration up` (`20261104000007_teach_back.sql`); first live check failed with a stale dev-server module (new rate-limit bucket) → dev server restarted; concept noise (page headers, filler verbs) removed after a browser check | PASS | — |
 | 2026-11-04 | Teach-It-Back | `typecheck`, `lint`, `npm test` 67/67, `test:integration` 71/71, `test:e2e` 51/51, `npm run eval` 25/0/5 | PASS | — |
+| 2026-11-04 | Rubric Decoder | `supabase migration up` (`20261104000008_assignment_checklist.sql`; first attempt rejected `set null (document_id, page)` → only document_id is cleared) | PASS | — |
+| 2026-11-04 | Rubric Decoder | E2E found a real bug: the decoder kept an empty brief list captured before indexing finished (button disabled) → selection now derived from current props; checklist label column alignment fixed after screenshot review | PASS | — |
+| 2026-11-04 | Rubric Decoder | `typecheck`, `lint`, `npm test` 72/72, `test:integration` 74/74, `test:e2e` 52/52, `npm run eval` 25/0/5 | PASS | — |
 

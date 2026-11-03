@@ -89,4 +89,5 @@ Add dated decisions here when the coding assistant changes architecture or requi
 ## 2026-11-04: Replanning and Teach-It-Back
 - **ADR-049** Replans subtract completed study-block minutes per assignment (from any plan, including superseded ones) so approved replans never reschedule finished work; missed blocks are surfaced, never auto-moved.
 - **ADR-050** Teach-It-Back is deterministic: key concepts are recurring terms in the body sentences of evidence-filtered passages; feedback names covered/missing concepts with page citations and abstains without evidence. Attempts are server-written (students can read/delete only) so coverage can't be forged. An LLM may later phrase feedback but never decides coverage.
+- **ADR-051** Rubric Decoder is deterministic and read-only until the student saves: sentences of an indexed brief are classified (weighted criterion > dated deadline > deliverable > requirement) with their page. Checklist rows are student-owned (RLS + composite keys to their own assignment and document); only `done` and `text` are updatable, so weights and kinds keep their source meaning.
 

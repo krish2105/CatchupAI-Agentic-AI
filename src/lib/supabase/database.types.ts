@@ -165,6 +165,63 @@ export type Database = {
           },
         ]
       }
+      assignment_checklist_items: {
+        Row: {
+          assignment_id: string
+          created_at: string
+          document_id: string | null
+          done: boolean
+          id: string
+          kind: string
+          owner_id: string
+          page: number | null
+          position: number
+          text: string
+          weight: number | null
+        }
+        Insert: {
+          assignment_id: string
+          created_at?: string
+          document_id?: string | null
+          done?: boolean
+          id?: string
+          kind: string
+          owner_id?: string
+          page?: number | null
+          position: number
+          text: string
+          weight?: number | null
+        }
+        Update: {
+          assignment_id?: string
+          created_at?: string
+          document_id?: string | null
+          done?: boolean
+          id?: string
+          kind?: string
+          owner_id?: string
+          page?: number | null
+          position?: number
+          text?: string
+          weight?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assignment_checklist_items_assignment_id_owner_id_fkey"
+            columns: ["assignment_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "assignments"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "assignment_checklist_items_document_id_owner_id_fkey"
+            columns: ["document_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       assignments: {
         Row: {
           course_id: string
