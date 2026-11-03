@@ -333,3 +333,30 @@ test("calendar export: .ics download and a private feed link that can be revoked
     await s.cleanup();
   }
 });
+
+test("weekly review recommends from real numbers and saves the student's reflection", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Worksheet", dueAt: new Date(Date.now() + 4 * 86400_000).toISOString(), estimatedMinutes: 120 } });
+    const draft = await (await s.page.request.post("/api/proposals", { data: { scenario: "essential" } })).json();
+    await s.page.request.post(`/api/proposals/${draft.proposal.id}/approve`, { headers: { "idempotency-key": "week-e2e-00001" } });
+    const { plan } = await (await s.page.request.get("/api/study-tasks")).json();
+    const block = plan.tasks[0] as { id: string; durationMinutes: number };
+    // Make the first block a missed session earlier today.
+    const start = Date.now() - 3 * 3600_000;
+    await s.db.from("study_tasks").update({ starts_at: new Date(start).toISOString(), ends_at: new Date(start + block.durationMinutes * 60_000).toISOString() }).eq("id", block.id);
+
+    await s.page.goto("/insights");
+    const recs = s.page.getByRole("list", { name: "Recommended next steps" });
+    await expect(recs.getByRole("link").first()).toContainText("Replan around 1 missed block");
+    await s.page.getByLabel("What went well this week?").fill("Finished the reading early.");
+    await s.page.getByLabel("One focus for next week").fill("Start the worksheet on Monday.");
+    await s.page.getByRole("button", { name: "Save reflection" }).click();
+    await expect(s.page.getByRole("button", { name: "Saved" })).toBeVisible();
+    await s.page.reload();
+    await expect(s.page.getByLabel("What went well this week?")).toHaveValue("Finished the reading early.");
+  } finally {
+    await s.cleanup();
+  }
+});

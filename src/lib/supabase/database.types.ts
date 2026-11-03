@@ -812,6 +812,39 @@ export type Database = {
           },
         ]
       }
+      weekly_reflections: {
+        Row: {
+          created_at: string
+          id: string
+          next_focus: string
+          owner_id: string
+          updated_at: string
+          was_hard: string
+          week_start: string
+          went_well: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          next_focus?: string
+          owner_id?: string
+          updated_at?: string
+          was_hard?: string
+          week_start: string
+          went_well?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          next_focus?: string
+          owner_id?: string
+          updated_at?: string
+          was_hard?: string
+          week_start?: string
+          went_well?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

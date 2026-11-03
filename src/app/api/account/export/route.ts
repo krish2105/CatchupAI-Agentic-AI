@@ -16,6 +16,8 @@ const TABLES = [
   ["quizAttempts", "quiz_attempts", "id, quiz_id, answers, results, score_percent, created_at"],
   ["focusSessions", "focus_sessions", "id, task_id, planned_minutes, focused_minutes, started_at, ended_at, completed"],
   ["assignmentChecklists", "assignment_checklist_items", "id, assignment_id, kind, text, weight, document_id, page, done, created_at"],
+  ["weeklyReflections", "weekly_reflections", "week_start, went_well, was_hard, next_focus, created_at, updated_at"],
+  ["calendarFeed", "calendar_feeds", "created_at"],
   ["teachBackAttempts", "teach_back_attempts", "id, course_id, topic, explanation, coverage_percent, concepts, created_at"],
 ] as const;
 

@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { TrendingUp } from "lucide-react";
 import ActivityChart from "@/components/features/insights/activity-chart";
+import WeekReview from "@/components/features/insights/week-review";
+import { getWeekReview } from "@/lib/insights/week";
 import PageHeading from "@/components/ui/page-heading";
 import { ButtonLink, Chip, EmptyCard, StatCard } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -14,18 +16,17 @@ export const metadata: Metadata = { title: "Your momentum" };
 export default async function InsightsPage() {
   const { supabase, user } = await requirePageUser("/insights");
   const [profile, now] = await Promise.all([getProfile(supabase, user.id), renderTime()]);
-  const data = await getInsights(supabase, profile.timezone, now);
+  const [data, review] = await Promise.all([getInsights(supabase, profile.timezone, now), getWeekReview(supabase, profile.timezone, now)]);
   const hasActivity = data.tasksCompleted > 0 || data.quizAttempts > 0 || data.focusSessions14d > 0;
   return (
     <>
       <PageHeading
         eyebrow="The signal behind your progress"
-        title="Celebrate the"
-        accent="small wins."
-       
+        title="Celebrate the small wins."
         description="Every number here is calculated from your completed study blocks and graded knowledge checks. Nothing is estimated or illustrative."
         actions={<ButtonLink href="/quizzes" small>Take a knowledge check</ButtonLink>}
       />
+      <WeekReview review={review} />
       <div className="stat-row">
         <StatCard label="Latest quiz" value={data.latestQuiz ? `${Math.round(data.latestQuiz.score)}%` : null} caption={data.latestQuiz ? data.latestQuiz.topic : "No graded attempts yet"} />
         <StatCard label="Blocks finished" value={data.tasksCompleted ? String(data.tasksCompleted) : null} caption="Across all approved plans" />
