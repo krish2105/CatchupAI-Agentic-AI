@@ -40,13 +40,35 @@ export function buildRecoveryAgent(model: string) {
   });
 }
 
-/** The real runtime: OpenAI via the Agents SDK, only when a key AND a model are configured. */
-export function openAiRuntime(): { provider: ModelProvider; model: string } | null {
-  const apiKey = process.env.OPENAI_API_KEY;
-  const model = process.env.OPENAI_MODEL?.trim();
-  if (!apiKey || !model) return null;
-  return { provider: new OpenAIProvider({ apiKey }), model };
+/** Gemini's OpenAI-compatible endpoint (chat completions; the Responses API isn't available there). */
+export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
+export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
+
+export type ModelRuntime = { provider: ModelProvider; model: string; kind: "openai" | "gemini" };
+
+/**
+ * The real runtime via the Agents SDK. OpenAI needs a key AND a model; Gemini needs a key (model optional).
+ * AI_PROVIDER=openai|gemini picks one explicitly; otherwise OpenAI wins when both are configured.
+ */
+export function modelRuntime(): ModelRuntime | null {
+  const openai = (): ModelRuntime | null => {
+    const apiKey = process.env.OPENAI_API_KEY;
+    const model = process.env.OPENAI_MODEL?.trim();
+    return apiKey && model ? { provider: new OpenAIProvider({ apiKey }), model, kind: "openai" } : null;
+  };
+  const gemini = (): ModelRuntime | null => {
+    const apiKey = process.env.GEMINI_API_KEY;
+    const model = process.env.GEMINI_MODEL?.trim() || GEMINI_DEFAULT_MODEL;
+    return apiKey ? { provider: new OpenAIProvider({ apiKey, baseURL: GEMINI_BASE_URL, useResponses: false }), model, kind: "gemini" } : null;
+  };
+  const preferred = process.env.AI_PROVIDER?.trim().toLowerCase();
+  if (preferred === "gemini") return gemini();
+  if (preferred === "openai") return openai();
+  return openai() ?? gemini();
 }
+
+/** @deprecated kept for older call sites; use modelRuntime(). */
+export const openAiRuntime = modelRuntime;
 
 export type RunOutcome = {
   runId: string;

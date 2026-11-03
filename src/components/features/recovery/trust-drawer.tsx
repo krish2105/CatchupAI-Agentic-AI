@@ -101,6 +101,13 @@ export default function TrustDrawer({ proposalId, label = "Why trust this?" }: {
                     })}
                   </ul>
                 ) : <p className="muted">No AI tools were involved: this plan came straight from the deterministic planner.</p>}
+                {data?.run?.meta.model ? (
+                  <p className="trust-meta">
+                    Model <b>{data.run.meta.model}</b>
+                    {data.run.meta.durationMs !== null ? <> · {(data.run.meta.durationMs / 1000).toFixed(1)} s</> : null}
+                    {data.run.meta.inputTokens !== null ? <> · {((data.run.meta.inputTokens ?? 0) + (data.run.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens</> : null}
+                  </p>
+                ) : null}
               </section>
               <section aria-labelledby={`${titleId}-limits`}>
                 <h3 id={`${titleId}-limits`}>What this can&apos;t tell you</h3>

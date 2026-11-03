@@ -10,6 +10,6 @@ export async function aiRuntimeStatus() {
     configured: info.kind !== "none",
     kind: info.kind,
     model: info.kind === "none" ? null : info.model,
-    hasKey: Boolean(process.env.OPENAI_API_KEY),
+    hasKey: Boolean(process.env.OPENAI_API_KEY || process.env.GEMINI_API_KEY),
   };
 }

@@ -17,6 +17,7 @@ describe("AI runtime selection", () => {
     vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
     vi.stubEnv("CATCHUP_TEST_MODEL", "");
     vi.stubEnv("OPENAI_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "");
     expect(runtimeInfo()).toEqual({ kind: "none" });
     vi.stubEnv("CATCHUP_TEST_MODEL", "scripted");
     expect(runtimeInfo()).toEqual({ kind: "scripted", model: "scripted-test-model" });
@@ -29,6 +30,21 @@ describe("AI runtime selection", () => {
     expect(runtimeInfo().kind).toBe("none");
     vi.stubEnv("OPENAI_MODEL", "some-model");
     expect(runtimeInfo()).toEqual({ kind: "openai", model: "some-model" });
+  });
+
+  it("uses Gemini's free tier when only a Gemini key is set, and honours AI_PROVIDER", () => {
+    vi.stubEnv("CATCHUP_TEST_MODEL", "");
+    vi.stubEnv("OPENAI_API_KEY", "");
+    vi.stubEnv("GEMINI_API_KEY", "test-not-real");
+    vi.stubEnv("GEMINI_MODEL", "");
+    expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-2.5-flash" });
+    vi.stubEnv("GEMINI_MODEL", "gemini-custom");
+    expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-custom" });
+    vi.stubEnv("OPENAI_API_KEY", "sk-test-not-real");
+    vi.stubEnv("OPENAI_MODEL", "some-model");
+    expect(runtimeInfo().kind).toBe("openai");
+    vi.stubEnv("AI_PROVIDER", "gemini");
+    expect(runtimeInfo().kind).toBe("gemini");
   });
 });
 

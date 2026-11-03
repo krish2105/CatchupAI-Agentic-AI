@@ -16,12 +16,15 @@ export type AgentRunDto = {
   errorCode: string | null;
   createdAt: string;
   proposal: { id: string; scenario: string; feasible: boolean; status: string } | null;
+  /** What actually ran: model, token counts and wall-clock time (null while running or when unknown). */
+  meta: { model: string | null; inputTokens: number | null; outputTokens: number | null; durationMs: number | null };
 };
 
-const SELECT = "id, course_id, request_text, status, summary, tool_events, citations, error_code, created_at, action_proposals(id, scenario, feasible, status)";
+const SELECT = "id, course_id, request_text, status, summary, tool_events, citations, error_code, created_at, completed_at, model, input_tokens, output_tokens, action_proposals(id, scenario, feasible, status)";
 
 type Row = {
   id: string; course_id: string | null; request_text: string; status: string; summary: string | null; tool_events: unknown; citations: unknown; error_code: string | null; created_at: string;
+  completed_at: string | null; model: string | null; input_tokens: number | null; output_tokens: number | null;
   action_proposals: { id: string; scenario: string; feasible: boolean; status: string }[];
 };
 
@@ -43,6 +46,12 @@ function toRun(r: Row): AgentRunDto {
     errorCode: r.error_code,
     createdAt: r.created_at,
     proposal: r.action_proposals[0] ?? null,
+    meta: {
+      model: r.model,
+      inputTokens: r.input_tokens,
+      outputTokens: r.output_tokens,
+      durationMs: r.completed_at ? Date.parse(r.completed_at) - Date.parse(r.created_at) : null,
+    },
   };
 }
 

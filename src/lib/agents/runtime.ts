@@ -1,5 +1,5 @@
 import "server-only";
-import { openAiRuntime } from "./recovery-agent";
+import { modelRuntime } from "./recovery-agent";
 import { scriptedRuntime } from "./testing/e2e-script";
 
 /**
@@ -11,15 +11,15 @@ export function scriptedRuntimeAllowed() {
   return process.env.CATCHUP_TEST_MODEL === "scripted" && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url);
 }
 
-export type RuntimeInfo = { kind: "openai"; model: string } | { kind: "scripted"; model: string } | { kind: "none" };
+export type RuntimeInfo = { kind: "openai" | "gemini"; model: string } | { kind: "scripted"; model: string } | { kind: "none" };
 
 export function runtimeInfo(): RuntimeInfo {
-  const real = openAiRuntime();
-  if (real) return { kind: "openai", model: real.model };
+  const real = modelRuntime();
+  if (real) return { kind: real.kind, model: real.model };
   if (scriptedRuntimeAllowed()) return { kind: "scripted", model: "scripted-test-model" };
   return { kind: "none" };
 }
 
 export function resolveRuntime(courseId: string | null, message: string) {
-  return openAiRuntime() ?? (scriptedRuntimeAllowed() ? scriptedRuntime(courseId, message) : null);
+  return modelRuntime() ?? (scriptedRuntimeAllowed() ? scriptedRuntime(courseId, message) : null);
 }
