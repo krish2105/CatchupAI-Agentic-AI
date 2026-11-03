@@ -70,20 +70,30 @@ def main():
 
     print("1) Email (custom SMTP). Leave the password empty to skip.")
     host = ask("   SMTP host", "smtp.resend.com")
+    while not host.lower().startswith("smtp.") or " " in host:
+        print("   That isn't a mail server. Use smtp.resend.com (Resend) or smtp.gmail.com (Gmail).")
+        host = ask("   SMTP host", "smtp.resend.com")
     port = ask("   SMTP port", "465")
     user = ask("   SMTP user", "resend")
     password = getpass.getpass("   SMTP password / API key (hidden): ").strip()
     sender = ask("   Sender address (on your verified domain)") if password else ""
+    if password and "gmail.com" in host and sender.lower() != user.lower():
+        print("   Note: Gmail sends only as the signed-in address, so the sender is set to", user)
+        sender = user
     print()
     print("2) Cloudflare Turnstile. Leave the site key empty to skip.")
     site_key = ask("   Turnstile SITE key (public)")
+    while site_key and not site_key.startswith("0x"):
+        print("   Turnstile site keys start with 0x. Copy the Site Key from Cloudflare → Turnstile.")
+        site_key = ask("   Turnstile SITE key (public)")
     secret_key = getpass.getpass("   Turnstile SECRET key (hidden): ").strip() if site_key else ""
     print()
 
     if site_key:
         print("→ Setting NEXT_PUBLIC_TURNSTILE_SITE_KEY on Vercel and redeploying (about 1 minute)…")
         vercel("env", "rm", "NEXT_PUBLIC_TURNSTILE_SITE_KEY", "production", "--yes")
-        added = vercel("env", "add", "NEXT_PUBLIC_TURNSTILE_SITE_KEY", "production", "--value", site_key, "--yes")
+        # The site key is public by design (it's rendered in the page), so it's stored as config, not a secret.
+        added = vercel("env", "add", "NEXT_PUBLIC_TURNSTILE_SITE_KEY", "production", "--value", site_key, "--type", "config", "--yes")
         if added.returncode != 0:
             sys.exit("Vercel didn't accept the site key: " + (added.stderr or added.stdout)[-300:])
         deployed = vercel("redeploy", latest_production_url(), "--target", "production")
