@@ -9,7 +9,7 @@ Decisions (2026-11-04): deadline in 1–2 weeks · live AI on the **Gemini free 
 | M1 | **Live AI on Gemini** | Copilot answers for real, with tool timeline, citations and drafts; run cost/latency shown in the trust drawer; eval T1–T5 measured | +4 | 1 |
 | M2 | **Missed Lecture Catch-up Pack + Audio** | "I missed a lecture" → upload slides/notes/transcript → one-page cited summary, key terms, 5 check questions, a 30-min plan ("add to schedule" via approval); 🔊 Listen on the pack and on Mission Control | +3 | 2 |
 | M3 | **Nudges + Feedback** | Opt-in morning email ("Today: 2 blocks, 1 deadline") and missed-block alert with one-click unsubscribe; 👍/👎 on plans and answers, feedback form | +2 | 1.5 |
-| M4 | **Copilot memory + MCP** | "What the copilot remembers" panel (edit/delete); the copilot proposes memories, you confirm. Personal MCP token in Preferences → use CatchUp tools from ChatGPT/Claude desktop (read + draft only) | +2 | 2 |
+| M4 | **Copilot memory + MCP** | "What the copilot remembers" panel (edit/delete); the copilot proposes memories, you confirm. Personal MCP token in Preferences → use CatchUp tools from ChatGPT and other MCP desktop apps (read + draft only) | +2 | 2 |
 | M5 | **Quality page + Growing forest** | Public /quality: tests, CI, eval, security findings, live health; trees grow on each course island as blocks are completed, plus a recovery-score timeline | +2 | 1.5 |
 | M6 | **Recorded demo + volunteer kit** | Captioned 3-minute MP4 + subtitles recorded automatically from the live demo; volunteer test script and in-app feedback collection | +3 | 1 |
 | — | Error monitoring (Sentry free) | Alerts on production errors | +1 | 0.5 (needs your account) |
