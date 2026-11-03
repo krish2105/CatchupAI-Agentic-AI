@@ -1,6 +1,6 @@
 {
   "metrics": {
-    "ranAt": "2026-11-03T22:31:08.203Z",
+    "ranAt": "2026-11-03T22:44:04.570Z",
     "retrievalMode": "lexical only (no embedding key)",
     "k": 3,
     "evidenceThreshold": {
@@ -18,7 +18,7 @@
     "falseAbstentions": [],
     "latencyMs": {
       "p50": 2,
-      "p95": 2
+      "p95": 3
     },
     "tokensAndCost": "0 tokens, $0 (lexical retrieval runs in Postgres)",
     "claimChecker": {
@@ -79,7 +79,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "G3",
@@ -95,7 +95,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "G4",
@@ -248,7 +248,7 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "G13",
@@ -265,7 +265,7 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "G14",
@@ -339,7 +339,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 2
+      "ms": 3
     }
   ]
 }

@@ -2,13 +2,16 @@
   "scenario": "S1-missed-lecture",
   "title": "Missed the regression lecture: catch up before the worksheet",
   "model": "scripted-test-model (plumbing check, NOT model behaviour)",
-  "ranAt": "2026-11-03T22:25:38.443Z",
+  "ranAt": "2026-11-03T22:41:39.250Z",
   "request": "I missed the regression lecture. What do I need to know about residuals, and can you plan my catch-up before the worksheet is due?",
-  "latencyMs": 84,
+  "latencyMs": 82,
   "tokens": {
     "input": 0,
     "output": 0
   },
+  "estimatedCostUsd": null,
+  "status": "completed",
+  "errorCode": null,
   "steps": [
     {
       "step": 1,
@@ -30,23 +33,23 @@
       "step": 3,
       "tool": "list_assignments",
       "args": {
-        "courseId": "c60f67a8…",
+        "courseId": "a3551585…",
         "includeCompleted": false
       },
       "status": "completed",
-      "ms": 10,
+      "ms": 8,
       "outcome": "1 assignment"
     },
     {
       "step": 4,
       "tool": "search_course_material",
       "args": {
-        "courseId": "c60f67a8…",
+        "courseId": "a3551585…",
         "query": "I missed the regression lecture. What do I need to know abou",
         "topK": 3
       },
       "status": "completed",
-      "ms": 9,
+      "ms": 7,
       "outcome": "1 passage: p. 2"
     },
     {
@@ -57,7 +60,7 @@
         "studyItems": 1
       },
       "status": "completed",
-      "ms": 37,
+      "ms": 38,
       "outcome": "essential draft: feasible, 4 blocks (pending approval)"
     }
   ],

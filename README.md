@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-264%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-30%2F38%20pass%2C%208%20pending%20live%20model-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-267%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-30%2F38%20pass%2C%208%20pending%20live%20model-2ea44f)
 
 **Live:** [catchupai-chi.vercel.app](https://catchupai-chi.vercel.app) · click **Try the demo, no sign-up** for a guided tour on synthetic data.
 
@@ -109,7 +109,7 @@ See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` f
 
 <img src="docs/screenshots/mobile-dashboard-light.png" alt="Mobile mission control" width="260" /> <img src="docs/screenshots/knowledge-vault-dark.png" alt="Evidence search with page citations" width="520" />
 
-*Screenshots come from the real app on local Supabase with synthetic data. The copilot screenshot uses the deterministic test model (labelled "Scripted test model · not AI" in the UI) because no OpenAI key was configured; tools, retrieval, citations and the approval flow are the real implementation.*
+*Screenshots come from the real app on local Supabase with synthetic data. The copilot screenshot uses the deterministic test model (labelled "Scripted test model · not AI" in the UI) because no model key was configured; tools, retrieval, citations and the approval flow are the real implementation.*
 
 ## Architecture
 
@@ -126,7 +126,7 @@ flowchart LR
   APPROVE --> DB[(Supabase Postgres + RLS<br/>private Storage · pgvector)]
   RAG --> DB
   PLAN --> DB
-  AGENT -. model + embeddings .-> OAI[OpenAI]
+  AGENT -. model + embeddings .-> OAI[Gemini or OpenAI]
 ```
 
 ```text
@@ -142,7 +142,7 @@ Next.js Route Handlers (Zod validation · structured errors · per-user DB rate 
    ▼
 Supabase: Auth · Postgres + RLS (composite owner FKs, column grants) · private Storage · pgvector
           SECURITY DEFINER RPCs: approve_proposal / reject_proposal / consume_rate_limit
-OpenAI (optional until configured): agent model via OPENAI_MODEL · text-embedding-3-small
+AI (optional until configured): Gemini 2.5 Flash + gemini-embedding-001 (or OpenAI model + text-embedding-3-small)
 ```
 
 **Security model in one paragraph:** identity always comes from the verified session (never from the browser or the model). Every child row carries `owner_id` and references its parent through a composite `(id, owner_id)` foreign key, so cross-tenant links are impossible at the schema level; RLS is `owner_id = auth.uid()`; the browser role has column-level grants only. Server-owned tables (chunks, agent runs, proposals, plans, quiz keys) are read-only or invisible to students. The agent can only read and *draft*; approval is a separate locked, idempotent database transaction the student triggers. PDF text is treated as untrusted data everywhere.
@@ -171,14 +171,16 @@ Then upload `data/statistics_module_4_synthetic.pdf` to the Applied Statistics c
 
 ### Enable the AI copilot
 
-Add to `.env.local` and restart:
+Easiest (Gemini free tier): `python3 scripts/configure-ai.py` asks for the key with hidden input and can also write it to
+`.env.local`. Or add it yourself and restart:
 
 ```bash
-OPENAI_API_KEY=...        # never commit
-OPENAI_MODEL=...          # a function-calling model available to your OpenAI project
+GEMINI_API_KEY=...        # never commit; from https://aistudio.google.com/apikey
+AI_PROVIDER=gemini        # model defaults to gemini-2.5-flash; embeddings to gemini-embedding-001
+# or: OPENAI_API_KEY=... and OPENAI_MODEL=...
 ```
 
-Without a key, everything except the copilot works; documents are indexed for keyword search, and embeddings are added for documents processed after a key is configured.
+Without a key, everything except the copilot works and search is keyword-only. Embeddings are added for documents processed after a key is configured.
 
 ## Tests
 
@@ -193,7 +195,7 @@ npm run preflight           # environment checks (add -- --production before dep
 
 Security: [SECURITY_AUDIT.md](SECURITY_AUDIT.md) · [THREAT_MODEL.md](THREAT_MODEL.md) · [SECURITY_TEST_REPORT.md](SECURITY_TEST_REPORT.md).
 
-Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, Resend SMTP, Turnstile, Vercel, OpenAI).
+Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, SMTP, Turnstile, Vercel, Gemini or OpenAI).
 
 The agent is tested with a **scripted stand-in model** that speaks the Agents SDK protocol, so the run loop, tools, database and persistence execute for real while the LLM is replaced. That model can be enabled only with `CATCHUP_TEST_MODEL=scripted` **and** a local Supabase URL, and the UI labels it "Scripted test model · not AI".
 
@@ -213,7 +215,7 @@ scripts/                 setup, fixtures, demo recording, uptime and evidence to
 
 ## Known limitations
 
-- Live model runs (Gemini or OpenAI) and embeddings have **not** been exercised: no key is configured yet. Retrieval is lexical, so paraphrased questions can miss (see RAG_QUALITY_REPORT.md).
+- Live model runs and Gemini embeddings are implemented but **not yet exercised**: no key is configured. Until then retrieval is lexical, so paraphrased questions can miss (see RAG_QUALITY_REPORT.md).
 - Text-based PDFs only (no OCR), ≤ 10 MB and ≤ 50 pages, processed synchronously.
 - Knowledge checks are fill-in-the-blank from your own sentences, not LLM-written questions.
 - No institutional LMS integration (Moodle or Canvas) yet. The iOS app (`ios/`) wraps the web app and is not on the App Store.

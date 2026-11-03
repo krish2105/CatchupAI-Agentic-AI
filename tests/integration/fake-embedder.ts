@@ -2,6 +2,7 @@ import type { Embedder } from "@/lib/rag/embed";
 
 /** Deterministic hashed bag-of-words embedder for tests (no network). Not semantically meaningful. */
 export const fakeEmbedder: Embedder = {
+  provider: "openai",
   model: "test-hash-embedder",
   async embed(texts) {
     return texts.map((text) => {
