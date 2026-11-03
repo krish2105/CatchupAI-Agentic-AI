@@ -68,18 +68,24 @@ def main():
     print("CatchUp AI · production email and bot protection\n")
     token = supabase_token()
 
-    print("1) Email (custom SMTP). Leave the password empty to skip.")
-    host = ask("   SMTP host", "smtp.resend.com")
-    while not host.lower().startswith("smtp.") or " " in host:
-        print("   That isn't a mail server. Use smtp.resend.com (Resend) or smtp.gmail.com (Gmail).")
-        host = ask("   SMTP host", "smtp.resend.com")
-    port = ask("   SMTP port", "465")
-    user = ask("   SMTP user", "resend")
-    password = getpass.getpass("   SMTP password / API key (hidden): ").strip()
-    sender = ask("   Sender address (on your verified domain)") if password else ""
-    if password and "gmail.com" in host and sender.lower() != user.lower():
-        print("   Note: Gmail sends only as the signed-in address, so the sender is set to", user)
+    print("1) Email. Choose how sign-in codes are sent (or 'skip').")
+    provider = ask("   Provider: gmail, resend or skip", "gmail").lower()
+    while provider not in ("gmail", "resend", "skip"):
+        provider = ask("   Please type gmail, resend or skip", "gmail").lower()
+    host = port = user = password = sender = ""
+    if provider == "gmail":
+        host, port = "smtp.gmail.com", "465"
+        user = ask("   Your Gmail address (e.g. you@gmail.com)")
+        while "@" not in user or " " in user:
+            user = ask("   That isn't an email address. Your Gmail address")
         sender = user
+        password = getpass.getpass("   Google app password, 16 letters (hidden): ").replace(" ", "").strip()
+    elif provider == "resend":
+        host, port, user = "smtp.resend.com", "465", "resend"
+        password = getpass.getpass("   Resend API key, starts with re_ (hidden): ").strip()
+        sender = ask("   Sender address on your verified domain (e.g. noreply@mail.example.com)")
+        while "@" not in sender or " " in sender:
+            sender = ask("   That isn't an email address. Sender address")
     print()
     print("2) Cloudflare Turnstile. Leave the site key empty to skip.")
     site_key = ask("   Turnstile SITE key (public)")
