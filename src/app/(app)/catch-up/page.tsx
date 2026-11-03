@@ -4,6 +4,7 @@ import { BookOpen, FileText, LifeBuoy } from "lucide-react";
 import { AddToPlan, CheckQuestions } from "@/components/features/catchup/pack-actions";
 import PageHeading from "@/components/ui/page-heading";
 import ListenButton from "@/components/ui/listen-button";
+import Thumbs from "@/components/ui/thumbs";
 import { ButtonLink, EmptyCard, Notice } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
 import { getCatchupPack } from "@/lib/catchup/service";
@@ -94,6 +95,7 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
             <AddToPlan documentId={docId!} />
           </section>
           <p className="muted pack-note">Built only from this document&apos;s text, without AI. Every point links to its page.</p>
+          <Thumbs kind="pack" refId={docId!} question="Did this pack help you catch up?" />
         </article>
       ) : null}
     </>

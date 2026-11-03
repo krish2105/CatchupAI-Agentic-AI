@@ -475,6 +475,39 @@ export type Database = {
           },
         ]
       }
+      feedback: {
+        Row: {
+          comment: string | null
+          created_at: string
+          id: string
+          kind: string
+          owner_id: string
+          page: string | null
+          rating: number | null
+          ref: string | null
+        }
+        Insert: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          kind: string
+          owner_id?: string
+          page?: string | null
+          rating?: number | null
+          ref?: string | null
+        }
+        Update: {
+          comment?: string | null
+          created_at?: string
+          id?: string
+          kind?: string
+          owner_id?: string
+          page?: string | null
+          rating?: number | null
+          ref?: string | null
+        }
+        Relationships: []
+      }
       focus_sessions: {
         Row: {
           completed: boolean
@@ -518,6 +551,30 @@ export type Database = {
             referencedColumns: ["id", "owner_id"]
           },
         ]
+      }
+      notification_prefs: {
+        Row: {
+          daily_digest: boolean
+          last_sent_on: string | null
+          missed_alert: boolean
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          daily_digest?: boolean
+          last_sent_on?: string | null
+          missed_alert?: boolean
+          owner_id?: string
+          updated_at?: string
+        }
+        Update: {
+          daily_digest?: boolean
+          last_sent_on?: string | null
+          missed_alert?: boolean
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       profiles: {
         Row: {

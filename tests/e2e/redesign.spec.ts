@@ -402,11 +402,40 @@ test("catch-up pack: cited summary, key terms, self-check and a 30-minute plan s
     const first = s.page.getByRole("group", { name: "Answers for question 1" });
     await first.getByRole("button").first().click();
     await expect(s.page.getByText(/Correct\.|The answer is/).first()).toBeVisible();
+    const thumbs = s.page.getByRole("group", { name: "Did this pack help you catch up?" });
+    await thumbs.getByRole("button", { name: "No, not helpful" }).click();
+    await thumbs.getByLabel(/What went wrong/).fill("Too short for page 3");
+    await thumbs.getByRole("button", { name: "Send" }).click();
+    await expect(thumbs.getByRole("status")).toHaveText("Thanks, noted.");
 
     await s.page.getByRole("button", { name: "Add a 30-minute catch-up to my plan" }).click();
     await expect(s.page).toHaveURL(/\/recovery\?proposal=/);
     const dialog = s.page.getByRole("dialog", { name: /Approve/ });
     await expect(dialog).toContainText("Catch up: statistics_module_4.pdf");
+  } finally {
+    await s.cleanup();
+  }
+});
+
+test("preferences: opt-in study emails persist and feedback is saved", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    await s.page.goto("/settings");
+    const digest = s.page.getByRole("switch", { name: "Morning digest email" });
+    await expect(digest).toHaveAttribute("aria-checked", "false");
+    await digest.click();
+    await expect(digest).toHaveAttribute("aria-checked", "true");
+    await expect.poll(async () => (await (await s.page.request.get("/api/nudges/prefs")).json()).prefs.dailyDigest).toBe(true);
+    await s.page.reload();
+    await expect(s.page.getByRole("switch", { name: "Morning digest email" })).toHaveAttribute("aria-checked", "true");
+    await expect(s.page.getByRole("switch", { name: "Missed-block alert email" })).toHaveAttribute("aria-checked", "false");
+
+    await s.page.getByLabel(/What helped, what got in the way/).fill("The calm planner view helps a lot.");
+    await s.page.getByRole("button", { name: "Send feedback" }).click();
+    await expect(s.page.getByText("Thanks, your feedback was saved.")).toBeVisible();
+    const exported = await (await s.page.request.get("/api/account/export")).json();
+    expect(exported.feedback[0]).toMatchObject({ kind: "general", comment: "The calm planner view helps a lot.", page: "/settings" });
+    expect(exported.emailPreferences[0]).toMatchObject({ daily_digest: true, missed_alert: false });
   } finally {
     await s.cleanup();
   }

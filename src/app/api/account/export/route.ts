@@ -19,6 +19,8 @@ const TABLES = [
   ["weeklyReflections", "weekly_reflections", "week_start, went_well, was_hard, next_focus, created_at, updated_at"],
   ["calendarFeed", "calendar_feeds", "created_at"],
   ["coursePrerequisites", "course_prerequisites", "course_id, requires_course_id, created_at"],
+  ["emailPreferences", "notification_prefs", "daily_digest, missed_alert, last_sent_on, updated_at"],
+  ["feedback", "feedback", "id, kind, ref, rating, comment, page, created_at"],
   ["teachBackAttempts", "teach_back_attempts", "id, course_id, topic, explanation, coverage_percent, concepts, created_at"],
 ] as const;
 

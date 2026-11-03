@@ -6,6 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import TrustDrawer from "@/components/features/recovery/trust-drawer";
+import Thumbs from "@/components/ui/thumbs";
 import type { ToolEvent } from "@/lib/agents/context";
 import type { AgentRunDto } from "@/lib/db/agent-runs";
 
@@ -102,6 +103,7 @@ function AnswerView({ run }: { run: AgentRunDto }) {
             </span>
           </p>
         ) : null}
+        {run.status === "completed" ? <Thumbs kind="answer" refId={run.id} question="Was this answer helpful?" /> : null}
       </div>
     </div>
   );

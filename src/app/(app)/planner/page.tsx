@@ -3,6 +3,7 @@ import { CalendarDays } from "lucide-react";
 import CalendarCard from "@/components/features/planner/calendar-card";
 import PlannerView from "@/components/features/planner/planner-view";
 import TrustDrawer from "@/components/features/recovery/trust-drawer";
+import Thumbs from "@/components/ui/thumbs";
 import PageHeading from "@/components/ui/page-heading";
 import { ButtonLink, EmptyCard, Notice } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -35,6 +36,7 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
       />
       {params.approved && plan ? <div style={{ marginBottom: 16 }}><Notice tone="info" title="Plan approved and saved.">Your schedule below is stored in your account.</Notice></div> : null}
       {plan ? <CalendarCard hasFeed={Boolean(feed.data)} feedCreatedAt={feed.data?.created_at ?? null} /> : null}
+      {plan ? <div className="thumbs-row"><Thumbs kind="plan" refId={plan.id} question="Is this plan working for you?" /></div> : null}
       {plan ? (
         <PlannerView plan={plan} timezone={profile.timezone} courseNames={Object.fromEntries(courses.map((c) => [c.id, c.title]))} now={now} weekStart={new Date(monday.getTime()).toISOString()} weekOffset={weekOffset} deadlines={deadlines} />
       ) : (

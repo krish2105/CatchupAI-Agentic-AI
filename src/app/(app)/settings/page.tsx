@@ -4,6 +4,9 @@ import AppearanceCard from "@/components/features/settings/appearance-card";
 import ProfileForm from "@/components/features/profile/profile-form";
 import PrivacyCard from "@/components/features/settings/privacy-card";
 import UsageCard from "@/components/features/settings/usage-card";
+import NudgesCard from "@/components/features/settings/nudges-card";
+import FeedbackCard from "@/components/features/settings/feedback-card";
+import { getNudgePrefs } from "@/lib/nudges/service";
 import { getUsage } from "@/lib/db/usage";
 import { renderTime } from "@/lib/server/clock";
 import PageHeading from "@/components/ui/page-heading";
@@ -17,7 +20,8 @@ export const metadata: Metadata = { title: "Preferences" };
 export default async function SettingsPage() {
   const { supabase, user } = await requirePageUser("/settings");
   const now = await renderTime();
-  const [ai, profile, usage] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id), getUsage(supabase, user.isAnonymous, now)]);
+  const [ai, profile, usage, nudges] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id), getUsage(supabase, user.isAnonymous, now), getNudgePrefs(supabase)]);
+  const mailReady = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
   return (
     <>
       <PageHeading
@@ -30,7 +34,7 @@ export default async function SettingsPage() {
         <div className="card setting-card">
           <div className="split-head"><h3>About this workspace</h3></div>
           <div className="setting-line">
-            <div><strong>AI runtime</strong><p>The copilot and quiz generator need a configured OpenAI model on the server.</p></div>
+            <div><strong>AI runtime</strong><p>The copilot needs a configured AI model (Gemini or OpenAI) on the server. Quizzes, packs and plans work without one.</p></div>
             {ai.kind === "scripted" ? <Chip tone="warn">Scripted test model</Chip> : ai.configured ? <Chip tone="good">{ai.model}</Chip> : <Chip tone="warn">Not configured</Chip>}
           </div>
           <div className="setting-line">
@@ -45,6 +49,10 @@ export default async function SettingsPage() {
         </div>
       </div>
       <div className="section-space"><UsageCard rows={usage} isAnonymous={user.isAnonymous} /></div>
+      <div className="settings-grid section-space">
+        <NudgesCard initial={nudges} isAnonymous={user.isAnonymous} mailReady={mailReady} />
+        <FeedbackCard />
+      </div>
       <div className="settings-grid section-space">
         <PrivacyCard />
         <div className="card setting-card">
