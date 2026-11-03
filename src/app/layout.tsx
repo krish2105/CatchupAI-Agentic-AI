@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Fraunces, Manrope } from "next/font/google";
+import { headers } from "next/headers";
 import "./globals.css";
 import { preferencesScript } from "@/lib/preferences/script";
 
@@ -18,11 +19,13 @@ export const viewport: Viewport = {
   ],
 };
 
-export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+  // Per-request CSP nonce from src/proxy.ts (also makes every page dynamic, which nonces require).
+  const nonce = (await headers()).get("x-nonce") ?? undefined;
   return (
     <html lang="en" data-theme="dark" className={`${manrope.variable} ${fraunces.variable}`} suppressHydrationWarning>
       <head>
-        <script dangerouslySetInnerHTML={{ __html: preferencesScript }} />
+        <script nonce={nonce} dangerouslySetInnerHTML={{ __html: preferencesScript }} />
       </head>
       <body>{children}</body>
     </html>

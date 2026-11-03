@@ -13,7 +13,7 @@ export const maxDuration = 60;
 /** Step 2 of upload (and retry): extract, chunk and index. Idempotent. */
 export const POST = route(async (_request: Request, { params }: { params: Promise<{ id: string }> }) => {
   const { supabase, user } = await requireApiUser();
-  await enforceRateLimit(supabase, "upload");
+  await enforceRateLimit(supabase, "upload", user);
   const documentId = uuid.parse((await params).id);
   const result = await processDocument({ supabase, admin: adminClient(), userId: user.id, documentId, embedder: getEmbedder() });
   const { storagePath: _omit, ...document } = await getDocument(supabase, documentId);

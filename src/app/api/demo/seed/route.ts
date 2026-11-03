@@ -15,7 +15,7 @@ const body = z.object({ timezone: timeZone }).strict();
 /** Loads the synthetic demo scenario into the visitor's fresh anonymous account. */
 export const POST = route(async (request: Request) => {
   const { supabase, user } = await requireApiUser();
-  await enforceRateLimit(supabase, "upload");
+  await enforceRateLimit(supabase, "upload", user);
   const { timezone } = body.parse(await readJson(request));
   const result = await seedDemoAccount({ supabase, admin: adminClient(), userId: user.id, isAnonymous: user.isAnonymous, timezone, now: Date.now(), embedder: getEmbedder() });
   return NextResponse.json(result);

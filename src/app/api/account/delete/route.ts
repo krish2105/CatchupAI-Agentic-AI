@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { requireApiUser } from "@/lib/auth/session";
 import { ApiError, readJson, route } from "@/lib/http/errors";
+import { enforceRateLimit } from "@/lib/http/rate-limit";
 import { adminClient } from "@/lib/supabase/admin";
 
 const body = z.object({ confirm: z.literal("DELETE") }).strict();
@@ -12,6 +13,7 @@ const body = z.object({ confirm: z.literal("DELETE") }).strict();
  */
 export const POST = route(async (request: Request) => {
   const { supabase, user } = await requireApiUser();
+  await enforceRateLimit(supabase, "account");
   body.parse(await readJson(request));
   const admin = adminClient();
   const { data: docs } = await supabase.from("documents").select("storage_path");

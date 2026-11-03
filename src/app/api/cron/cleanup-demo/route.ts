@@ -1,3 +1,4 @@
+import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { adminClient } from "@/lib/supabase/admin";
 
@@ -9,7 +10,7 @@ const DEMO_TTL_HOURS = 24;
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
-  if (!secret || request.headers.get("authorization") !== `Bearer ${secret}`) {
+  if (!secret || secret.length < 32 || !sameSecret(request.headers.get("authorization") ?? "", `Bearer ${secret}`)) {
     return NextResponse.json({ error: { code: "forbidden" } }, { status: 403 });
   }
   const admin = adminClient();
@@ -31,4 +32,11 @@ export async function GET(request: Request) {
     if (data.users.length < 200) break;
   }
   return NextResponse.json({ deleted });
+}
+
+/** Constant-time comparison so response timing doesn't reveal how much of the secret matched. */
+function sameSecret(given: string, expected: string) {
+  const a = Buffer.from(given);
+  const b = Buffer.from(expected);
+  return a.length === b.length && timingSafeEqual(a, b);
 }

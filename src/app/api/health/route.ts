@@ -1,10 +1,6 @@
 import { NextResponse } from "next/server";
 
+/** Liveness check for uptime monitors. Reveals nothing about configuration or data. */
 export function GET() {
-  return NextResponse.json({
-    status: "ok",
-    product: "CatchUp AI starter",
-    service: "Next.js API",
-    backendConnected: false,
-  });
+  return NextResponse.json({ status: "ok" }, { headers: { "cache-control": "no-store" } });
 }

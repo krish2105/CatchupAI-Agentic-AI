@@ -48,6 +48,7 @@
 | Dark theme: Forest at night (user-selected option B) | Done: tokens AA-checked (worst text pair 5.5:1), outlined cards, pale-mint primary | E2E axe both themes |
 | Teach-It-Back | Done: explanation checked deterministically against key concepts of the retrieved passages (body sentences only), each cited to its page; abstains without evidence; server-owned attempts (RLS select/delete only); missing concepts → targeted retest | unit 4 + integration 4 + E2E 1 |
 | Rubric Decoder | Done: indexed brief → deterministic candidates (weighted criteria, deadline, deliverables, requirements, each with page); weight-total check; student edits/drops then saves; checklist under the assignment with page links and tick-off progress; RLS + column grants (done/text only) | unit 5 + integration 3 + E2E 1 |
+| Security hardening pass | Done: audit (SECURITY_AUDIT.md) — 0 Critical, 1 High + 3 Medium + 6 Low; all fixed except L-5 (dev-only advisories, accepted). Nonce CSP, Origin check, HSTS, demo budgets, rate-limit allowlist, CI workflow | unit 1 + integration 4 + E2E 3 new |
 | Deployment / submission | **Not performed** — blocked on your accounts (Supabase/Vercel logins, OpenAI key, Resend, Turnstile) | docs/DEPLOYMENT.md |
 
 ## M0 audit findings
@@ -177,4 +178,6 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-04 | Rubric Decoder | `supabase migration up` (`20261104000008_assignment_checklist.sql`; first attempt rejected `set null (document_id, page)` → only document_id is cleared) | PASS | — |
 | 2026-11-04 | Rubric Decoder | E2E found a real bug: the decoder kept an empty brief list captured before indexing finished (button disabled) → selection now derived from current props; checklist label column alignment fixed after screenshot review | PASS | — |
 | 2026-11-04 | Rubric Decoder | `typecheck`, `lint`, `npm test` 72/72, `test:integration` 74/74, `test:e2e` 52/52, `npm run eval` 25/0/5 | PASS | — |
+| 2026-11-04 | Security | `supabase migration up` (`20261104000009_rate_limit_allowlist.sql`); old rate-limit test moved to an allowlisted bucket (arbitrary buckets now rejected by design) | PASS | — |
+| 2026-11-04 | Security | `typecheck`, `lint`, `npm test` 73/73, `test:integration` 78/78, `test:e2e` 55/55 (one transient palette timeout on the first run; 3/3 alone and full re-run green), `npm run eval` 25/0/5, `npm audit --omit=dev --audit-level=high` 0, bundle key scan clean | PASS | first GitHub CI run |
 

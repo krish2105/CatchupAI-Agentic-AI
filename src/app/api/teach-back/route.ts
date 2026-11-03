@@ -18,6 +18,6 @@ const body = z
 export const POST = route(async (request: Request) => {
   const { supabase, user } = await requireApiUser();
   const input = body.parse(await readJson(request));
-  await enforceRateLimit(supabase, "teach");
+  await enforceRateLimit(supabase, "teach", user);
   return NextResponse.json({ attempt: await teachBack({ supabase, admin: adminClient(), userId: user.id, ...input }) }, { status: 201 });
 });

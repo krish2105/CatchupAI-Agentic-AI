@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-198%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-206%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
 
 </div>
 
@@ -143,6 +143,8 @@ npm run test:e2e            # Playwright against a production build on :3100
 npm run eval                # 30-case evaluation → evals/REPORT.md
 npm run preflight           # environment checks (add -- --production before deploying)
 ```
+
+Security: [SECURITY_AUDIT.md](SECURITY_AUDIT.md) · [THREAT_MODEL.md](THREAT_MODEL.md) · [SECURITY_TEST_REPORT.md](SECURITY_TEST_REPORT.md).
 
 Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, Resend SMTP, Turnstile, Vercel, OpenAI).
 

@@ -8,9 +8,9 @@
 | --- | --- |
 | `npm run typecheck` | PASS (exit 0) |
 | `npm run lint` | PASS (exit 0) |
-| `npm test` (Vitest unit) | **72 / 72 passed** (13 files) |
-| `npm run test:integration` (real local Supabase) | **74 / 74 passed** (10 files) |
-| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **52 / 52 passed** (includes production build) |
+| `npm test` (Vitest unit) | **73 / 73 passed** (14 files) |
+| `npm run test:integration` (real local Supabase) | **78 / 78 passed** (12 files) |
+| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **55 / 55 passed** (includes production build) |
 | `npm run eval` (30-case evaluation, see `evals/REPORT.md`) | **25 passed · 0 failed · 5 skipped** (tool-selection cases need a real LLM; not simulated) |
 | Secret scan (tracked files + `.next/static`) against the real local secret values and key patterns | 0 hits |
 
@@ -35,7 +35,7 @@ Nothing was skipped. No test hard-codes a passing result for missing behaviour.
 - **Live OpenAI agent and embedding calls**: no API key was available. The code path exists (`openAiRuntime()`, `getEmbedder()`), but no live call has been executed.
 - Real screen readers (VoiceOver/NVDA) and physical mobile devices were not tested; axe and keyboard tests are automated proxies.
 - Load or performance testing and a hosted deployment smoke test were not done.
-- No Content-Security-Policy header yet.
+- Security posture and adversarial tests: see SECURITY_AUDIT.md and SECURITY_TEST_REPORT.md (nonce CSP, Origin checks and demo budgets added).
 
 ## Defects found and fixed during this build (selection)
 

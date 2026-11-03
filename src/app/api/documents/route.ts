@@ -15,8 +15,8 @@ export const GET = route(async (request: Request) => {
 
 /** Step 1 of upload: registers the document and returns the private storage path for the browser upload. */
 export const POST = route(async (request: Request) => {
-  const { supabase } = await requireApiUser();
-  await enforceRateLimit(supabase, "upload");
+  const { supabase, user } = await requireApiUser();
+  await enforceRateLimit(supabase, "upload", user);
   const input = documentCreate.parse(await readJson(request));
   return NextResponse.json(await createDocument(supabase, input), { status: 201 });
 });

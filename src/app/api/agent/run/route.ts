@@ -24,7 +24,7 @@ export const POST = route(async (request: Request) => {
   if (input.courseId) await getCourse(supabase, input.courseId);
   const runtime = resolveRuntime(input.courseId, input.message);
   if (!runtime) throw new ApiError(503, "ai_not_configured", "The AI runtime isn't configured on this server (OPENAI_API_KEY and OPENAI_MODEL).");
-  await enforceRateLimit(supabase, "agent");
+  await enforceRateLimit(supabase, "agent", user);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

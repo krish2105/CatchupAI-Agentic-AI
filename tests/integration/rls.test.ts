@@ -110,14 +110,15 @@ describe("server-owned tables", () => {
 
 describe("rate limiting", () => {
   it("counts per student and per window", async () => {
-    const bucket = `test-${crypto.randomUUID().slice(0, 6)}`;
+    // An allowlisted bucket these fresh students haven't used (arbitrary buckets are rejected: see abuse.test.ts).
+    const bucket = "account";
     const results: boolean[] = [];
     for (let i = 0; i < 3; i++) {
-      const { data } = await a.db.rpc("consume_rate_limit", { p_bucket: bucket, p_limit: 2, p_window_seconds: 60 });
+      const { data } = await a.db.rpc("consume_rate_limit", { p_bucket: bucket, p_limit: 2, p_window_seconds: 3600 });
       results.push(data as boolean);
     }
     expect(results).toEqual([true, true, false]);
-    const other = await b.db.rpc("consume_rate_limit", { p_bucket: bucket, p_limit: 2, p_window_seconds: 60 });
+    const other = await b.db.rpc("consume_rate_limit", { p_bucket: bucket, p_limit: 2, p_window_seconds: 3600 });
     expect(other.data).toBe(true);
   });
 
