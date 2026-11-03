@@ -1,20 +1,23 @@
 # CatchUp AI: honest scorecard and the path to 95+
 
-_Re-assessed 2026-11-04 after sprint 2 (catch-up pack, study emails, feedback, copilot memory, MCP, quality page, forest, demo video). Scores judge what is verifiable today, not what the code could do._
+_Re-assessed 2026-11-04 (late) after the M8 release, the speed fix, the submission pack and the iPhone install. Scores judge what is verifiable today, not what the code could do. They are our own assessment, not official scores._
 
-## Where it stands: **95 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91 → 94 → 95: M8 hardening: claim-checked citations, red team with a fixed real attack, kill switch and budget, observability, RAG ground truth; live AI still unmeasured, so this is capped)
+## Where it stands: **95 / 100**, capped until the live AI runs (history: 72 → 76 → 78 → 80 → 86 → 90 → 91 → 94 → 95 → 95)
+The engineering is at the top of this scale. The cap is a single gap: the Gemini key is valid but not yet saved (Google's models were overloaded), so there is still **no live-model evidence**.
 
-| Lens | Score | What earns points | What costs points |
+| Role | Score | What earns points | What costs points |
 | --- | --- | --- | --- |
-| **CEO** (problem, story, market) | 84 | Missed-lecture catch-up pack makes the core story concrete; captioned demo video; calendar sync, study emails | No users, pricing or outcome evidence yet |
-| **CTO** (architecture, security) | 94 | RLS on 23 tables, idempotent approval RPC, nonce CSP, hash-only tokens (calendar, MCP), signed unsubscribe, CI on every push, public quality page with live CI and health | No error monitoring |
-| **Senior PM** (scope, UX) | 93 | Every P0/P1 feature plus catch-up pack, memory panel, feedback in the flow; volunteer kit ready | Volunteer sessions not run yet |
-| **COO** (operability) | 88 | Live with SMTP, CAPTCHA, CI, two crons (demo cleanup, nudges), usage limits, public health/quality page, feedback totals | No error alerting; nudge SMTP env not yet set |
-| **AI engineer** | 80 | Gemini/OpenAI runtime switch, typed tools, structured output, budgets, per-run model/time/tokens surfaced | **No live model run yet** (key not entered) |
-| **Agentic AI engineer** | 91 | 7 scoped tools incl. student-controlled memory (suggest → keep), read-only MCP server, persisted traces, propose → approve | Tool-selection eval cases need a real LLM |
-| **RAG specialist** | 74 | Hybrid retrieval with RRF, page citations, abstention, eval-driven recall fix, citations in teach-back/rubric/trust drawer | Embeddings unused without a key; no claim-to-citation faithfulness metric |
-| **Learning scientist** | 90 | Catch-up pack with retrieval practice, spaced revision, Teach-It-Back, reflection, recovery score | No measured learning outcomes with real students |
-| **Competition judge** | 92 | Live URL, one-click demo, captioned demo video, public quality page, 248 tests + green CI | Live AI not shown yet |
+| **CEO** (problem, story, market) | 86 | Clear student problem; catch-up pack and approval story; professor brief; direct reuse for an LMS (Learners Education) | No users, pricing or outcome evidence yet |
+| **CTO** (architecture, security) | 96 | RLS on 25 tables, locked idempotent approval, nonce CSP, claim-checked citations, injection flagging, kill switch and token budget, functions next to the database (0.63 s dashboard), CI and uptime checks, backup drill | No error-tracking service (Sentry) |
+| **Senior PM** (scope, UX) | 94 | Every planned feature shipped and tested; phone, iPhone app, accessibility; dated checkpoint tracker; Day 1 template filled | Volunteer pilot not run; Day 0 not done |
+| **COO** (operability) | 91 | Readiness and uptime alerts, incident runbook, kill switch, budgets, cron jobs, redacted logs | No paging or Sentry; reminder-email SMTP not set |
+| **AI engineer** | 80 | Gemini/OpenAI runtime, retries for busy models, Gemini embeddings, cost and latency capture, typed tools | **No live model run yet** |
+| **Agentic AI engineer** | 82 | One agent, 7 bounded tools, model-chosen steps, 38-case eval + 4 reproducible scenarios ready, approval boundary proven | Live tool-selection accuracy and real traces not captured |
+| **RAG specialist** | 86 | Page-level ground-truth eval (Recall@3 90.9%, abstention 4/4), claim-to-citation check (precision 0.94), deletion and isolation proven | Keyword-only until embeddings run; paraphrase misses |
+| **Learning scientist** | 90 | Catch-up pack, retrieval practice, spaced revision, teach-back, reflection, recovery score | No measured learning outcomes |
+| **Competition judge** (DDS rubric, our estimate) | 66 / 80 + participation | Innovation 22/25 · Technical 21/25 · Real-world 12/15 · Presentation 11/15 | Platform participation (20) depends on Day 0 and daily submissions; video and post pending |
+
+**Fastest gains:** save the Gemini key and run `npm run eval` (+2 to +4 across AI roles); record the live-model video and post on LinkedIn (+3 presentation); complete Day 0 and every checkpoint on time (the 20-point participation score).
 
 ## Feature audit (enhancement brief)
 
