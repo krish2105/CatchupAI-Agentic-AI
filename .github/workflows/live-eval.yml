@@ -1,0 +1,48 @@
+name: Live evaluation
+
+# Runs the evaluation suite with a real model. Started by hand only (Actions tab → Live evaluation → Run),
+# so pull requests and pushes never spend tokens. Needs the repository secret GEMINI_API_KEY.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  live-eval:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+      - uses: supabase/setup-cli@v3
+        with:
+          version: latest
+      - run: npm ci
+      - run: npm run db:start
+      - name: Write .env.local (local stack + model key from the repository secret)
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        run: |
+          test -n "$GEMINI_API_KEY" || { echo "Add the GEMINI_API_KEY repository secret first"; exit 1; }
+          eval "$(supabase status -o env | sed 's/^/export /')"
+          {
+            echo "NEXT_PUBLIC_SUPABASE_URL=$API_URL"
+            echo "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=$PUBLISHABLE_KEY"
+            echo "SUPABASE_SECRET_KEY=$SECRET_KEY"
+            echo "AI_PROVIDER=gemini"
+            echo "GEMINI_API_KEY=$GEMINI_API_KEY"
+          } > .env.local
+      - run: npm run eval
+        continue-on-error: true
+      - uses: actions/upload-artifact@v7
+        with:
+          name: live-eval-results
+          path: |
+            evals/REPORT.md
+            evals/RAG_REPORT.md
+            evals/results
+          retention-days: 30

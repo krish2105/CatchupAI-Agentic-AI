@@ -1,0 +1,19 @@
+name: Uptime
+
+# Checks the live site every 30 minutes. A failed run emails the repository owner (GitHub's default
+# notification for failed workflows), which is the alert. Run it by hand from the Actions tab to test.
+on:
+  schedule:
+    - cron: "*/30 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - run: node scripts/uptime-check.mjs https://catchupai-chi.vercel.app

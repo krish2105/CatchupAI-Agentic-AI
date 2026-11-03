@@ -603,6 +603,24 @@ export type Database = {
         }
         Relationships: []
       }
+      mcp_usage: {
+        Row: {
+          count: number
+          owner_id: string
+          window_start: string
+        }
+        Insert: {
+          count?: number
+          owner_id: string
+          window_start?: string
+        }
+        Update: {
+          count?: number
+          owner_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       notification_prefs: {
         Row: {
           daily_digest: boolean
@@ -623,6 +641,30 @@ export type Database = {
           last_sent_on?: string | null
           missed_alert?: boolean
           owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      ops_flags: {
+        Row: {
+          ai_enabled: boolean
+          daily_token_budget: number
+          id: number
+          note: string | null
+          updated_at: string
+        }
+        Insert: {
+          ai_enabled?: boolean
+          daily_token_budget?: number
+          id?: number
+          note?: string | null
+          updated_at?: string
+        }
+        Update: {
+          ai_enabled?: boolean
+          daily_token_budget?: number
+          id?: number
+          note?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -997,6 +1039,10 @@ export type Database = {
       approve_proposal: {
         Args: { p_idempotency_key: string; p_proposal_id: string }
         Returns: Json
+      }
+      consume_mcp_quota: {
+        Args: { p_limit: number; p_owner: string; p_window_seconds: number }
+        Returns: boolean
       }
       consume_rate_limit: {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number }

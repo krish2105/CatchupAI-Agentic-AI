@@ -18,3 +18,9 @@ supabase/signing_keys.json
 
 # Recorded demo video (npm run demo:record)
 demo/out/
+
+__pycache__/
+*.pyc
+
+# Personal documents (not part of the public repo)
+outbox/

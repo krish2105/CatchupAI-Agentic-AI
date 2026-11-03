@@ -1,18 +1,18 @@
 {
   "tests": {
-    "unit": 85,
-    "integration": 85,
+    "unit": 97,
+    "integration": 92,
     "e2e": 56
   },
   "eval": {
-    "ranAt": "2026-11-03T20:09:20.870Z",
+    "ranAt": "2026-11-03T22:44:04.094Z",
     "retrievalMode": "lexical only (no OPENAI_API_KEY)",
     "agentModel": "not configured — tool-selection cases skipped",
     "totals": {
-      "cases": 30,
-      "pass": 25,
+      "cases": 38,
+      "pass": 30,
       "fail": 0,
-      "skipped": 5
+      "skipped": 8
     },
     "categories": [
       {
@@ -31,10 +31,10 @@
       },
       {
         "category": "tool_selection",
-        "total": 5,
+        "total": 8,
         "pass": 0,
         "fail": 0,
-        "skipped": 5
+        "skipped": 8
       },
       {
         "category": "approval",
@@ -49,13 +49,20 @@
         "pass": 4,
         "fail": 0,
         "skipped": 0
+      },
+      {
+        "category": "robustness",
+        "total": 5,
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
       }
     ]
   },
   "security": {
-    "migrations": 14,
-    "tablesWithRls": 23,
+    "migrations": 15,
+    "tablesWithRls": 25,
     "rateLimitBuckets": 11,
-    "securityDefinerFunctions": 9
+    "securityDefinerFunctions": 10
   }
 }

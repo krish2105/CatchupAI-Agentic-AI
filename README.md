@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-248%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-267%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-30%2F38%20pass%2C%208%20pending%20live%20model-2ea44f)
 
 **Live:** [catchupai-chi.vercel.app](https://catchupai-chi.vercel.app) · click **Try the demo, no sign-up** for a guided tour on synthetic data.
 
@@ -24,6 +24,38 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 | Answers from general knowledge | Answers cite **your uploaded pages**, or say "I couldn't verify that" |
 | AI writes to your data | The agent only **drafts**; approval is a separate locked, idempotent transaction |
 | "The agent did things" | A **real tool timeline**, recorded inside each tool and persisted per run |
+
+## How agentic is it?
+
+One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **seven tools**. The model decides which to call, in what order and with what arguments, for up to 8 turns:
+
+| Tool | Purpose | Can it change data? |
+| --- | --- | --- |
+| `get_study_preferences` | time zone and free minutes per day | no |
+| `list_assignments` | deadlines and estimates | no |
+| `search_course_material` | page-cited passages from your PDFs, or `NO_EVIDENCE` | no |
+| `get_learning_progress` | blocks done and remaining | no |
+| `draft_recovery_plan` | asks the deterministic planner for a route | creates a **pending** draft only |
+| `get_student_memory` | notes you asked it to remember | no |
+| `suggest_memory` | proposes one note | stored as a suggestion until you keep it |
+
+A typical request makes 4–6 real tool calls (deadlines → availability → notes → draft), each recorded and shown in the timeline. Facts must cite a passage that actually supports them. Passages that try to instruct an AI are flagged and can't be cited. Nothing is saved, approved or deleted by the AI.
+
+Being honest about it: **live-model behaviour hasn't been measured yet** because no model key is configured. The 8 tool-selection cases and 3 demo scenarios are reported as skipped, not passed. See [AGENTIC_AI_AUDIT.md](AGENTIC_AI_AUDIT.md) and [LIVE_AGENT_EVALUATION_REPORT.md](LIVE_AGENT_EVALUATION_REPORT.md).
+
+## Why TypeScript and not Python?
+
+The challenge welcomes Python but doesn't require it. CatchUp AI is one TypeScript codebase on purpose:
+- **One language end to end.** The UI, API, agent and planner share types, so a tool's input schema, the database types and the screen that shows the result can't drift apart.
+- **The agent framework is first-class in TypeScript.** The OpenAI Agents SDK has an official TypeScript version with typed tools (Zod), streaming and tracing.
+- **Deployment.** Next.js runs as a single Vercel project: no separate Python service to host, secure and keep warm.
+- **Where Python is used:** small owner-run setup scripts (`scripts/configure-*.py`), which prompt for keys with hidden input.
+
+## Speed
+
+Every screen renders in 25–60 ms on a local production build. The live site was slower (1–2 s per page) because the server
+functions ran in Washington DC while the database is in Seoul. Functions are now pinned to Seoul (`vercel.json` → `icn1`) so
+each database query stays inside one region.
 
 ## What works today (verified locally)
 
@@ -61,6 +93,8 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 
 See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` for the test evidence.
 
+**Release reports (M8):** [live agent evaluation](LIVE_AGENT_EVALUATION_REPORT.md) · [RAG quality](RAG_QUALITY_REPORT.md) · [AI red team](AI_SECURITY_RED_TEAM_REPORT.md) · [security audit](SECURITY_AUDIT.md) · [observability](OBSERVABILITY_REPORT.md) · [incident runbook](INCIDENT_RESPONSE_RUNBOOK.md) · [production readiness](PRODUCTION_READINESS_REPORT.md) · [user validation](USER_VALIDATION_REPORT.md) · [submission package](submission/PROJECT_PACKAGE.md) · [iOS app](ios/README.md)
+
 ## Screenshots (Nature Flow 3.0)
 
 | Mission control: briefing from real deadlines and capacity | Recovery lab: three honest routes with 7-day timelines |
@@ -75,7 +109,7 @@ See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` f
 
 <img src="docs/screenshots/mobile-dashboard-light.png" alt="Mobile mission control" width="260" /> <img src="docs/screenshots/knowledge-vault-dark.png" alt="Evidence search with page citations" width="520" />
 
-*Screenshots come from the real app on local Supabase with synthetic data. The copilot screenshot uses the deterministic test model (labelled "Scripted test model · not AI" in the UI) because no OpenAI key was configured; tools, retrieval, citations and the approval flow are the real implementation.*
+*Screenshots come from the real app on local Supabase with synthetic data. The copilot screenshot uses the deterministic test model (labelled "Scripted test model · not AI" in the UI) because no model key was configured; tools, retrieval, citations and the approval flow are the real implementation.*
 
 ## Architecture
 
@@ -84,7 +118,7 @@ flowchart LR
   U[Student browser<br/>Next.js App Router · R3F 3D + DOM fallback] -->|cookie session · SSE| API[Route Handlers<br/>Zod · rate limits · structured errors]
   API --> RAG[Document pipeline<br/>PDF validation → page chunks → hybrid search]
   API --> PLAN[Deterministic planner<br/>EDF · 3 scenarios · shortfall]
-  API --> AGENT[LearningRecoveryAgent<br/>5 permission-checked tools]
+  API --> AGENT[LearningRecoveryAgent<br/>7 permission-checked tools]
   AGENT --> RAG
   AGENT --> PLAN
   AGENT -->|draft only| PROP[(Pending proposal)]
@@ -92,7 +126,7 @@ flowchart LR
   APPROVE --> DB[(Supabase Postgres + RLS<br/>private Storage · pgvector)]
   RAG --> DB
   PLAN --> DB
-  AGENT -. model + embeddings .-> OAI[OpenAI]
+  AGENT -. model + embeddings .-> OAI[Gemini or OpenAI]
 ```
 
 ```text
@@ -103,12 +137,12 @@ Next.js Route Handlers (Zod validation · structured errors · per-user DB rate 
    ├─ src/proxy.ts ............ session refresh + page guard (Next 16 "proxy")
    ├─ lib/rag ................. PDF validation (unpdf) → page chunks → hybrid search (RRF)
    ├─ lib/planner/engine.ts ... pure EDF scheduler, 3 scenarios, shortfall (no AI)
-   ├─ lib/agents .............. LearningRecoveryAgent + 5 typed tools (trusted context)
+   ├─ lib/agents .............. LearningRecoveryAgent + 7 typed tools (trusted context)
    └─ lib/quiz ................ grounded cloze generator + server grading
    ▼
 Supabase: Auth · Postgres + RLS (composite owner FKs, column grants) · private Storage · pgvector
           SECURITY DEFINER RPCs: approve_proposal / reject_proposal / consume_rate_limit
-OpenAI (optional until configured): agent model via OPENAI_MODEL · text-embedding-3-small
+AI (optional until configured): Gemini 2.5 Flash + gemini-embedding-001 (or OpenAI model + text-embedding-3-small)
 ```
 
 **Security model in one paragraph:** identity always comes from the verified session (never from the browser or the model). Every child row carries `owner_id` and references its parent through a composite `(id, owner_id)` foreign key, so cross-tenant links are impossible at the schema level; RLS is `owner_id = auth.uid()`; the browser role has column-level grants only. Server-owned tables (chunks, agent runs, proposals, plans, quiz keys) are read-only or invisible to students. The agent can only read and *draft*; approval is a separate locked, idempotent database transaction the student triggers. PDF text is treated as untrusted data everywhere.
@@ -137,14 +171,16 @@ Then upload `data/statistics_module_4_synthetic.pdf` to the Applied Statistics c
 
 ### Enable the AI copilot
 
-Add to `.env.local` and restart:
+Easiest (Gemini free tier): `python3 scripts/configure-ai.py` asks for the key with hidden input and can also write it to
+`.env.local`. Or add it yourself and restart:
 
 ```bash
-OPENAI_API_KEY=...        # never commit
-OPENAI_MODEL=...          # a function-calling model available to your OpenAI project
+GEMINI_API_KEY=...        # never commit; from https://aistudio.google.com/apikey
+AI_PROVIDER=gemini        # model defaults to gemini-2.5-flash; embeddings to gemini-embedding-001
+# or: OPENAI_API_KEY=... and OPENAI_MODEL=...
 ```
 
-Without a key, everything except the copilot works; documents are indexed for keyword search, and embeddings are added for documents processed after a key is configured.
+Without a key, everything except the copilot works and search is keyword-only. Embeddings are added for documents processed after a key is configured.
 
 ## Tests
 
@@ -153,13 +189,13 @@ npm run typecheck && npm run lint
 npm test                    # unit (Vitest)
 npm run test:integration    # real local Supabase: RLS, storage, RAG, approval, agent tools
 npm run test:e2e            # Playwright against a production build on :3100
-npm run eval                # 30-case evaluation → evals/REPORT.md
+npm run eval                # 38-case agent eval + RAG eval + 3 agentic scenarios → evals/REPORT.md, evals/RAG_REPORT.md
 npm run preflight           # environment checks (add -- --production before deploying)
 ```
 
 Security: [SECURITY_AUDIT.md](SECURITY_AUDIT.md) · [THREAT_MODEL.md](THREAT_MODEL.md) · [SECURITY_TEST_REPORT.md](SECURITY_TEST_REPORT.md).
 
-Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, Resend SMTP, Turnstile, Vercel, OpenAI).
+Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, SMTP, Turnstile, Vercel, Gemini or OpenAI).
 
 The agent is tested with a **scripted stand-in model** that speaks the Agents SDK protocol, so the run loop, tools, database and persistence execute for real while the LLM is replaced. That model can be enabled only with `CATCHUP_TEST_MODEL=scripted` **and** a local Supabase URL, and the UI labels it "Scripted test model · not AI".
 
@@ -172,15 +208,17 @@ src/components/          shell, UI kit, 3D scene, feature components
 src/lib/                 auth, db access, planner, rag, agents, quiz, validation
 supabase/migrations/     schema, RLS, search and approval functions
 tests/{unit,integration,e2e}
-design-reference/        original nine-screen HTML concept (simulated; not the app)
+evals/                   agent, RAG and agentic-scenario evaluations (+ gold data)
+ios/                     SwiftUI iPhone/iPad app (XcodeGen)
+scripts/                 setup, fixtures, demo recording, uptime and evidence tools
 ```
 
 ## Known limitations
 
-- Live OpenAI agent runs and embeddings have **not** been exercised (no key provided). Retrieval thresholds were tuned on lexical search and a test embedder; re-tune after enabling real embeddings.
+- Live model runs and Gemini embeddings are implemented but **not yet exercised**: no key is configured. Until then retrieval is lexical, so paraphrased questions can miss (see RAG_QUALITY_REPORT.md).
 - Text-based PDFs only (no OCR), ≤ 10 MB and ≤ 50 pages, processed synchronously.
 - Knowledge checks are fill-in-the-blank from your own sentences, not LLM-written questions.
-- No public deployment, no Content-Security-Policy yet (inline theme script), no institutional LMS integration.
+- No institutional LMS integration (Moodle or Canvas) yet. The iOS app (`ios/`) wraps the web app and is not on the App Store.
 - Planner assumes one daily study window per day starting at a fixed local time.
 
 ## License and data

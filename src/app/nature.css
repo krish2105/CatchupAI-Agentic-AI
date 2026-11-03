@@ -860,3 +860,6 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .quality-stats b { font-size: 28px; }
 .quality-stats span { font-size: 12px; color: var(--muted); }
 .quality .data-table { width: 100%; }
+
+/* The list view sits under the absolutely positioned overline label; leave room so they never overlap. */
+.atlas-main .universe-list { padding-top: 56px; }

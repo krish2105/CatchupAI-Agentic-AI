@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
+import { logEvent } from "@/lib/observability/log";
 
 export class ApiError extends Error {
   constructor(
@@ -43,9 +44,11 @@ export function fromDbError(error: PgLikeError, notFoundMessage = "Not found."):
   }
 }
 
-export function jsonError(error: unknown) {
+export function jsonError(error: unknown, ctx: { requestId?: string; path?: string } = {}) {
   if (error instanceof ApiError) {
-    if (error.status >= 500) console.error(`[api] ${error.code}`, error.details ?? "");
+    if (error.status >= 500) logEvent("error", "api.error", { ...ctx, status: error.status, code: error.code, detail: typeof error.details === "string" ? error.details : undefined });
+    // Abuse and access signals: rate limits, forbidden origins/ownership, expired sessions.
+    else if ([401, 403, 429].includes(error.status)) logEvent("warn", "api.denied", { ...ctx, status: error.status, code: error.code });
     return NextResponse.json({ error: { code: error.code, message: error.message, details: error.status < 500 ? error.details : undefined } }, { status: error.status });
   }
   if (error instanceof ZodError) {
@@ -54,19 +57,37 @@ export function jsonError(error: unknown) {
       { status: 400 },
     );
   }
-  const correlationId = crypto.randomUUID();
-  console.error(`[api] unhandled ${correlationId}`, error instanceof Error ? error.message : error);
+  const correlationId = ctx.requestId ?? crypto.randomUUID();
+  logEvent("error", "api.unhandled", { ...ctx, correlationId, error: error instanceof Error ? `${error.name}: ${error.message}` : "non-error thrown" });
   return NextResponse.json({ error: { code: "internal", message: "Something went wrong.", correlationId } }, { status: 500 });
 }
 
-/** Wraps a route handler with uniform error handling. */
+/**
+ * Wraps a route handler with uniform error handling, a request id on every response (from the proxy) and a
+ * structured log line for slow, failed or denied requests.
+ */
 export function route<A extends unknown[]>(handler: (...args: A) => Promise<Response>) {
   return async (...args: A): Promise<Response> => {
+    const request = args[0] instanceof Request ? args[0] : null;
+    const requestId = request?.headers.get("x-request-id") ?? undefined;
+    const path = request ? new URL(request.url).pathname : undefined;
+    const started = Date.now();
+    let response: Response;
     try {
-      return await handler(...args);
+      response = await handler(...args);
     } catch (error) {
-      return jsonError(error);
+      response = jsonError(error, { requestId, path });
     }
+    const ms = Date.now() - started;
+    if (ms > 3000 || response.status >= 500) logEvent(response.status >= 500 ? "error" : "warn", "api.request", { requestId, path, method: request?.method, status: response.status, ms });
+    if (requestId && !response.headers.has("x-request-id")) {
+      try {
+        response.headers.set("x-request-id", requestId);
+      } catch {
+        /* immutable headers (redirects) */
+      }
+    }
+    return response;
   };
 }
 

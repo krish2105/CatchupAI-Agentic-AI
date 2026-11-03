@@ -1,0 +1,98 @@
+{
+  "scenario": "S2-overloaded-week",
+  "title": "Two deadlines, not enough time: report the shortfall honestly",
+  "model": "scripted-test-model (plumbing check, NOT model behaviour)",
+  "ranAt": "2026-11-03T22:41:39.292Z",
+  "request": "Can I finish the regression worksheet and the group project report before they're due? Plan it for me.",
+  "latencyMs": 38,
+  "tokens": {
+    "input": 0,
+    "output": 0
+  },
+  "estimatedCostUsd": null,
+  "status": "completed",
+  "errorCode": null,
+  "steps": [
+    {
+      "step": 1,
+      "tool": "get_student_memory",
+      "args": {},
+      "status": "completed",
+      "ms": 2,
+      "outcome": "0 memories"
+    },
+    {
+      "step": 2,
+      "tool": "get_study_preferences",
+      "args": {},
+      "status": "completed",
+      "ms": 2,
+      "outcome": "5h per week, Asia/Dubai"
+    },
+    {
+      "step": 3,
+      "tool": "list_assignments",
+      "args": {
+        "courseId": "44b7163b…",
+        "includeCompleted": false
+      },
+      "status": "completed",
+      "ms": 4,
+      "outcome": "2 assignments"
+    },
+    {
+      "step": 4,
+      "tool": "search_course_material",
+      "args": {
+        "courseId": "44b7163b…",
+        "query": "Can I finish the regression worksheet and the group project ",
+        "topK": 3
+      },
+      "status": "completed",
+      "ms": 5,
+      "outcome": "No supporting evidence"
+    },
+    {
+      "step": 5,
+      "tool": "draft_recovery_plan",
+      "args": {
+        "scenario": "essential",
+        "studyItems": 0
+      },
+      "status": "completed",
+      "ms": 15,
+      "outcome": "essential draft: short by 360 min, 3 blocks (pending approval)"
+    }
+  ],
+  "answer": {
+    "facts": [],
+    "suggestions": [
+      "The essential route is short by 360 minutes; consider more study time or the essential items only."
+    ],
+    "clarifyingQuestion": "I couldn't verify that in your uploaded materials. Can you upload the notes for this topic?"
+  },
+  "citations": [],
+  "removedUnsupportedFacts": 0,
+  "draft": {
+    "status": "pending",
+    "feasible": false,
+    "shortfallMinutes": 360,
+    "savedWithoutApproval": false
+  },
+  "measured": {
+    "expectedTools": [
+      "list_assignments",
+      "get_study_preferences",
+      "draft_recovery_plan"
+    ],
+    "usedTools": [
+      "get_student_memory",
+      "get_study_preferences",
+      "list_assignments",
+      "search_course_material",
+      "draft_recovery_plan"
+    ],
+    "toolRecall": 1,
+    "checksFailed": []
+  }
+}

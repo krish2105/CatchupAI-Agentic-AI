@@ -1,0 +1,107 @@
+{
+  "scenario": "S1-missed-lecture",
+  "title": "Missed the regression lecture: catch up before the worksheet",
+  "model": "scripted-test-model (plumbing check, NOT model behaviour)",
+  "ranAt": "2026-11-03T22:41:39.250Z",
+  "request": "I missed the regression lecture. What do I need to know about residuals, and can you plan my catch-up before the worksheet is due?",
+  "latencyMs": 82,
+  "tokens": {
+    "input": 0,
+    "output": 0
+  },
+  "estimatedCostUsd": null,
+  "status": "completed",
+  "errorCode": null,
+  "steps": [
+    {
+      "step": 1,
+      "tool": "get_student_memory",
+      "args": {},
+      "status": "completed",
+      "ms": 3,
+      "outcome": "0 memories"
+    },
+    {
+      "step": 2,
+      "tool": "get_study_preferences",
+      "args": {},
+      "status": "completed",
+      "ms": 3,
+      "outcome": "16h per week, Asia/Dubai"
+    },
+    {
+      "step": 3,
+      "tool": "list_assignments",
+      "args": {
+        "courseId": "a3551585…",
+        "includeCompleted": false
+      },
+      "status": "completed",
+      "ms": 8,
+      "outcome": "1 assignment"
+    },
+    {
+      "step": 4,
+      "tool": "search_course_material",
+      "args": {
+        "courseId": "a3551585…",
+        "query": "I missed the regression lecture. What do I need to know abou",
+        "topK": 3
+      },
+      "status": "completed",
+      "ms": 7,
+      "outcome": "1 passage: p. 2"
+    },
+    {
+      "step": 5,
+      "tool": "draft_recovery_plan",
+      "args": {
+        "scenario": "essential",
+        "studyItems": 1
+      },
+      "status": "completed",
+      "ms": 38,
+      "outcome": "essential draft: feasible, 4 blocks (pending approval)"
+    }
+  ],
+  "answer": {
+    "facts": [
+      {
+        "statement": "Your notes say: \"Applied Statistics · Module 4 · PAGE 2 — FIT AND RESIDUALS\nA residual equals observed Y minus predicted Y_hat. Ordinary least squares fits beta_0 and\nbeta_1 by \"",
+        "sources": [
+          "S1"
+        ]
+      }
+    ],
+    "suggestions": [
+      "The essential route fits your time. Review the draft in the Recovery lab."
+    ],
+    "clarifyingQuestion": null
+  },
+  "citations": [
+    "regression_lecture.pdf p. 2"
+  ],
+  "removedUnsupportedFacts": 0,
+  "draft": {
+    "status": "pending",
+    "feasible": true,
+    "shortfallMinutes": 0,
+    "savedWithoutApproval": false
+  },
+  "measured": {
+    "expectedTools": [
+      "list_assignments",
+      "search_course_material",
+      "draft_recovery_plan"
+    ],
+    "usedTools": [
+      "get_student_memory",
+      "get_study_preferences",
+      "list_assignments",
+      "search_course_material",
+      "draft_recovery_plan"
+    ],
+    "toolRecall": 1,
+    "checksFailed": []
+  }
+}

@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { AGENT_LIMITS, runRecoveryAgent } from "@/lib/agents/recovery-agent";
 import { resolveRuntime } from "@/lib/agents/runtime";
+import { assertAiAvailable } from "@/lib/ai/guard";
+import { logEvent } from "@/lib/observability/log";
 import { requireApiUser } from "@/lib/auth/session";
 import { getCourse } from "@/lib/db/courses";
 import { getAgentRun } from "@/lib/db/agent-runs";
@@ -23,7 +25,9 @@ export const POST = route(async (request: Request) => {
   const input = body.parse(await readJson(request, 8 * 1024));
   if (input.courseId) await getCourse(supabase, input.courseId);
   const runtime = resolveRuntime(input.courseId, input.message);
-  if (!runtime) throw new ApiError(503, "ai_not_configured", "The AI runtime isn't configured on this server (OPENAI_API_KEY and OPENAI_MODEL).");
+  if (!runtime) throw new ApiError(503, "ai_not_configured", "The AI runtime isn't configured on this server (GEMINI_API_KEY, or OPENAI_API_KEY and OPENAI_MODEL).");
+  // Kill switch, daily token budget and one-run-at-a-time are checked before any quota is spent.
+  await assertAiAvailable(adminClient(), user.id);
   await enforceRateLimit(supabase, "agent", user);
 
   const encoder = new TextEncoder();
@@ -52,7 +56,7 @@ export const POST = route(async (request: Request) => {
         });
         send("final", { run: await getAgentRun(supabase, outcome.runId), removedUnsupportedFacts: outcome.removedUnsupportedFacts });
       } catch (error) {
-        console.error("[agent] stream error", error instanceof Error ? error.message : error);
+        logEvent("error", "agent.stream_error", { error: error instanceof Error ? error.name : "unknown" });
         send("error", { code: "internal", message: "The copilot failed. Nothing was changed." });
       } finally {
         try {

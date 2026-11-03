@@ -24,6 +24,17 @@ export type Citation = {
 export const EVIDENCE_THRESHOLD = { lexicalCoverage: 0.34, lexicalRank: 0.08, vectorSimilarity: 0.3 } as const;
 
 /**
+ * Cosine similarity needed to count as support, per embedding provider. Gemini embeddings score unrelated text
+ * higher than OpenAI's, so its bar is higher. Starting values: re-check with `npm run eval` (RAG abstention cases)
+ * once a key is configured. EVIDENCE_VECTOR_THRESHOLD overrides both.
+ */
+export function vectorThreshold(embedder: Embedder | null) {
+  const override = Number(process.env.EVIDENCE_VECTOR_THRESHOLD);
+  if (Number.isFinite(override) && override > 0) return override;
+  return embedder?.provider === "gemini" ? 0.6 : EVIDENCE_THRESHOLD.vectorSimilarity;
+}
+
+/**
  * Searches ONLY the given course of the signed-in student. Runs with the student's client, so RLS and the
  * function's owner filter both apply; a course the student doesn't own simply yields no rows.
  */
@@ -53,7 +64,7 @@ export async function searchCourseMaterial(
       (r) =>
         (r.lexical_coverage ?? 0) >= EVIDENCE_THRESHOLD.lexicalCoverage ||
         (r.lexical_rank ?? 0) >= EVIDENCE_THRESHOLD.lexicalRank ||
-        (r.vector_similarity ?? 0) >= EVIDENCE_THRESHOLD.vectorSimilarity,
+        (r.vector_similarity ?? 0) >= vectorThreshold(embedder),
     )
     .map((r) => ({
       chunkId: r.chunk_id,
