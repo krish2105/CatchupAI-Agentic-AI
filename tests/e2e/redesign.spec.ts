@@ -40,7 +40,7 @@ test("mission control briefing reflects real data and missed class rescue runs t
 
     await s.page.getByRole("link", { name: "Missed class rescue" }).click();
     await expect(s.page).toHaveURL(/\/assistant$/);
-    await expect(s.page.getByRole("list", { name: "Executed tool calls" }).getByRole("listitem")).toHaveCount(4, { timeout: 30_000 });
+    await expect(s.page.getByRole("list", { name: "Executed tool calls" }).getByRole("listitem")).toHaveCount(5, { timeout: 30_000 });
     await expect(s.page.getByText("I missed my last class. Help me catch up before my next deadline without overloading my week.")).toBeVisible();
     await s.page.reload();
     const { data } = await s.db.from("agent_runs").select("id").eq("owner_id", s.userId);

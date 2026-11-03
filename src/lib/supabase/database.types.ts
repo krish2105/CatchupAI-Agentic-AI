@@ -290,6 +290,36 @@ export type Database = {
         }
         Relationships: []
       }
+      copilot_memories: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          source: string
+          status: string
+          text: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          source?: string
+          status?: string
+          text: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          source?: string
+          status?: string
+          text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       course_prerequisites: {
         Row: {
           course_id: string
@@ -551,6 +581,27 @@ export type Database = {
             referencedColumns: ["id", "owner_id"]
           },
         ]
+      }
+      mcp_tokens: {
+        Row: {
+          created_at: string
+          last_used_at: string | null
+          owner_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          last_used_at?: string | null
+          owner_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          last_used_at?: string | null
+          owner_id?: string
+          token_hash?: string
+        }
+        Relationships: []
       }
       notification_prefs: {
         Row: {

@@ -22,6 +22,8 @@ const TOOL_LABEL: Record<string, string> = {
   search_course_material: "Searched your course notes",
   get_learning_progress: "Checked your plan progress",
   draft_recovery_plan: "Drafted a plan (not saved)",
+  get_student_memory: "Read what you asked it to remember",
+  suggest_memory: "Suggested something to remember",
 };
 
 const ERROR_TEXT: Record<string, string> = {
@@ -200,6 +202,7 @@ export default function Copilot({
             const run = (data as { run: AgentRunDto }).run;
             setRuns((r) => [...r, run]);
             setSelectedRun(run.id);
+            if (run.events.some((e) => e.tool === "suggest_memory" && e.status === "completed")) window.dispatchEvent(new Event("catchup:memories"));
           }
           if (event === "error") setError((data as { message: string }).message);
         }

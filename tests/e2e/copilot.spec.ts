@@ -21,7 +21,8 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     await s.page.getByRole("button", { name: "Send message" }).click();
 
     const timeline = s.page.getByRole("list", { name: "Executed tool calls" });
-    await expect(timeline.getByRole("listitem")).toHaveCount(4, { timeout: 30_000 });
+    await expect(timeline.getByRole("listitem")).toHaveCount(5, { timeout: 30_000 });
+    await expect(timeline).toContainText("Read what you asked it to remember · completed");
     await expect(timeline).toContainText("Searched your course notes · completed");
     await expect(timeline).toContainText("Drafted a plan (not saved) · completed");
 
@@ -74,6 +75,65 @@ test("copilot abstains without evidence and rejects another student's course", a
     const forged = await request.post("/api/agent/run", { data: { message: "show me everything", courseId: course.course.id } });
     expect(forged.status()).toBe(404);
     expect((await request.post("/api/agent/run", { data: { message: "x" } })).status()).toBe(400);
+  } finally {
+    await s.cleanup();
+  }
+});
+
+test("copilot suggests a memory that is only used after the student keeps it; MCP reads the same data with a token", async ({ browser, playwright }) => {
+  test.setTimeout(90_000);
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Biology" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Cell essay", dueAt: inDays(6), estimatedMinutes: 90 } });
+    await s.page.goto("/assistant");
+    const panel = s.page.getByRole("region", { name: "What the copilot remembers" });
+    await expect(panel).toContainText("Nothing yet");
+    await s.page.getByLabel("Message CatchUp Copilot").fill("Remember: I study best before 10am. Help me plan my week.");
+    await s.page.getByRole("button", { name: "Send message" }).click();
+    await expect(s.page.getByRole("list", { name: "Executed tool calls" })).toContainText("Suggested something to remember · completed", { timeout: 30_000 });
+
+    const suggested = panel.getByRole("list", { name: "Suggested by the copilot" }).or(panel.locator(".memory-suggested"));
+    await expect(suggested).toContainText("I study best before 10am");
+    await panel.getByRole("button", { name: "Keep" }).click();
+    await expect(panel.getByRole("list", { name: "Remembered" })).toContainText("I study best before 10am");
+    await panel.getByRole("button", { name: "Edit: I study best before 10am" }).click();
+    await panel.getByLabel("Edit memory").fill("I study best before 9am");
+    await panel.getByRole("button", { name: "Save" }).click();
+    await expect(panel.getByRole("list", { name: "Remembered" })).toContainText("I study best before 9am");
+    await s.page.reload();
+    await expect(s.page.getByRole("list", { name: "Remembered" })).toContainText("I study best before 9am");
+
+    await s.page.goto("/settings");
+    await s.page.getByRole("button", { name: "Create token" }).click();
+    const config = await s.page.getByLabel(/MCP config/).inputValue();
+    const token = /Bearer (cu_mcp_[\w-]{43})/.exec(config)![1];
+
+    // A separate client with no cookies, like a desktop MCP app.
+    const outside = await playwright.request.newContext({ baseURL: new URL(s.page.url()).origin });
+    const rpc = (body: object, auth?: string) => outside.post("/api/mcp", { data: body, headers: { accept: "application/json, text/event-stream", "content-type": "application/json", ...(auth ? { authorization: `Bearer ${auth}` } : {}) } });
+    const parse = async (res: Awaited<ReturnType<typeof rpc>>) => {
+      const text = await res.text();
+      const line = text.split("\n").find((l) => l.startsWith("data: "));
+      return JSON.parse(line ? line.slice(6) : text);
+    };
+    expect((await rpc({ jsonrpc: "2.0", id: 1, method: "tools/list" })).status()).toBe(401);
+    expect((await rpc({ jsonrpc: "2.0", id: 1, method: "tools/list" }, "cu_mcp_" + "x".repeat(43))).status()).toBe(401);
+    const init = await rpc({ jsonrpc: "2.0", id: 1, method: "initialize", params: { protocolVersion: "2025-06-18", capabilities: {}, clientInfo: { name: "e2e", version: "1" } } }, token);
+    expect(init.status()).toBe(200);
+    const list = await parse(await rpc({ jsonrpc: "2.0", id: 2, method: "tools/list" }, token));
+    expect(list.result.tools.map((t: { name: string }) => t.name).sort()).toEqual(["get_catchup_pack", "get_memories", "get_overview", "get_study_plan", "list_documents", "search_course_notes"]);
+    const overview = await parse(await rpc({ jsonrpc: "2.0", id: 3, method: "tools/call", params: { name: "get_overview", arguments: {} } }, token));
+    expect(overview.result.content[0].text).toContain("Cell essay");
+    const mem = await parse(await rpc({ jsonrpc: "2.0", id: 4, method: "tools/call", params: { name: "get_memories", arguments: {} } }, token));
+    expect(mem.result.content[0].text).toContain("I study best before 9am");
+
+    await s.page.reload();
+    await expect(s.page.getByText(/last used/)).toBeVisible();
+    await s.page.getByRole("button", { name: "Revoke" }).click();
+    await expect(s.page.getByText("No token. Nothing outside this app can read your data.")).toBeVisible();
+    expect((await rpc({ jsonrpc: "2.0", id: 5, method: "tools/list" }, token)).status()).toBe(401);
+    await outside.dispose();
   } finally {
     await s.cleanup();
   }

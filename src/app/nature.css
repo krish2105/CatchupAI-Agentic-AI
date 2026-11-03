@@ -823,3 +823,18 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .thumbs-note .input { flex: 1 1 200px; min-width: 0; }
 .thumbs-row { margin: 0 0 16px; }
 .setting-foot { font-size: 11px; line-height: 1.6; margin-top: 12px; }
+
+/* Copilot memory panel (M4) */
+.memory-panel h3 { display: inline-flex; align-items: center; gap: 8px; }
+.memory-help { font-size: 12px; margin: 4px 0 14px; }
+.memory-list, .memory-suggested ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.memory-list li, .memory-suggested li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--stroke); border-radius: 12px; font-size: 13px; flex-wrap: wrap; }
+.memory-suggested { margin-bottom: 14px; }
+.memory-suggested .label { margin-bottom: 8px; }
+.memory-suggested li { border-style: dashed; }
+.memory-actions { display: inline-flex; gap: 6px; flex-shrink: 0; }
+.memory-edit, .memory-add { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; width: 100%; }
+.memory-edit .input, .memory-add .input { flex: 1 1 220px; min-width: 0; }
+.memory-add { margin-top: 14px; }
+.mcp-token { display: grid; gap: 10px; margin-top: 12px; }
+.mcp-config { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; resize: vertical; }

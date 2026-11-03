@@ -14,6 +14,8 @@ const TOOL_LABEL: Record<string, string> = {
   search_course_material: "Searched your course notes",
   get_learning_progress: "Checked your plan progress",
   draft_recovery_plan: "Drafted a plan (not saved)",
+  get_student_memory: "Read what you asked it to remember",
+  suggest_memory: "Suggested something to remember (needs your OK)",
 };
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });

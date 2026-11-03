@@ -7,9 +7,13 @@ import { ScriptedModel, ScriptedProvider, type ScriptStep, type ScriptView } fro
  */
 export function e2eScript(courseId: string | null, message: string): ScriptStep[] {
   const steps: ScriptStep[] = [
+    { call: "get_student_memory", args: {} },
     { call: "get_study_preferences", args: {} },
     { call: "list_assignments", args: { courseId, includeCompleted: false } },
   ];
+  // "Remember: ..." in the request exercises the suggest-then-confirm memory flow.
+  const remember = /remember:\s*([^.\n]{3,200})/i.exec(message);
+  if (remember) steps.push({ call: "suggest_memory", args: { text: remember[1].trim() } });
   if (courseId) steps.push({ call: "search_course_material", args: { courseId, query: message.slice(0, 300), topK: 3 } });
   steps.push({
     call: "draft_recovery_plan",
