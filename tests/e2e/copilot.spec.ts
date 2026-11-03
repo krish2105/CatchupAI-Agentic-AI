@@ -10,6 +10,7 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
     await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Regression worksheet", dueAt: inDays(5), estimatedMinutes: 120 } });
     await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
     await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
     await expect(s.page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
 

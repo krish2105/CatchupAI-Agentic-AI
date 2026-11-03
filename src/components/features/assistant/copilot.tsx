@@ -2,7 +2,7 @@
 
 import { ArrowRight, CheckCircle2, CircleSlash, Lightbulb, OctagonX, Quote, Sparkles, Square, XCircle } from "lucide-react";
 import Link from "next/link";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import type { ToolEvent } from "@/lib/agents/context";
 import type { AgentRunDto } from "@/lib/db/agent-runs";
@@ -107,14 +107,18 @@ export default function Copilot({
   initialRuns,
   courses,
   runtime,
+  rescue = null,
 }: {
   initialRuns: AgentRunDto[];
   courses: { id: string; title: string }[];
   runtime: { configured: boolean; kind: string; model: string | null };
+  /** One-click Missed Class Rescue: run this request once on arrival. */
+  rescue?: { prompt: string; courseId: string | null } | null;
 }) {
   const [runs, setRuns] = useState(initialRuns);
   const [message, setMessage] = useState("");
-  const [courseId, setCourseId] = useState<string>(courses[0]?.id ?? "");
+  const [courseId, setCourseId] = useState<string>(rescue?.courseId ?? courses[0]?.id ?? "");
+  const rescueStarted = useRef(false);
   const [live, setLive] = useState<{ request: string; events: ToolEvent[] } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedRun, setSelectedRun] = useState<string | null>(initialRuns.at(-1)?.id ?? null);
@@ -171,6 +175,20 @@ export default function Copilot({
       abort.current = null;
     }
   }
+
+  useEffect(() => {
+    if (!rescue || !runtime.configured) return;
+    // The guard lives inside the timer so Strict Mode's mount/unmount/mount still runs exactly once.
+    const timer = setTimeout(() => {
+      if (rescueStarted.current) return;
+      rescueStarted.current = true;
+      // Drop ?rescue=1 so a reload does not start a second run.
+      window.history.replaceState(null, "", "/assistant");
+      void send(rescue.prompt);
+    }, 0);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const shown = runs.find((r) => r.id === selectedRun);
 

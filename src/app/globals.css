@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "./orbital.css";
+@import "./nature.css";
 
 /* Expose the semantic tokens to Tailwind utilities (bg-surface, text-muted, border-stroke...). */
 @theme inline {
@@ -23,9 +24,6 @@
 }
 
 /* Tailwind preflight resets list/heading styles the reference relies on; keep both systems compatible. */
-/* Accessibility: the reference --faint/--muted values fail WCAG AA (4.5:1) for 9-11px labels; raised here. */
-:root { --chart-1: #8a7cf0; --danger: #ff9b9b; --faint: #8593ab; --font-sans: var(--font-inter); --font-serif: var(--font-instrument); }
-html[data-theme="light"] { --chart-1: #385fba; --danger: #b4372f; --faint: #5f6b7d; --muted: #56667c; --good: #1b7652; --warn: #8a5716; --coral: #c2502f; }
 
 /* Explicit user motion preference (Settings) mirrors prefers-reduced-motion. */
 html[data-motion="reduce"] *,
@@ -93,7 +91,7 @@ a.nav-item { text-decoration: none; }
 .orb-static { width: min(62%, 280px); aspect-ratio: 1; border-radius: 50%; position: relative; background: radial-gradient(circle at 32% 28%, color-mix(in srgb, var(--aqua), white 30%), color-mix(in srgb, var(--violet), transparent 10%) 38%, color-mix(in srgb, var(--violet), var(--bg) 65%) 72%); box-shadow: 0 0 80px var(--glow); }
 .orb-static::before, .orb-static::after { content: ""; position: absolute; inset: -18%; border-radius: 50%; border: 1px solid color-mix(in srgb, var(--aqua), transparent 55%); transform: rotateX(68deg) rotateZ(-18deg); }
 .orb-static::after { inset: -30%; border-color: color-mix(in srgb, var(--violet), transparent 55%); transform: rotateX(70deg) rotateZ(32deg); }
-.scene-label { font-size: 9px; font-weight: 800; letter-spacing: 1.6px; text-transform: uppercase; color: var(--text); white-space: nowrap; pointer-events: none; text-shadow: 0 1px 8px var(--bg); transform: translate(12px, -50%); }
+.scene-label { font-size: 10px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--text); white-space: nowrap; pointer-events: none; padding: 3px 8px; border-radius: 999px; background: var(--glass); border: 1px solid var(--stroke); }
 .hud-label.hud-bl { bottom: 21px; left: 24px; }
 .universe-list-only { padding: 24px; display: grid; gap: 10px; align-content: start; }
 .topic-button .topic-dot.needs_work { background: var(--coral); }
@@ -120,7 +118,7 @@ a.nav-item { text-decoration: none; }
 .auth-card h1 { font-size: 32px; letter-spacing: -1.4px; line-height: 1.1; margin: 14px 0 10px; }
 .auth-card > p { font-size: 12.5px; color: var(--muted); line-height: 1.7; }
 
-/* Insights chart (validated: dark #8a7cf0 / light #385fba pass lightness, chroma and 3:1 vs surface) */
+/* Insights chart: --chart-1 is defined per theme in nature.css (validated with the dataviz checker) */
 .bar-chart { width: 100%; height: auto; margin-top: 16px; overflow: visible; }
 .bar-chart .bar { fill: var(--chart-1); }
 .bar-chart .hit { fill: transparent; cursor: default; }

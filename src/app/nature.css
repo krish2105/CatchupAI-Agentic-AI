@@ -1,0 +1,209 @@
+/*
+ * Nature Flow 3.0 design layer. Loaded after orbital.css: it re-points the shared semantic tokens to the
+ * alpine-morning (light) and moonlit-forest (dark) palettes and refines typography, surfaces and motion.
+ * Every text/accent token below was checked for WCAG AA (>= 4.5:1) against all surfaces in its theme;
+ * chart colours were validated with the dataviz palette checker.
+ */
+
+:root,
+html[data-theme="dark"] {
+  /* Moonlit forest */
+  --bg: #0d1813;
+  --side: #11201a;
+  --surface: #14251e;
+  --surface2: #1a2e26;
+  --surface3: #20392f;
+  --hero: #122219;
+  --text: #ecf3ec;
+  --muted: #a8c2b3;
+  --faint: #8ea899;
+  --accent: #8fd6b2;
+  --accent-ink: #0d1813;
+  --aqua: #7ed0ca;
+  --violet: #9dbbd8;
+  --coral: #e5bc6a;
+  --good: #8fe0b0;
+  --warn: #e5bc6a;
+  --danger: #ff9e9e;
+  --focus: #8fd6b2;
+  --stroke: rgba(196, 226, 208, 0.11);
+  --stroke-strong: rgba(196, 226, 208, 0.2);
+  --shadow: rgba(0, 0, 0, 0.34);
+  --glow: rgba(126, 208, 202, 0.16);
+  --chart-1: #22a47b;
+  --gold: #e5bc6a;
+  --glass: rgba(20, 37, 30, 0.72);
+
+  /* Landscape illustration */
+  --land-sky1: #0b1612;
+  --land-sky2: #16302a;
+  --land-sun: #e9eedc;
+  --land-sun-glow: rgba(233, 238, 220, 0.18);
+  --land-far: #1f3a33;
+  --land-snow: #8fa79d;
+  --land-mid: #183028;
+  --land-near: #10241c;
+  --land-tree: #0b1a14;
+  --land-lake1: #1b3b38;
+  --land-lake2: #0f2421;
+  --land-shine: rgba(126, 208, 202, 0.35);
+  --land-mist: rgba(168, 194, 179, 0.1);
+  color-scheme: dark;
+}
+
+html[data-theme="light"] {
+  /* Alpine morning */
+  --bg: #f4f2ea;
+  --side: #eef2ea;
+  --surface: #fffef9;
+  --surface2: #f1f4ed;
+  --surface3: #e3ece2;
+  --hero: #e6eee4;
+  --text: #1c3328;
+  --muted: #4a6457;
+  --faint: #566b60;
+  --accent: #2d6a52;
+  --accent-ink: #ffffff;
+  --aqua: #21746f;
+  --violet: #3f6787;
+  --coral: #935610;
+  --good: #22704a;
+  --warn: #875810;
+  --danger: #b4372f;
+  --focus: #2d6a52;
+  --stroke: rgba(28, 51, 40, 0.1);
+  --stroke-strong: rgba(28, 51, 40, 0.18);
+  --shadow: rgba(38, 66, 52, 0.08);
+  --glow: rgba(94, 140, 120, 0.16);
+  --chart-1: #1e8a66;
+  --gold: #e2b866;
+  --glass: rgba(255, 254, 249, 0.74);
+
+  --land-sky1: #f6f1df;
+  --land-sky2: #dcebe6;
+  --land-sun: #f4d58a;
+  --land-sun-glow: rgba(244, 213, 138, 0.35);
+  --land-far: #b9cfc7;
+  --land-snow: #f7f8f2;
+  --land-mid: #8fb19e;
+  --land-near: #5e8c78;
+  --land-tree: #2f5a48;
+  --land-lake1: #9fd0cb;
+  --land-lake2: #6fb3ae;
+  --land-shine: rgba(255, 255, 255, 0.55);
+  --land-mist: rgba(255, 255, 255, 0.45);
+  color-scheme: light;
+}
+
+:root {
+  --font-sans: var(--font-manrope);
+  --font-serif: var(--font-fraunces);
+  --radius: 20px;
+  --ease: cubic-bezier(0.22, 0.8, 0.24, 1);
+}
+
+body {
+  font-family: var(--font-sans), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  background: var(--bg);
+  letter-spacing: -0.005em;
+}
+
+/* ---------- Typography: editorial serif headings, legible sans UI ---------- */
+.page-heading h1,
+.hero-copy h1,
+.auth-card h1 {
+  font-family: var(--font-serif), Georgia, serif;
+  font-weight: 560;
+  font-variation-settings: "opsz" 96;
+  letter-spacing: -0.025em;
+}
+.page-heading h1 .serif,
+.hero-copy h1 em {
+  font-family: var(--font-serif), Georgia, serif;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.02em;
+}
+.serif { font-family: var(--font-serif), Georgia, serif; }
+.split-head h3, .card h3, .trajectory-title { letter-spacing: -0.015em; }
+.eyebrow { letter-spacing: 2.2px; }
+.page-heading p, .hero-copy > p { font-size: 14px; line-height: 1.7; }
+.stat-card p, .focus-item p, .course-card p, .mini-activity p { font-size: 11.5px; }
+
+/* ---------- Brand ---------- */
+.brandmark {
+  background: linear-gradient(160deg, #5e8c78, #1f3b2e);
+  border: 1px solid var(--stroke-strong);
+  color: #f7f5ee;
+  box-shadow: 0 8px 22px var(--glow);
+}
+.brandmark::before { display: none; }
+.brandmark svg { width: 22px; height: 22px; }
+.brand-name span { color: var(--accent); font-weight: 600; }
+
+/* ---------- Surfaces ---------- */
+.card,
+.stat-card,
+.trajectory-card,
+.scenario,
+.vault-card {
+  border-radius: var(--radius);
+  border: 1px solid var(--stroke);
+  box-shadow: 0 1px 2px var(--shadow), 0 14px 34px -18px var(--shadow);
+}
+.trajectory-card { background: var(--surface); }
+.sidebar { background: var(--side); }
+.nav-item { border-radius: 14px; font-size: 13px; }
+.nav-item.active { background: var(--surface); border-color: var(--stroke-strong); box-shadow: 0 1px 2px var(--shadow); }
+.nav-item.active .ic { color: var(--accent); }
+.topbar { background: color-mix(in srgb, var(--bg), transparent 10%); }
+.btn { border-radius: 14px; }
+.btn.primary { box-shadow: 0 10px 24px -12px color-mix(in srgb, var(--accent), transparent 30%); }
+.chip { border-radius: 999px; }
+.side-brief { background: var(--surface); }
+.modal { border-radius: 24px; }
+dialog.modal::backdrop { background: rgba(10, 20, 15, 0.58); }
+
+/* ---------- Landscape hero ---------- */
+.hero { background: var(--hero); border: 1px solid var(--stroke); }
+.hero::after { display: none; }
+.hero-visual::before { display: none; }
+.landscape { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.hero > .landscape {
+  -webkit-mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.35) 30%, #000 58%);
+  mask-image: linear-gradient(90deg, transparent 0%, rgba(0, 0, 0, 0.35) 30%, #000 58%);
+}
+.hero > .hero-copy, .hero > .hero-visual { position: relative; z-index: 1; }
+.landscape .mist { animation: mist-drift 38s ease-in-out infinite alternate; }
+@keyframes mist-drift { from { transform: translateX(-2%); } to { transform: translateX(2%); } }
+html[data-motion="reduce"] .landscape .mist { animation: none; }
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--stroke-strong);
+  border-radius: var(--radius);
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+}
+@media (max-width: 720px) {
+  .hero > .landscape {
+    -webkit-mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 40%, #000 70%);
+    mask-image: linear-gradient(180deg, transparent 0%, rgba(0, 0, 0, 0.4) 40%, #000 70%);
+  }
+}
+
+/* ---------- Command palette ---------- */
+.search-pill { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; border-radius: 14px; border: 1px solid var(--stroke); background: var(--surface); color: var(--muted); font-size: 12px; font-weight: 600; min-width: 250px; }
+.search-pill:hover { border-color: var(--stroke-strong); color: var(--text); }
+.search-pill kbd, .command-input kbd { margin-left: auto; font: inherit; font-size: 10px; border: 1px solid var(--stroke-strong); border-radius: 6px; padding: 1px 6px; color: var(--muted); }
+.command-palette { width: min(calc(100% - 32px), 560px); padding: 0; margin-top: 12vh; }
+.command-input { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--stroke); }
+.command-input input { flex: 1; border: 0; background: transparent; color: var(--text); font-size: 15px; outline: none; min-width: 0; }
+.command-list { list-style: none; margin: 0; padding: 8px; max-height: min(60vh, 420px); overflow: auto; }
+.command-group { font-size: 10px; letter-spacing: 1.8px; text-transform: uppercase; color: var(--faint); font-weight: 800; padding: 10px 10px 6px; }
+.command-item { display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 12px; cursor: pointer; font-size: 13px; color: var(--text); }
+.command-item.active { background: var(--surface3); }
+.command-item .ic { color: var(--muted); }
+.command-item.active .ic { color: var(--accent); }
+.command-item .enter { margin-left: auto; }
+.command-empty { padding: 18px; color: var(--muted); font-size: 13px; }
+@media (max-width: 1000px) { .search-pill { min-width: 0; } .search-pill span, .search-pill kbd { display: none; } }

@@ -7,6 +7,7 @@ test("generate a knowledge check, answer it, see sourced results, and real insig
   try {
     const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
     await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
     await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
     await expect(s.page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
 

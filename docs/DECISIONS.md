@@ -74,3 +74,10 @@ Add dated decisions here when the coding assistant changes architecture or requi
 ## 2026-11-03: Build session M7
 - **ADR-040** Baseline security headers (nosniff, frame DENY, referrer policy, permissions policy, COOP) and `Cache-Control: private, no-store` on all API routes. A CSP is deferred because of the inline pre-paint theme script (would need a nonce); tracked as a known limitation.
 
+## 2026-11-03: Nature Flow 3.0 — R1/R2
+- **ADR-041** Redesign as a token layer (`src/app/nature.css`) on top of the existing component CSS: verified layouts, tests and logic are preserved; themes are "alpine morning" (light) and "moonlit forest" (dark).
+- **ADR-042** Landscape art is an inline, theme-aware SVG (no network cost, works offline and in both themes); generated panoramas can replace it later behind the same `.landscape` slot.
+- **ADR-043** Mission Control briefing, plan card and route summary are computed from the planner and persisted plan/runs; the hero headline changes only when the balanced route is genuinely over capacity.
+- **ADR-044** Missed Class Rescue = a preset copilot request scoped to the course with the nearest required deadline, auto-run once (guarded against Strict Mode double effects and reloads). Unavailable without an AI runtime (honest notice).
+- **ADR-045** ⌘K command palette: native `<dialog>` + combobox/listbox semantics; only real destinations and actions are listed.
+

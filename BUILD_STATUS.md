@@ -30,6 +30,8 @@
 | Knowledge checks (P1, M6) | Done — deterministic cloze questions from the student's indexed sentences, each with document/page evidence; answer keys in server-only `quiz_keys`; server grading; attempts persisted; weak terms surfaced. **Not LLM-generated** (no key) | unit 4 + integration 5 + E2E |
 | Insights (M6) | Done — latest quiz, blocks/minutes completed, active plan, 14-day minutes chart (validated palette, tooltip, table view), topic results, per-course progress; all from persisted rows | E2E |
 | Hardening (M7) | Done — security headers, `no-store` API caching, no-WebGL/200%-zoom/keyboard-only tests, secret scan, README + `QA_REPORT.md` | E2E 41/41 |
+| Nature Flow 3.0 redesign — R1/R2 | Done: alpine-morning / moonlit-forest tokens (AA-checked), Fraunces + Manrope type, brand mark, theme-aware SVG landscape, Mission Control briefing from real data, one-click Missed Class Rescue, ⌘K command palette, universe label fix | E2E 43/43 ×2 |
+| Nature Flow 3.0 redesign — R3–R7 | In progress: Recovery Lab / Copilot restyle, Vault, Schedule, Practice, Insights, Focus Sanctuary, 3D course islands | — |
 | Deployment / submission | **Not performed** | needs your approval + Supabase cloud project + Vercel |
 
 ## M0 audit findings
@@ -135,4 +137,7 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 1. **OpenAI:** add `OPENAI_API_KEY` + `OPENAI_MODEL` to `.env.local`, then run the copilot once and re-check the evidence thresholds (`EVIDENCE_THRESHOLD` in `src/lib/rag/retrieve.ts`) with real embeddings. Record the result here.
 2. **Deploy (approval required):** create a Supabase cloud project (`supabase link` + `supabase db push`), a Vercel project with the env vars (server-only `SUPABASE_SECRET_KEY`), set Auth site URL/redirects and SMTP, then smoke-test the live URL on desktop and mobile.
 3. **Submission:** confirm the Nas.io Day 8 form fields, deadline and time zone; record a 2–4 min demo from the real app (see docs/09_DEMO_SCRIPT.md).
+| 2026-11-03 | R1/R2 | Token contrast script (all text/accent tokens ≥ 4.5:1 on every surface, both themes); dataviz validator for chart greens (light #1E8A66, dark #22A47B) | PASS | — |
+| 2026-11-03 | R1/R2 | `npx playwright test` | first run 1 FAIL (selector collision with new search pill) → fixed; then rescue tool count (4: course-scoped search) and upload hydration waits; then a parallel-run flake traced to the shared-session sign-out test → isolated with its own student | — |
+| 2026-11-03 | R1/R2 | `typecheck`, `lint`, `npm test` 47/47, `test:integration` 60/60, `test:e2e` 43/43 (two consecutive runs; adds command palette + mission control briefing + one-click rescue) | PASS | — |
 

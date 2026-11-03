@@ -7,11 +7,13 @@ test.describe("documents and evidence search", () => {
     const course = await (await page.request.post("/api/courses", { data: { title: `Docs E2E ${Date.now()}` } })).json();
     await page.goto(`/courses/${course.course.id}`);
 
+    await page.waitForLoadState("networkidle");
+
     await page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
     await expect(page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
 
     await page.getByLabel("Search this course's documents").fill("What does a residual mean?");
-    await page.getByRole("button", { name: "Search" }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
     const first = page.getByRole("list", { name: "Matching passages" }).getByRole("listitem").first();
     await expect(first.getByRole("link")).toHaveText("statistics_module_4.pdf · p. 2");
     await expect(first).toContainText("A residual equals observed Y minus predicted");
@@ -26,13 +28,14 @@ test.describe("documents and evidence search", () => {
     expect((await pdf.body()).subarray(0, 5).toString()).toBe("%PDF-");
 
     await page.getByLabel("Search this course's documents").fill("photosynthesis chlorophyll");
-    await page.getByRole("button", { name: "Search" }).click();
+    await page.getByRole("button", { name: "Search", exact: true }).click();
     await expect(page.getByText("I couldn't verify that in your uploaded materials.")).toBeVisible();
   });
 
   test("scanned/no-text PDFs fail visibly with a reason", async ({ page }) => {
     const course = await (await page.request.post("/api/courses", { data: { title: `Scan E2E ${Date.now()}` } })).json();
     await page.goto(`/courses/${course.course.id}`);
+    await page.waitForLoadState("networkidle");
     await page.locator('input[type="file"]').setInputFiles("tests/fixtures/no_text.pdf");
     await expect(page.getByText(/No selectable text found/)).toBeVisible({ timeout: 30_000 });
     await expect(page.getByText("Failed", { exact: true })).toBeVisible();

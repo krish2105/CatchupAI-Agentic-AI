@@ -1,16 +1,16 @@
 import type { NodeStatus } from "./types";
 
-/** Mirrors the CSS tokens in orbital.css so WebGL materials follow the active theme. */
+/** Mirrors the Nature Flow tokens (nature.css) so WebGL materials follow the active theme. */
 export const PALETTES = {
   dark: {
-    core: "#354b93", coreEmissive: "#1d2f66", wire: "#80dce2", ringA: "#b5a5ff", ringB: "#80dce2",
-    lightA: "#80dce2", lightB: "#b5a5ff", selected: "#f1f5ff",
-    status: { on_track: "#80dce2", needs_work: "#ffb49b", mastered: "#c7f46f", no_data: "#72819a" } as Record<NodeStatus, string>,
+    core: "#2a5a48", coreEmissive: "#123a2c", wire: "#7ed0ca", ringA: "#e5bc6a", ringB: "#7ed0ca",
+    lightA: "#7ed0ca", lightB: "#e5bc6a", selected: "#ecf3ec",
+    status: { on_track: "#7ed0ca", needs_work: "#e5bc6a", mastered: "#8fe0b0", no_data: "#6f8a7c" } as Record<NodeStatus, string>,
   },
   light: {
-    core: "#aeb3f0", coreEmissive: "#6264b6", wire: "#5277c4", ringA: "#705cba", ringB: "#3c70be",
-    lightA: "#3c70be", lightB: "#8973ca", selected: "#17243a",
-    status: { on_track: "#128c98", needs_work: "#df6d4d", mastered: "#385fba", no_data: "#7c8899" } as Record<NodeStatus, string>,
+    core: "#9dbfa9", coreEmissive: "#5e8c78", wire: "#2d6a52", ringA: "#c99a3c", ringB: "#21746f",
+    lightA: "#fff4d8", lightB: "#9fd0cb", selected: "#1c3328",
+    status: { on_track: "#21746f", needs_work: "#b7791f", mastered: "#22704a", no_data: "#8a9c92" } as Record<NodeStatus, string>,
   },
 } as const;
 

@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { Menu, Search, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { APP_ROUTES, routeForPath } from "@/lib/nav/routes";
 import Brand from "./brand";
+import CommandPalette from "./command-palette";
 import ThemeButton from "./theme-button";
 
 export type ShellUser = { displayName: string; email: string };
@@ -156,6 +157,9 @@ export default function AppShell({
             </div>
           </div>
           <div className="top-actions">
+            <button type="button" className="search-pill" onClick={() => window.dispatchEvent(new Event("catchup:command-palette"))} aria-label="Search or run a command (Control or Command K)">
+              <Search className="ic" aria-hidden="true" /> <span>Search or run a command</span> <kbd>⌘K</kbd>
+            </button>
             <ThemeButton />
             {user ? (
               <Link href="/settings" className="top-avatar" aria-label={`Account settings for ${user.displayName || user.email}`}>
@@ -164,6 +168,7 @@ export default function AppShell({
             ) : null}
           </div>
         </header>
+        <CommandPalette />
         <main id="main" tabIndex={-1} className="page">
           <div className="content">{children}</div>
         </main>

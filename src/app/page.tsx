@@ -1,7 +1,7 @@
 import { ArrowRight, BookOpenCheck, Scale, ShieldCheck } from "lucide-react";
 import Brand from "@/components/shell/brand";
 import ThemeButton from "@/components/shell/theme-button";
-import LandingOrb from "@/components/landing-orb";
+import Landscape from "@/components/nature/landscape";
 import { ButtonLink } from "@/components/ui/primitives";
 
 const steps = [
@@ -25,8 +25,9 @@ export default function Home() {
       </header>
       <main id="main">
         <section className="hero lp-hero" aria-labelledby="hero-heading">
+          <Landscape />
           <div className="hero-copy">
-            <div className="eyebrow">Agentic learning recovery</div>
+            <div className="eyebrow">Nature Flow · agentic learning recovery</div>
             <h1 id="hero-heading">Make a little <em>room for progress.</em></h1>
             <p>
               CatchUp AI connects your course material, deadlines and available study time, then helps you choose a recovery plan that actually fits —
@@ -39,10 +40,7 @@ export default function Home() {
               <ButtonLink href="#how-it-works" variant="ghost">How it works</ButtonLink>
             </div>
           </div>
-          <div className="hero-visual">
-            <LandingOrb />
-            <div className="hud-hint"><i className="live-dot" /> ILLUSTRATION</div>
-          </div>
+          <div className="hero-visual" aria-hidden="true" />
         </section>
 
         <section id="how-it-works" className="three-column lp-steps" aria-label="How CatchUp AI works">

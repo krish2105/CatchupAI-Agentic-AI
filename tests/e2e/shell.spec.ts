@@ -1,5 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test } from "@playwright/test";
+import { freshStudent } from "./admin";
 import { APP_PATHS, seedPrefs } from "./helpers";
 
 test.describe("app shell", () => {
@@ -78,14 +79,17 @@ test.describe("app shell", () => {
   });
 
   test("signing out ends the session", async ({ browser }) => {
-    const context = await browser.newContext({ storageState: "playwright/.auth/user.json" });
-    const page = await context.newPage();
-    await page.goto("/settings");
-    await page.getByRole("button", { name: "Sign out" }).click();
-    await expect(page).toHaveURL(/\/$/);
-    await page.goto("/dashboard");
-    await expect(page).toHaveURL(/\/login/);
-    await context.close();
+    // Uses its own student: signing out the shared E2E session would log out tests running in parallel.
+    const s = await freshStudent(browser);
+    try {
+      await s.page.goto("/settings");
+      await s.page.getByRole("button", { name: "Sign out" }).click();
+      await expect(s.page).toHaveURL(/\/$/);
+      await s.page.goto("/dashboard");
+      await expect(s.page).toHaveURL(/\/login/);
+    } finally {
+      await s.cleanup();
+    }
   });
 
   test("unknown routes render the 404 view", async ({ page }) => {

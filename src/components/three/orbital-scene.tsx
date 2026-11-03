@@ -67,12 +67,22 @@ function Universe({ graph, theme, selectedId, onSelect, autoRotate, showLabels, 
   useFrame((state) => {
     if (!showLabels) return;
     const { width, height } = state.size;
+    const camera = state.camera as THREE.PerspectiveCamera;
+    const unitsToPx = height / (2 * Math.tan(THREE.MathUtils.degToRad(camera.fov / 2)));
     nodeRefs.current.forEach((node, i) => {
       const el = labels.current[i];
       if (!node || !el) return;
-      node.getWorldPosition(projected).project(state.camera);
-      const x = Math.min((projected.x * 0.5 + 0.5) * width, width - el.offsetWidth - 20);
-      const y = Math.max(16, Math.min((-projected.y * 0.5 + 0.5) * height, height - 16));
+      node.getWorldPosition(projected);
+      // Place the label centred BELOW the node, clear of the sphere and its selection ring.
+      const distance = camera.position.distanceTo(projected);
+      const ringRadius = (graph.nodes[i]?.id === selectedId ? 0.34 : 0.22) * fit;
+      const offset = (ringRadius / distance) * unitsToPx + 10;
+      projected.project(camera);
+      const cx = (projected.x * 0.5 + 0.5) * width;
+      const cy = (-projected.y * 0.5 + 0.5) * height;
+      const w = el.offsetWidth;
+      const x = Math.max(8, Math.min(cx - w / 2, width - w - 8));
+      const y = Math.max(8, Math.min(cy + offset, height - el.offsetHeight - 8));
       el.style.transform = `translate(${x}px, ${y}px)`;
       el.style.opacity = projected.z < 1 ? "1" : "0";
     });
