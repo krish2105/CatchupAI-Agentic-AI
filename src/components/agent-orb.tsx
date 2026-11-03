@@ -1,7 +1,8 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
+import { usePreferences } from "@/lib/preferences/store";
 
 const WebGLScene = dynamic(() => import("./agent-scene"), { ssr: false });
 
@@ -24,30 +25,21 @@ function webglAvailable(): boolean {
   }
 }
 
-export default function AgentOrb() {
-  const [enable3D, setEnable3D] = useState(false);
-  const [theme, setTheme] = useState<"light" | "dark">("dark");
+function subscribeDesktop(onChange: () => void) {
+  const query = window.matchMedia("(min-width: 900px)");
+  query.addEventListener("change", onChange);
+  return () => query.removeEventListener("change", onChange);
+}
 
-  useEffect(() => {
-    const observer = new MutationObserver(() => setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark"));
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
-    setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)");
-    const desktop = window.matchMedia("(min-width: 900px)");
-    const update = () => setEnable3D(!reduced.matches && desktop.matches && webglAvailable());
-    update();
-    reduced.addEventListener("change", update);
-    desktop.addEventListener("change", update);
-    return () => {
-      observer.disconnect();
-      reduced.removeEventListener("change", update);
-      desktop.removeEventListener("change", update);
-    };
-  }, []);
+export default function AgentOrb() {
+  const { resolvedTheme, reducedMotion, threeD } = usePreferences();
+  const desktop = useSyncExternalStore(subscribeDesktop, () => window.matchMedia("(min-width: 900px)").matches, () => false);
+  const canRender3D = useSyncExternalStore(() => () => {}, webglAvailable, () => false);
+  const enable3D = threeD && !reducedMotion && desktop && canRender3D;
 
   return (
     <div className="orb-frame" aria-hidden="true">
-      {enable3D ? <WebGLScene theme={theme} /> : <StaticOrb />}
+      {enable3D ? <WebGLScene theme={resolvedTheme} /> : <StaticOrb />}
       <div className="orb-caption">KNOWLEDGE · CLARITY · MOMENTUM</div>
     </div>
   );

@@ -1,29 +1,20 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
-type Theme = "light" | "dark";
-const KEY = "catchup-orbital-theme";
+import { setPreferences, usePreferences } from "@/lib/preferences/store";
 
 export default function ThemeToggle() {
-  const [theme, setTheme] = useState<Theme>("dark");
-
-  useEffect(() => {
-    setTheme(document.documentElement.dataset.theme === "light" ? "light" : "dark");
-  }, []);
-
-  const toggle = () => {
-    const next: Theme = theme === "dark" ? "light" : "dark";
-    setTheme(next);
-    document.documentElement.dataset.theme = next;
-    try { window.localStorage.setItem(KEY, next); } catch { /* private mode */ }
-    window.dispatchEvent(new CustomEvent("catchup:theme", { detail: next }));
-  };
+  const { resolvedTheme } = usePreferences();
+  const next = resolvedTheme === "dark" ? "light" : "dark";
 
   return (
-    <button type="button" className="theme-toggle" onClick={toggle} aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} theme`}>
-      <span aria-hidden="true">{theme === "dark" ? "\u2600" : "\u263e"}</span>
-      <span>{theme === "dark" ? "Light mode" : "Dark mode"}</span>
+    <button
+      type="button"
+      className="theme-toggle"
+      onClick={() => setPreferences({ theme: next })}
+      aria-label={`Switch to ${next} theme`}
+    >
+      <span aria-hidden="true">{resolvedTheme === "dark" ? "☀" : "☾"}</span>
+      <span>{resolvedTheme === "dark" ? "Light mode" : "Dark mode"}</span>
     </button>
   );
 }

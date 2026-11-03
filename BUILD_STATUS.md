@@ -1,3 +1,35 @@
+# CatchUp AI implementation status
+
+**Last updated:** 2026-11-03 (build session). Milestone plan: M0 env → M1 frontend → M2 auth/RLS → M3 RAG → M4 planner/approval → M5 agent → M6 universe/insights/quiz → M7 hardening.
+
+**Session decisions:** local Supabase (Docker) first; OpenAI runtime kept but **no API key yet** — agent/embeddings are built and tested with injected fakes, live model runs are unverified until a key is added; git commit per verified milestone, never pushed.
+
+## Current state
+
+| Area | State | Evidence |
+| --- | --- | --- |
+| M0 dependencies, lockfile, git | Done | `package-lock.json`; Next 16.4.4, React 19.3.1, R3F 9.8.2, three 0.187, @supabase/ssr 0.12.7, @openai/agents 0.21.0, zod 4.6, TS 6.0.3 |
+| M0 typecheck / lint / build / unit tests | Passing | see log 2026-11-03 |
+| Preferences store (theme light/dark/system, motion, 3D) | Done (local) | `src/lib/preferences/*`, pre-paint script, verified reload persistence |
+| Nine-route Orbital Atelier UI | Not started | M1 |
+| Auth / RLS / CRUD | Not started | M2 |
+| PDF ingest + RAG | Not started | M3 |
+| Planner scenarios + approval | Not started | M4 (only `assessCapacity` util exists) |
+| Agent + tools | Not started | M5 |
+| Universe data / insights / quiz | Not started | M6 |
+| Deployment / submission | Not performed | needs user approval + cloud accounts |
+
+## M0 audit findings
+- `^0.x` ranges froze stale versions (`@openai/agents ^0.3`, `@supabase/ssr ^0.6`, `three ^0.175`); `openai ^6` conflicted with Agents SDK 0.21 (`openai ^7.2`). All updated and pinned.
+- TypeScript `latest` is 7.0 (native compiler); pinned `~6.0.3` for Next.js type-check compatibility.
+- Starter failed lint: 2 × `react-hooks/set-state-in-effect` in `theme-toggle.tsx`/`agent-orb.tsx`. Fixed by a `useSyncExternalStore` preferences store.
+- Next 16 renamed `middleware` → `proxy` (confirmed in bundled `node_modules/next/dist/docs`). Use `src/proxy.ts` for Supabase session refresh.
+- Draft migration gaps to fix in M2: no profile trigger/availability columns; no safe write path for agent runs/proposals (must not be user-insertable); no approval transaction; `study_tasks.course_id` unchecked; anon grants not revoked; bucket lacks size/MIME limits; `embedding NOT NULL` blocks keyless ingest; no `updated_at` staleness; no rate-limit storage.
+- Reference HTML visual defects not to copy: sidebar stops at 900px, overlapping orb labels, clipped bottom node label.
+
+## History (starter pack)
+
+### Original pack notes
 
 **Pack updated:** 2026-11-03. This ZIP contains an implementation *starter*; the end-to-end production app is not yet built.
 
@@ -44,3 +76,10 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 - Next: implement real P0 backend in vertical slices and port canonical design into Next.js.
 
 - Additional responsive QA: 90 screen/theme/viewport combinations across widths 320, 390, 768, 1024 and 1440 passed without horizontal overflow after correcting a narrow header case.
+| 2026-11-03 | M0 | `git init` + baseline commit of untouched starter | PASS | — |
+| 2026-11-03 | M0 | `npm install` (480 packages) | PASS; npm warns eslint 9 is end-of-life (kept for eslint-config-next 16 compatibility) | — |
+| 2026-11-03 | M0 | `npm run typecheck` | PASS | — |
+| 2026-11-03 | M0 | `npm run lint` | FAIL (2 react-hooks errors) → fixed → PASS | — |
+| 2026-11-03 | M0 | `npm test` (Vitest, `tests/unit/capacity.test.ts`) | PASS 6/6 | — |
+| 2026-11-03 | M0 | `npm run build` | PASS (`/`, `/api/health`) | — |
+| 2026-11-03 | M0 | Browser pane: `npm run dev`, load `/`, toggle theme, reload, fetch `/api/health` | PASS: light theme persisted, WebGL orb rendered, health JSON ok, zero console errors | — |

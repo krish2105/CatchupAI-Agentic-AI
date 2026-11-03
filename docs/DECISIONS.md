@@ -25,3 +25,10 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - Keep all existing secure Next.js + Supabase + OpenAI Agents SDK infrastructure plans. No provider switch or fabricated agent execution.
 - Target three honest deterministic scenarios, not one auto-generated timetable. P0 approved action remains transactionally idempotent.
 - Aesthetic references are inspiration only; visual and code execution were authored specifically for CatchUp AI.
+
+## 2026-11-03: Build session M0
+- **ADR-009** Pin dependencies to verified current releases; TypeScript 6.0.x (not 7.0 native) until Next.js type-check support is confirmed; ESLint 9 kept for `eslint-config-next` 16 compatibility.
+- **ADR-010** Local Supabase via Docker/CLI for development; cloud project only on user approval for deployment.
+- **ADR-011** OpenAI runtime retained (doc 14). No key available yet: model and embedder are injectable so the agent loop and tools execute for real in tests with a scripted model; live runs are reported as unverified.
+- **ADR-012** Appearance preferences (theme light/dark/system, motion, 3D) live in one `useSyncExternalStore` store mirrored to `<html data-*>` attributes, applied pre-paint by an inline script; later synced to the profile.
+

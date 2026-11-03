@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { preferencesScript } from "@/lib/preferences/script";
 
 export const metadata: Metadata = {
   title: "CatchUp AI | Autonomous Learning Recovery",
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-theme="dark" suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: `try { const t = localStorage.getItem("catchup-orbital-theme"); if (t === "light" || t === "dark") document.documentElement.dataset.theme = t; } catch (_) {}` }} /></head>
+      <head><script dangerouslySetInnerHTML={{ __html: preferencesScript }} /></head>
       <body>{children}</body>
     </html>
   );
