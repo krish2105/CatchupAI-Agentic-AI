@@ -1,7 +1,11 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
-const alias = { "@": fileURLToPath(new URL("./src", import.meta.url)) };
+const alias = {
+  "@": fileURLToPath(new URL("./src", import.meta.url)),
+  // `server-only` throws outside React Server Components; tests import server modules directly.
+  "server-only": fileURLToPath(new URL("./tests/stubs/server-only.ts", import.meta.url)),
+};
 
 export default defineConfig({
   test: {

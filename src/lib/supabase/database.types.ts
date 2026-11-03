@@ -629,6 +629,25 @@ export type Database = {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
       }
+      search_course_chunks: {
+        Args: {
+          p_course_id: string
+          p_limit?: number
+          p_query: string
+          p_query_embedding?: string
+        }
+        Returns: {
+          chunk_id: string
+          content: string
+          document_id: string
+          filename: string
+          lexical_rank: number
+          page_end: number
+          page_start: number
+          score: number
+          vector_similarity: number
+        }[]
+      }
     }
     Enums: {
       [_ in never]: never

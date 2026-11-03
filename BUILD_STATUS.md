@@ -17,7 +17,9 @@
 | Schema + RLS + grants + private storage (M2) | Done (local) — composite owner FKs, column grants, server-owned tables SELECT-only, generated storage paths, PDF-only 10 MB bucket | `npm run test:integration` 24/24 |
 | Courses / assignments / profile CRUD + APIs | Done — Zod strict validation, structured errors, per-user DB rate limits, timezone-correct due dates | E2E CRUD + cross-tenant API tests |
 | Synthetic demo seed | Done — `npm run seed:demo -- --email ...` (local only by default) | manual run |
-| PDF ingest + RAG | Not started | M3 |
+| PDF upload + ingestion (M3) | Done — browser → private storage (path bound to a pending document row), server validation (magic bytes, 10 MB, 50 pages, encrypted, no-text), page-faithful chunking, sha256 dedupe, atomic claim (no double processing), retry | integration + E2E |
+| Retrieval / evidence search | Done — hybrid lexical + vector RRF (`search_course_chunks`, SECURITY INVOKER), owner+course scoped, evidence threshold → abstain, signed 2-min source links at the cited page | integration + E2E |
+| Embeddings | Implemented (OpenAI `text-embedding-3-small`, 1536-d); **live calls unverified — no API key**. Without a key documents index lexically and search still works | fake embedder in tests |
 | Planner scenarios + approval | Not started | M4 (only `assessCapacity` util exists) |
 | Agent + tools | Not started | M5 |
 | Universe data / insights / quiz | Not started | M6 |
@@ -99,4 +101,9 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M2 | Browser pane: /dashboard → /login → emailed code (Mailpit) → dashboard with seeded data | PASS | — |
 | 2026-11-03 | M2 | `npx playwright test` | PASS 25/25 (adds signed-out redirect + 401, open-redirect refusal, UI course/assignment CRUD + reload persistence + UTC instant check, strict validation 400/413, cross-tenant direct API URLs 404, sign out) | — |
 | 2026-11-03 | M2 | `npm run typecheck`, `lint`, `test` (14/14), `build` | PASS | — |
+| 2026-11-03 | M3 | `supabase migration up` (`20261103000002_hybrid_search.sql`) | PASS | — |
+| 2026-11-03 | M3 | `npm test` | 2 FAIL (`pdf.destroy` missing in bundled pdf.js) → fixed → PASS 20/20 (page extraction, not-PDF/empty/no-text/51 pages/truncated/>10 MB, chunk boundaries + overlap) | — |
+| 2026-11-03 | M3 | `npm run test:integration` | PASS 34/34 (adds: 4-page ingest with exact page metadata, idempotent re-run, 1-of-2 concurrent claim (409), duplicate file, no-text + disguised HTML, cross-tenant processing 404, page-2 citation for "residual", page-3 lexical citation, abstain on unrelated query, cross-tenant search/RPC/chunk reads empty, injection text inert) | — |
+| 2026-11-03 | M3 | `npx playwright test` | PASS 29/29 (adds: UI upload → "Indexed · 4 pages" → cited search p.2 → signed source redirect returns %PDF → abstain; no-text failure reason; non-PDF/oversize 400; other tenant's document get/process/source/delete/search/plant → 404) | — |
+| 2026-11-03 | M3 | `typecheck`, `lint`, `build` | PASS | — |
 

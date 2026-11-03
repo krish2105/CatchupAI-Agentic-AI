@@ -45,3 +45,10 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-020** Rate limits are per-student fixed windows in Postgres (`consume_rate_limit`), so they hold across serverless instances.
 - **ADR-021** Times are stored as UTC instants; entry/display use the profile's IANA zone via `@date-fns/tz` (DST-safe, unit tested).
 
+## 2026-11-03: Build session M3
+- **ADR-022** Upload = (1) API registers the document row (quota, validation), (2) browser uploads straight to the private bucket at the DB-generated path (storage policy requires a matching pending row), (3) API processes synchronously (≤50 pages, `maxDuration` 60s). No file bytes pass through Route Handler bodies.
+- **ADR-023** Chunks never cross page boundaries, so each citation names exactly one page. ~2,400-char windows with 300-char overlap.
+- **ADR-024** Hybrid retrieval with RRF; lexical OR-query works without any AI key, vectors are added when embeddings exist. A passage only counts as evidence above `EVIDENCE_THRESHOLD` (lexical rank ≥ 0.08 or cosine ≥ 0.30); otherwise the system abstains ("I couldn't verify that…"). Thresholds should be re-tuned once real OpenAI embeddings are available.
+- **ADR-025** Evidence search returns verbatim passages only (no generated text); generated answers come from the agent (M5) and must cite these passages.
+- **ADR-026** pdf.js via `unpdf` (serverless build), font loading disabled; extracted text is treated as untrusted data everywhere.
+
