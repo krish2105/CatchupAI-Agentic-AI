@@ -20,7 +20,9 @@
 | PDF upload + ingestion (M3) | Done — browser → private storage (path bound to a pending document row), server validation (magic bytes, 10 MB, 50 pages, encrypted, no-text), page-faithful chunking, sha256 dedupe, atomic claim (no double processing), retry | integration + E2E |
 | Retrieval / evidence search | Done — hybrid lexical + vector RRF (`search_course_chunks`, SECURITY INVOKER), owner+course scoped, evidence threshold → abstain, signed 2-min source links at the cited page | integration + E2E |
 | Embeddings | Implemented (OpenAI `text-embedding-3-small`, 1536-d); **live calls unverified — no API key**. Without a key documents index lexically and search still works | fake embedder in tests |
-| Planner scenarios + approval | Not started | M4 (only `assessCapacity` util exists) |
+| Deterministic planner (M4) | Done — `src/lib/planner/engine.ts`: tz/DST-safe daily windows, EDF scheduling, ≤90-min blocks + 10-min breaks, 3 nested scenarios, shortfall + capacity-before-deadline, overdue work reported not scheduled | 19 engine unit tests incl. 200 randomized invariant runs |
+| Recovery lab + approval gate | Done — server-computed scenarios, what-if slider (must save before approving), server-created pending proposals (6 h TTL), `approve_proposal` RPC (row lock, idempotent, stale/expired/infeasible refused, deadline check, supersedes old plan), reject | integration (12) + E2E (5) |
+| Study schedule + dashboard outlook | Done — active plan by local day, completion persists, dashboard coverage/trajectory/today's focus from real data | E2E |
 | Agent + tools | Not started | M5 |
 | Universe data / insights / quiz | Not started | M6 |
 | Deployment / submission | Not performed | needs user approval + cloud accounts |
@@ -106,4 +108,9 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M3 | `npm run test:integration` | PASS 34/34 (adds: 4-page ingest with exact page metadata, idempotent re-run, 1-of-2 concurrent claim (409), duplicate file, no-text + disguised HTML, cross-tenant processing 404, page-2 citation for "residual", page-3 lexical citation, abstain on unrelated query, cross-tenant search/RPC/chunk reads empty, injection text inert) | — |
 | 2026-11-03 | M3 | `npx playwright test` | PASS 29/29 (adds: UI upload → "Indexed · 4 pages" → cited search p.2 → signed source redirect returns %PDF → abstain; no-text failure reason; non-PDF/oversize 400; other tenant's document get/process/source/delete/search/plant → 404) | — |
 | 2026-11-03 | M3 | `typecheck`, `lint`, `build` | PASS | — |
+| 2026-11-03 | M4 | `supabase migration up` (`20261103000003_proposal_approval.sql`) | PASS | — |
+| 2026-11-03 | M4 | `npm test` | PASS 39/39 (engine: windows/DST/midnight wrap, block splitting, honest shortfall, EDF, deadline-limited window reuse (bug found and fixed before tests), breaks, nested scenarios, overdue, randomized invariants ×200, horizon, validation, what-if scaling, capacity before deadline) | — |
+| 2026-11-03 | M4 | `npm run test:integration` | PASS 46/46 (adds: pending server-created proposals, single pending, idempotent approve, 10 concurrent approvals → 1 plan, supersede/cancel, reject → no tasks, expired, stale after edit, infeasible, cross-tenant approve/reject/read, anon RPC denied, task completion vs edit/cancel/other tenant) | — |
+| 2026-11-03 | M4 | `npx playwright test` | 1 FAIL (slider stayed in what-if after save due to per-day rounding) → fixed → PASS 33/33 (adds: lab → approve via double click → 1 plan, reload, complete task persists, dashboard milestone; reject saves nothing; overload shortfall + disabled approve + what-if/save; API 409 infeasible; missing idempotency key 400; cross-tenant proposal 404) | — |
+| 2026-11-03 | M4 | `typecheck` (1 test-helper null check fixed), `lint`, `build` | PASS | — |
 

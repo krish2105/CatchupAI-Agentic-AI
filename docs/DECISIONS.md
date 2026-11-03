@@ -52,3 +52,9 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-025** Evidence search returns verbatim passages only (no generated text); generated answers come from the agent (M5) and must cite these passages.
 - **ADR-026** pdf.js via `unpdf` (serverless build), font loading disabled; extracted text is treated as untrusted data everywhere.
 
+## 2026-11-03: Build session M4
+- **ADR-027** Planner = pure deterministic engine (no AI, no clock reads). EDF over per-day local windows; with all work released now, EDF is optimal for deadlines, so a reported shortfall is real under the block rules.
+- **ADR-028** Scenarios are nested item sets: essential (required + 1 recommended), balanced (+ all recommended), full (+ optional). Recommended items without AI are review sessions of indexed notes, pointed at the best-matching page found by retrieval for the related assignment.
+- **ADR-029** Proposals are server-created from saved data only (what-ifs must be saved first), expire after 6 h, and only one is pending at a time. Approval is a SECURITY DEFINER RPC: row lock, idempotent result, DB-side staleness check (assignment/profile `updated_at` after proposal creation), infeasible refused, assignment deadlines re-checked; constraints enforce ownership and no overlap. Approving supersedes the previous active plan (unfinished tasks cancelled).
+- **ADR-030** Overdue required work is never silently scheduled; it is surfaced with guidance.
+

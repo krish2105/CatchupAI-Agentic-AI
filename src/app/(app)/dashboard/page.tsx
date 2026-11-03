@@ -6,6 +6,9 @@ import Link from "next/link";
 import { requirePageUser } from "@/lib/auth/session";
 import { getOverview } from "@/lib/db/overview";
 import { getProfile } from "@/lib/db/profiles";
+import { getActivePlan } from "@/lib/db/tasks";
+import { computePlan } from "@/lib/planner/service";
+import { renderTime } from "@/lib/server/clock";
 import { formatMinutes } from "@/lib/time";
 
 export const metadata: Metadata = { title: "Mission control" };
@@ -14,7 +17,13 @@ const COURSE_COLORS = ["var(--aqua)", "var(--violet)", "var(--coral)", "var(--ac
 
 export default async function DashboardPage() {
   const { supabase, user } = await requirePageUser("/dashboard");
-  const [overview, profile] = await Promise.all([getOverview(supabase), getProfile(supabase, user.id)]);
+  const now = await renderTime();
+  const [overview, profile, plan, active] = await Promise.all([getOverview(supabase), getProfile(supabase, user.id), computePlan(supabase, user.id, { now }), getActivePlan(supabase)]);
+  const balanced = plan.scenarios.find((s) => s.key === "balanced")!;
+  const hasWork = balanced.requiredMinutes > 0;
+  const todayKey = new Intl.DateTimeFormat("en-CA", { timeZone: profile.timezone }).format(new Date(now));
+  const todays = (active?.tasks ?? []).filter((t) => t.status !== "cancelled" && new Intl.DateTimeFormat("en-CA", { timeZone: profile.timezone }).format(new Date(t.startsAt)) === todayKey);
+  const timeFmt = new Intl.DateTimeFormat("en-GB", { timeZone: profile.timezone, hour: "2-digit", minute: "2-digit" });
   const weekly = profile.weeklyMinutes.reduce((sum, m) => sum + m, 0);
   return (
     <>
@@ -36,7 +45,7 @@ export default async function DashboardPage() {
       <div className="stat-row">
         <StatCard label="Study capacity" value={formatMinutes(weekly)} caption="Available per week (your settings)" icon={Clock3} />
         <StatCard label="Coming up" value={String(overview.upcomingCount).padStart(2, "0")} caption="Assignments due in 14 days" icon={CalendarClock} />
-        <StatCard label="Recovery outlook" value={null} caption="Compare routes in the lab" icon={Target} />
+        <StatCard label="Recovery outlook" value={hasWork ? `${balanced.coveragePercent}%` : null} caption={hasWork ? "Of balanced plan that fits" : "No upcoming work"} icon={Target} />
         <StatCard label="Learning worlds" value={String(overview.courses.length).padStart(2, "0")} caption="Courses in your orbit" icon={Layers} />
       </div>
 
@@ -49,16 +58,44 @@ export default async function DashboardPage() {
           <div className="trajectory-layout">
             <div>
               <div className="eyebrow">Feasibility, not guesswork</div>
-              <div className="trajectory-title">Nothing to calculate yet.</div>
-              <p className="trajectory-sub">Add a course with assignments and set your study availability. CatchUp AI will compare the estimated work with the time you really have.</p>
-              <ButtonLink href="/courses" small style={{ marginTop: 17 }}>Add your first course</ButtonLink>
+              {hasWork ? (
+                <>
+                  <div className="trajectory-title">
+                    {balanced.feasible ? <>Your balanced plan <span style={{ color: "var(--accent)" }}>fits.</span></> : <>You&apos;re short by <span style={{ color: "var(--accent)" }}>{formatMinutes(balanced.shortfallMinutes)}.</span></>}
+                  </div>
+                  <p className="trajectory-sub">
+                    {formatMinutes(balanced.requiredMinutes)} of recommended work ahead and {formatMinutes(plan.availableMinutes)} of study time before your last deadline. Compare realistic routes in the lab.
+                  </p>
+                  <ButtonLink href="/recovery" small style={{ marginTop: 17 }}>Compare recovery plans</ButtonLink>
+                </>
+              ) : (
+                <>
+                  <div className="trajectory-title">Nothing to calculate yet.</div>
+                  <p className="trajectory-sub">Add a course with upcoming assignments. CatchUp AI will compare the estimated work with the time you really have.</p>
+                  <ButtonLink href="/courses" small style={{ marginTop: 17 }}>Add your first course</ButtonLink>
+                </>
+              )}
             </div>
-            <ProgressArc percent={null} caption="Plan capacity" />
+            <ProgressArc percent={hasWork ? balanced.coveragePercent : null} caption="Plan capacity" />
           </div>
         </div>
         <div className="card focus-list">
-          <div className="split-head"><h3>Today&apos;s focus</h3><Chip>0 tasks</Chip></div>
-          <p className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>Approved study tasks scheduled for today appear here.</p>
+          <div className="split-head"><h3>Today&apos;s focus</h3><Chip>{todays.length} block{todays.length === 1 ? "" : "s"}</Chip></div>
+          {todays.length ? (
+            todays.slice(0, 4).map((t, i) => (
+              <div className="focus-item" key={t.id}>
+                <div className={`focus-icon${t.kind === "assignment" ? " orange" : ""}`}><CalendarClock className="ic" aria-hidden="true" /></div>
+                <div style={{ minWidth: 0 }}>
+                  <strong style={{ textDecoration: t.status === "completed" ? "line-through" : undefined }}>{t.title}</strong>
+                  <p>{timeFmt.format(new Date(t.startsAt))} · {formatMinutes(t.durationMinutes)}</p>
+                </div>
+                <span>{String(i + 1).padStart(2, "0")}</span>
+              </div>
+            ))
+          ) : (
+            <p className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>{active ? "Nothing scheduled today. Enjoy the breathing room." : "Approve a recovery route to see today's study blocks here."}</p>
+          )}
+          {active ? <Link className="text-link" href="/planner" style={{ marginTop: 12 }}>Open schedule <ArrowRight className="ic" aria-hidden="true" /></Link> : null}
         </div>
       </div>
 

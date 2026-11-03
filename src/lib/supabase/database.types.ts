@@ -625,10 +625,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      approve_proposal: {
+        Args: { p_idempotency_key: string; p_proposal_id: string }
+        Returns: Json
+      }
       consume_rate_limit: {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
       }
+      reject_proposal: { Args: { p_proposal_id: string }; Returns: Json }
       search_course_chunks: {
         Args: {
           p_course_id: string
