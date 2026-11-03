@@ -1,0 +1,170 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 1040" width="1600" height="1040" font-family="Helvetica Neue, Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#2f6b4f"/></marker>
+    <marker id="arrowAmber" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#b5822a"/></marker>
+    <style>
+      .zone { fill: none; stroke: #b5822a; stroke-width: 2; stroke-dasharray: 8 6; }
+      .zlabel { font-size: 15px; font-weight: 700; fill: #8a6420; letter-spacing: 1px; }
+      .box { fill: #ffffff; stroke: #2f6b4f; stroke-width: 1.6; rx: 12; }
+      .core { fill: #eaf3ed; stroke: #2f6b4f; stroke-width: 2; }
+      .ext { fill: #f4f1ea; stroke: #8b8a80; stroke-width: 1.4; }
+      .t { font-size: 17px; font-weight: 700; fill: #183a2c; }
+      .s { font-size: 13.5px; fill: #3d5248; }
+      .n { font-size: 13px; font-weight: 700; fill: #ffffff; }
+      .flow { stroke: #2f6b4f; stroke-width: 2; fill: none; marker-end: url(#arrow); }
+      .flowA { stroke: #b5822a; stroke-width: 2.2; fill: none; marker-end: url(#arrowAmber); }
+      .ext-flow { stroke: #8b8a80; stroke-width: 1.6; fill: none; stroke-dasharray: 5 4; marker-end: url(#arrow); }
+    </style>
+  </defs>
+  <rect width="1600" height="1040" fill="#f8f6f0"/>
+  <text x="40" y="52" font-size="30" font-family="Georgia, serif" font-weight="700" fill="#183a2c">CatchUp AI · system architecture (as implemented, Nov 2026)</text>
+  <text x="40" y="80" class="s">Dashed amber lines are trust boundaries. Numbers show one recovery request. Every box exists in the code; nothing here is planned.</text>
+
+  <!-- Client zone -->
+  <rect x="30" y="110" width="300" height="880" class="zone"/>
+  <text x="46" y="136" class="zlabel">STUDENT DEVICE (UNTRUSTED)</text>
+  <rect x="50" y="160" width="260" height="150" class="box"/>
+  <text x="66" y="190" class="t">Nature Flow 3.0 web app</text>
+  <text x="66" y="214" class="s">Next.js 16 / React 19 pages</text>
+  <text x="66" y="234" class="s">Mission control · Copilot · Recovery</text>
+  <text x="66" y="254" class="s">lab · Schedule · Universe (3D + list)</text>
+  <text x="66" y="274" class="s">Light / dark / system · keyboard</text>
+  <text x="66" y="294" class="s">PWA install</text>
+  <rect x="50" y="330" width="260" height="80" class="box"/>
+  <text x="66" y="360" class="t">iPhone app (SwiftUI)</text>
+  <text x="66" y="384" class="s">Native shell around the same app</text>
+  <rect x="50" y="430" width="260" height="110" class="box"/>
+  <text x="66" y="460" class="t">Student decisions</text>
+  <text x="66" y="484" class="s">Upload notes · ask the copilot</text>
+  <text x="66" y="504" class="s">Review exact changes</text>
+  <text x="66" y="524" class="s" font-weight="700">Approve or reject</text>
+  <rect x="50" y="560" width="260" height="90" class="ext"/>
+  <text x="66" y="590" class="t">MCP apps (optional)</text>
+  <text x="66" y="614" class="s">Personal revocable token,</text>
+  <text x="66" y="634" class="s">read-only tools</text>
+
+  <!-- Vercel zone -->
+  <rect x="370" y="110" width="760" height="880" class="zone"/>
+  <text x="386" y="136" class="zlabel">VERCEL · SERVER FUNCTIONS IN SEOUL (icn1) · TRUSTED</text>
+  <rect x="390" y="160" width="720" height="90" class="box"/>
+  <text x="406" y="190" class="t">Edge of the app: proxy and route handlers</text>
+  <text x="406" y="214" class="s">Per-request CSP nonce · Origin check on changes · verified session (ES256 JWT) · Zod validation</text>
+  <text x="406" y="234" class="s">Per-student rate limits · AI gate: kill switch, daily token budget, one run at a time · request ids, redacted logs</text>
+
+  <rect x="390" y="275" width="350" height="250" class="core" rx="14"/>
+  <text x="406" y="305" class="t">LearningRecoveryAgent</text>
+  <text x="406" y="329" class="s">OpenAI Agents SDK runner, ≤ 8 turns, 90 s</text>
+  <text x="406" y="351" class="s" font-weight="700">The model decides:</text>
+  <text x="406" y="371" class="s">which tools, in what order, with what</text>
+  <text x="406" y="391" class="s">arguments; what to search; which study</text>
+  <text x="406" y="411" class="s">items to propose; when to ask instead</text>
+  <text x="406" y="439" class="s" font-weight="700">The server decides:</text>
+  <text x="406" y="459" class="s">identity, permissions, budgets, and which</text>
+  <text x="406" y="479" class="s">facts survive (claim check before display)</text>
+  <text x="406" y="505" class="s">Structured answer: facts · suggestions</text>
+
+  <rect x="760" y="275" width="350" height="250" class="box"/>
+  <text x="776" y="305" class="t">7 tools (owner re-checked)</text>
+  <text x="776" y="331" class="s">get_study_preferences · read</text>
+  <text x="776" y="353" class="s">list_assignments · read (titles flagged)</text>
+  <text x="776" y="375" class="s">search_course_material · read, cited</text>
+  <text x="776" y="397" class="s">get_learning_progress · read</text>
+  <text x="776" y="419" class="s">get_student_memory · read</text>
+  <text x="776" y="441" class="s">suggest_memory · suggestion only</text>
+  <text x="776" y="463" class="s" font-weight="700">draft_recovery_plan · PENDING draft only</text>
+  <text x="776" y="497" class="s">No tool can save, approve or delete.</text>
+
+  <rect x="390" y="550" width="350" height="170" class="box"/>
+  <text x="406" y="580" class="t">RAG over the student's PDFs</text>
+  <text x="406" y="604" class="s">Page-level chunks · keyword + vector (RRF)</text>
+  <text x="406" y="626" class="s">Abstains when nothing supports an answer</text>
+  <text x="406" y="648" class="s">Flags text that tries to instruct the AI</text>
+  <text x="406" y="670" class="s">Claim-to-citation check on every fact</text>
+  <text x="406" y="692" class="s">Signed 120 s links to the exact page</text>
+
+  <rect x="760" y="550" width="350" height="170" class="core" rx="14"/>
+  <text x="776" y="580" class="t">Deterministic planner (not AI)</text>
+  <text x="776" y="604" class="s">Free time per local day (time zone, DST)</text>
+  <text x="776" y="626" class="s">Earliest deadline first · blocks ≤ 90 min</text>
+  <text x="776" y="648" class="s">Three routes: deadline-first, balanced, full</text>
+  <text x="776" y="670" class="s">Feasible or short by N minutes</text>
+  <text x="776" y="692" class="s">Same inputs → same plan</text>
+
+  <rect x="390" y="745" width="720" height="110" class="box"/>
+  <text x="406" y="775" class="t">Approval endpoint → approve_proposal (database transaction)</text>
+  <text x="406" y="799" class="s">Row lock · bound to the exact draft and its input hash · refuses stale, expired or infeasible drafts</text>
+  <text x="406" y="819" class="s">Idempotency key: 10 parallel approvals → exactly 1 plan · writes the study schedule</text>
+  <text x="406" y="839" class="s">Every run's tool calls, timings, model and tokens are stored for the "Why trust this?" panel</text>
+
+  <rect x="390" y="880" width="720" height="90" class="box"/>
+  <text x="406" y="910" class="t">Schedule, focus sessions, quizzes, insights, recovery score</text>
+  <text x="406" y="934" class="s">Read back under the student's own permissions · calendar export (private, revocable feed)</text>
+  <text x="406" y="954" class="s">/quality page and /api/health/ready for judges and monitoring</text>
+
+  <!-- Supabase zone -->
+  <rect x="1170" y="110" width="400" height="560" class="zone"/>
+  <text x="1186" y="136" class="zlabel">SUPABASE · SEOUL · TRUSTED DATA</text>
+  <rect x="1190" y="160" width="360" height="110" class="box"/>
+  <text x="1206" y="190" class="t">Auth</text>
+  <text x="1206" y="214" class="s">Email code / magic link · Turnstile bot check</text>
+  <text x="1206" y="234" class="s">Anonymous demo accounts (deleted after 24 h)</text>
+  <text x="1206" y="254" class="s">ES256-signed sessions</text>
+  <rect x="1190" y="290" width="360" height="230" class="core" rx="14"/>
+  <text x="1206" y="320" class="t">PostgreSQL</text>
+  <text x="1206" y="344" class="s">Row-level security on all 25 tables</text>
+  <text x="1206" y="366" class="s">Composite owner keys · column grants</text>
+  <text x="1206" y="388" class="s">pgvector + full-text search function</text>
+  <text x="1206" y="410" class="s">Proposals, plans, tasks, agent runs</text>
+  <text x="1206" y="432" class="s">Rate limits · ops flags (kill switch)</text>
+  <text x="1206" y="454" class="s">Memory (student-confirmed only)</text>
+  <text x="1206" y="476" class="s">Migrations 0001–0015, applied</text>
+  <rect x="1190" y="540" width="360" height="110" class="box"/>
+  <text x="1206" y="570" class="t">Private storage</text>
+  <text x="1206" y="594" class="s">PDF only, 10 MB, per-student folders</text>
+  <text x="1206" y="614" class="s">Validated before indexing; deletion</text>
+  <text x="1206" y="634" class="s">removes file, chunks and search hits</text>
+
+  <!-- External -->
+  <rect x="1170" y="700" width="400" height="290" class="zone" style="stroke:#8b8a80"/>
+  <text x="1186" y="726" class="zlabel" style="fill:#6b6a62">EXTERNAL SERVICES</text>
+  <rect x="1190" y="745" width="360" height="70" class="ext"/>
+  <text x="1206" y="773" class="t">Google Gemini API</text>
+  <text x="1206" y="797" class="s">Flash model + gemini-embedding (key on server)</text>
+  <rect x="1190" y="830" width="175" height="140" class="ext"/>
+  <text x="1204" y="858" class="t">GitHub Actions</text>
+  <text x="1204" y="882" class="s">CI on every push</text>
+  <text x="1204" y="902" class="s">Uptime every 30 min</text>
+  <text x="1204" y="922" class="s">Manual live eval</text>
+  <rect x="1375" y="830" width="175" height="140" class="ext"/>
+  <text x="1389" y="858" class="t">Mail + bot check</text>
+  <text x="1389" y="882" class="s">Gmail SMTP codes</text>
+  <text x="1389" y="902" class="s">Opt-in reminders</text>
+  <text x="1389" y="922" class="s">Cloudflare</text>
+  <text x="1389" y="942" class="s">Turnstile</text>
+
+  <!-- Flows -->
+  <path d="M310 235 L388 205" class="flow"/>
+  <circle cx="350" cy="214" r="12" fill="#2f6b4f"/><text x="346" y="219" class="n">1</text>
+  <path d="M565 250 L565 273" class="flow"/>
+  <path d="M740 340 L758 340" class="flow"/>
+  <circle cx="750" cy="322" r="12" fill="#2f6b4f"/><text x="746" y="327" class="n">2</text>
+  <path d="M1110 400 L1188 400" class="flow"/>
+  <circle cx="1148" cy="384" r="12" fill="#2f6b4f"/><text x="1144" y="389" class="n">3</text>
+  <path d="M860 525 L740 600" class="flow"/>
+  <circle cx="805" cy="545" r="12" fill="#2f6b4f"/><text x="801" y="550" class="n">4</text>
+  <path d="M935 525 L935 548" class="flow"/>
+  <circle cx="955" cy="537" r="12" fill="#2f6b4f"/><text x="951" y="542" class="n">5</text>
+  <path d="M310 500 C350 500 360 790 388 790" class="flowA"/>
+  <circle cx="355" cy="650" r="12" fill="#b5822a"/><text x="351" y="655" class="n">6</text>
+  <path d="M1110 800 C1150 800 1150 460 1188 460" class="flowA"/>
+  <circle cx="1145" cy="640" r="12" fill="#b5822a"/><text x="1141" y="645" class="n">7</text>
+  <path d="M750 855 L750 878" class="flow"/>
+  <circle cx="770" cy="867" r="12" fill="#2f6b4f"/><text x="766" y="872" class="n">8</text>
+  <path d="M1110 505 L1160 505 L1160 775 L1188 775" class="ext-flow"/>
+  <text x="1196" y="690" class="s" font-size="12" font-weight="700">↓ agent model + embeddings (server-side key)</text>
+  <path d="M310 600 L378 250" class="ext-flow"/>
+
+  <!-- Legend -->
+  <rect x="40" y="996" width="1520" height="34" fill="#ffffff" stroke="#d6e2da"/>
+  <text x="56" y="1018" class="s"><tspan font-weight="700">1</tspan> student asks · <tspan font-weight="700">2</tspan> agent picks tools · <tspan font-weight="700">3</tspan> tools read only that student's rows · <tspan font-weight="700">4</tspan> cited passages · <tspan font-weight="700">5</tspan> planner computes routes, draft saved as PENDING · <tspan font-weight="700" fill="#8a6420">6</tspan> student reviews and approves · <tspan font-weight="700" fill="#8a6420">7</tspan> one locked transaction commits · <tspan font-weight="700">8</tspan> schedule and insights</text>
+</svg>

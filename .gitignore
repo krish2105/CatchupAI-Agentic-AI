@@ -24,3 +24,7 @@ __pycache__/
 
 # Personal documents (not part of the public repo)
 outbox/
+
+# DDS official templates are copyrighted (reproduction prohibited): keep them and filled copies local only
+submission/official_templates/
+submission/completed_templates/

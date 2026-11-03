@@ -45,7 +45,7 @@ export function buildRecoveryAgent(model: string) {
 
 /** Gemini's OpenAI-compatible endpoint (chat completions; the Responses API isn't available there). */
 export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
-export const GEMINI_DEFAULT_MODEL = "gemini-2.5-flash";
+export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
 
 export type ModelRuntime = { provider: ModelProvider; model: string; kind: "openai" | "gemini" };
 

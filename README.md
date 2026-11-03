@@ -142,7 +142,7 @@ Next.js Route Handlers (Zod validation · structured errors · per-user DB rate 
    ▼
 Supabase: Auth · Postgres + RLS (composite owner FKs, column grants) · private Storage · pgvector
           SECURITY DEFINER RPCs: approve_proposal / reject_proposal / consume_rate_limit
-AI (optional until configured): Gemini 2.5 Flash + gemini-embedding-001 (or OpenAI model + text-embedding-3-small)
+AI (optional until configured): Gemini Flash (gemini-3.8-flash) + gemini-embedding-001 (or OpenAI model + text-embedding-3-small)
 ```
 
 **Security model in one paragraph:** identity always comes from the verified session (never from the browser or the model). Every child row carries `owner_id` and references its parent through a composite `(id, owner_id)` foreign key, so cross-tenant links are impossible at the schema level; RLS is `owner_id = auth.uid()`; the browser role has column-level grants only. Server-owned tables (chunks, agent runs, proposals, plans, quiz keys) are read-only or invisible to students. The agent can only read and *draft*; approval is a separate locked, idempotent database transaction the student triggers. PDF text is treated as untrusted data everywhere.
@@ -176,7 +176,7 @@ Easiest (Gemini free tier): `python3 scripts/configure-ai.py` asks for the key w
 
 ```bash
 GEMINI_API_KEY=...        # never commit; from https://aistudio.google.com/apikey
-AI_PROVIDER=gemini        # model defaults to gemini-2.5-flash; embeddings to gemini-embedding-001
+AI_PROVIDER=gemini        # model defaults to gemini-3.8-flash; embeddings to gemini-embedding-001
 # or: OPENAI_API_KEY=... and OPENAI_MODEL=...
 ```
 

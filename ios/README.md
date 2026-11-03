@@ -16,7 +16,11 @@ brew install xcodegen
 cd ios && xcodegen && open CatchUpAI.xcodeproj
 ```
 
-Pick an iPhone simulator and press Run. For a device, set your team under Signing & Capabilities.
+Pick an iPhone simulator and press Run.
+
+**On your own iPhone:** sign in to Xcode with your Apple ID (Xcode → Settings → Accounts), turn on Developer Mode on the
+phone (Settings → Privacy & Security → Developer Mode, then restart), connect and unlock it, then run
+`TEAM=<your team id> ios/install-on-iphone.sh`. A free Apple ID works; the app then needs re-installing every 7 days.
 
 ## Status
 - Built with Xcode (`xcodebuild`, iOS Simulator SDK, no errors or warnings) and run on an iPhone 17 Pro simulator on
