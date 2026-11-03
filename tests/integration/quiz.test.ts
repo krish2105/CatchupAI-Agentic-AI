@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { processDocument } from "@/lib/rag/ingest";
-import { createQuiz, submitQuiz } from "@/lib/quiz/service";
+import { createQuiz, getPracticeEvidence, submitQuiz } from "@/lib/quiz/service";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { admin, deleteUser, signedInUser, type Db } from "./helpers";
@@ -68,4 +68,18 @@ describe("knowledge checks", () => {
     const empty = (await a.db.from("courses").insert({ title: "Empty" }).select("id").single()).data!.id;
     await expect(createQuiz({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: empty, topic: null })).rejects.toMatchObject({ status: 409 });
   });
+
+  it("builds a revision queue from missed concepts and an adaptive retest that targets them", async () => {
+    const evidence = await getPracticeEvidence(asServer(a.db), Date.now() + 2 * 86400_000);
+    expect(evidence.revision.length).toBe(1);
+    const missed = evidence.revision[0];
+    expect(missed).toMatchObject({ box: 0, due: true, misses: 1 });
+    expect(evidence.progress[0]).toMatchObject({ topic: "Whole course", attempts: 1 });
+
+    const retest = await createQuiz({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: courseA, topic: null, focusTerms: [missed.term] });
+    expect(retest.topic).toBe(`Review: ${missed.term}`);
+    const { data } = await admin().from("quiz_keys").select("keys").eq("quiz_id", retest.id).single();
+    expect((data!.keys as { term: string }[]).map((k) => k.term)).toContain(missed.term.toLowerCase());
+  });
 });
+

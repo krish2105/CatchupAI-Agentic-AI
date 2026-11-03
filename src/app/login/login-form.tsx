@@ -3,6 +3,7 @@
 import { ArrowRight, MailCheck } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/features/auth/turnstile";
 import { Notice } from "@/components/ui/primitives";
 import { browserClient } from "@/lib/supabase/client";
 
@@ -12,6 +13,7 @@ export default function LoginForm({ next, linkError }: { next: string; linkError
   const [code, setCode] = useState("");
   const [stage, setStage] = useState<"email" | "code">("email");
   const [busy, setBusy] = useState(false);
+  const [captcha, setCaptcha] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(linkError ? "That sign-in link is invalid or has expired. Request a new code." : null);
 
   async function sendCode(event: React.FormEvent) {
@@ -20,7 +22,7 @@ export default function LoginForm({ next, linkError }: { next: string; linkError
     setError(null);
     const { error } = await browserClient().auth.signInWithOtp({
       email: email.trim(),
-      options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}` },
+      options: { shouldCreateUser: true, emailRedirectTo: `${window.location.origin}/auth/confirm?next=${encodeURIComponent(next)}`, ...(captcha ? { captchaToken: captcha } : {}) },
     });
     setBusy(false);
     if (error) setError(error.status === 429 ? "Too many requests. Please wait a minute and try again." : "We couldn't send a code to that address.");
@@ -51,7 +53,8 @@ export default function LoginForm({ next, linkError }: { next: string; linkError
             <input id="email" className="input" type="email" autoComplete="email" required maxLength={254} value={email} onChange={(e) => setEmail(e.target.value)} />
             <span className="field-hint">We&apos;ll email you a 6-digit sign-in code. New here? This creates your account.</span>
           </div>
-          <button className="btn primary" type="submit" disabled={busy}>
+          <Turnstile onToken={setCaptcha} />
+          <button className="btn primary" type="submit" disabled={busy || Boolean(TURNSTILE_SITE_KEY && !captcha)}>
             {busy ? <span className="spinner" aria-hidden="true" /> : null} Send sign-in code <ArrowRight className="ic" aria-hidden="true" />
           </button>
         </form>

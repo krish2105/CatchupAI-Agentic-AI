@@ -1,49 +1,17 @@
-# 09 — Live Demo, Explainer and Pitch Script
+# Demo script (3–4 minutes)
 
-Target: **2–4 minutes**, using a working deployed project and fictional student records. Do not fake AI behavior; if a feature isn't complete, disclose it and cut it from the demo.
+Record on the **deployed** app in a fresh browser profile, with synthetic data only. Show real behaviour; if something fails live, keep it in and show the recovery.
 
-## Storyboard
+| Time | Screen | What to do | What to say |
+| --- | --- | --- | --- |
+| 0:00–0:20 | Landing | Show the alpine hero, click **Try the demo, no sign-up** | "Missing two classes snowballs: deadlines, unfamiliar topics, no idea what fits. Chatbots don't know your deadlines, your notes or your week." |
+| 0:20–0:45 | Mission control | Point at the briefing: deadlines approaching, minutes short, outlook ring | "CatchUp AI starts from real data: two deadlines, 6h 30m of required work, and about 2h short before Saturday. That number is computed, not guessed." |
+| 0:45–1:30 | AI copilot | Click **Missed class rescue** (or ask "I missed the regression lecture, what should I do?") | "The agent runs real, permission-checked tools — watch the timeline: my availability, my assignments, a search of my notes. Facts cite the page they came from; suggestions are labelled as advice." Click the citation chip to open p. 2. |
+| 1:30–2:15 | Recovery lab | Compare **Deadline first / Balanced / Full recovery**; drag the weekly slider up | "Three honest routes from a deterministic planner. Infeasible routes show the exact shortfall and can't be approved. A what-if has to be saved before it can be approved." |
+| 2:15–2:45 | Approval gate | **Review and approve** → read the exact-changes list → approve (double-click on purpose) | "Nothing is saved until I approve. The list shows exactly what changes. Double-clicking still creates one plan — approval is an idempotent database transaction." |
+| 2:45–3:05 | Study schedule | Reload; show the week grid; tick one block | "The plan persists, in my time zone." |
+| 3:05–3:30 | Practice arena | Take a 5-question check; open the source link of a wrong answer | "Questions come from my own notes with the source page. Missed concepts come back for revision tomorrow; retests target them." |
+| 3:30–3:50 | Failure + recovery | Edit an assignment's estimate, then try to approve an older draft | "Inputs changed, so the system refuses the stale plan instead of saving something wrong — recompute and approve again." |
+| 3:50–4:00 | Close | README architecture + eval report | "Next.js, Supabase with row-level security, an OpenAI Agents SDK agent with five tools, a deterministic planner, 160+ automated tests and a 30-case evaluation." |
 
-**0:00–0:20 — Hook / problem**
-"When students miss just two classes, deadlines and unfamiliar topics pile up. A generic chatbot doesn't know their actual course material or time constraints."
-
-**0:20–0:40 — Product**
-Show CatchUp AI dashboard and optional lightweight 3D knowledge orb: "CatchUp AI connects course knowledge, assignments and available time into an evidence-grounded recovery workflow."
-
-**0:40–1:20 — Evidence and agent behavior**
-Open a fictional student course, show uploaded PDF and assignment. Type: "I missed the regression lecture and have an assignment due Friday. What should I do?" Display *real* tool timeline (`list_assignments`, `search_course_material`, `get_study_preferences`) and a correct source page citation. If the agent has insufficient data, let the real error/clarification show.
-
-**1:20–2:00 — Feasibility / proposal**
-Show calculated required/available hours and a plan. Explain what doesn't fit and why the agent prioritized tasks. Show approval as a separate, explicit action.
-
-**2:00–2:30 — Persistence / proof**
-Approve, reload, show saved tasks; demonstrate rejected or duplicate approval behavior if practical. For P1, complete a quick quiz and review a plan adjustment.
-
-**2:30–3:00 — Implementation, impact and next steps**
-Overlay diagram: Next.js -> authenticated backend -> OpenAI agent tools -> Supabase/RAG -> deterministic planner -> user approval. Mention real limits (text PDFs only, no LMS connection) and deployment. Show GitHub/README and live link.
-
-## Capture assets
-- 1 clean hero/dashboard screenshot
-- 1 real agent tool timeline with citeable content
-- 1 cited PDF explanation
-- 1 feasibility/proposal view
-- 1 approved task list with persisted status
-- 1 brief architecture diagram and selected tests
-
-## LinkedIn post blueprint (user writes/approves final copy)
-- What I built and why this problem matters
-- What makes it *agentic* (actual tools and decisions)
-- One concrete end-to-end workflow with evidence
-- Stack and architecture, concise
-- Live demo, repository and optional video links
-- Acknowledgement of organizer/challenge and relevant required tags when provided
-
-## Pitch deck outline, 6 slides
-1. User pain / missed-class recovery
-2. CatchUp AI solution and differentiation
-3. Real tool-calling user journey
-4. Backend/RAG/security architecture
-5. Demo screenshots and validated tests
-6. Impact, limitations, future enhancements
-
-Use only screenshots and measured metrics from the actual completed app.
+Capture as stills: briefing, tool timeline with a citation, the three routes, the approval change list, the week schedule, a quiz result with its source.

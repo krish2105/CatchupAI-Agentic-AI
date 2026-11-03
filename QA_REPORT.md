@@ -1,6 +1,6 @@
 # QA report · CatchUp AI
 
-**Date:** 2026-11-03 · **Environment:** macOS (Darwin 27.2), Node 26.10.0, Supabase CLI 2.116.0 (local Docker stack, Postgres 17), Chromium (Playwright 1.64) · **Base commit:** `2b6df06` + M7 hardening commit.
+**Date:** 2026-11-03 (updated after Nature Flow 3.0 and M8 preparation) · **Environment:** macOS, Node 26.10.0, Supabase CLI 2.116.0 (local Docker stack, Postgres 17), Chromium (Playwright 1.64).
 
 ## Commands and results
 
@@ -8,9 +8,10 @@
 | --- | --- |
 | `npm run typecheck` | PASS (exit 0) |
 | `npm run lint` | PASS (exit 0) |
-| `npm test` (Vitest unit) | **47 / 47 passed** (7 files) |
-| `npm run test:integration` (real local Supabase) | **60 / 60 passed** (5 files) |
-| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **41 / 41 passed** (includes production build) |
+| `npm test` (Vitest unit) | **56 / 56 passed** (9 files) |
+| `npm run test:integration` (real local Supabase) | **66 / 66 passed** (7 files) |
+| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **49 / 49 passed** (includes production build) |
+| `npm run eval` (30-case evaluation, see `evals/REPORT.md`) | **25 passed · 0 failed · 5 skipped** (tool-selection cases need a real LLM; not simulated) |
 | Secret scan (tracked files + `.next/static`) against the real local secret values and key patterns | 0 hits |
 
 Nothing was skipped. No test hard-codes a passing result for missing behaviour.
@@ -26,6 +27,8 @@ Nothing was skipped. No test hard-codes a passing result for missing behaviour.
 **Agent:** only five read-or-draft tools exist; the real tool chain runs with a scripted model; facts citing unretrieved sources are removed; another student's course id is denied without leaking data; drafts must cite retrieved evidence; model failure → failed run and expired draft; turn and search budgets enforced; runs are private. E2E: live SSE timeline, page citation, persistence after reload, draft → lab → approve → planner evidence link.
 
 **UX and accessibility:** navigation across all nine screens; theme persistence (light/dark/system); mobile drawer focus handling; no horizontal overflow at 320/390/720 (200% zoom)/1024/1440 px in both themes; axe (WCAG 2.0/2.1 A/AA) with no serious or critical violations on all pages in both themes; no-WebGL and 3D-off fallbacks; the approval loop completed using only the keyboard with reduced motion and 3D off.
+
+**Evaluation finding fixed:** case R2 ("explain the intercept and slope…") initially abstained although page 1 contains the answer. Measurement showed lexical rank alone rejects short relevant questions (one-word queries ≈ 0.03 < 0.08) while unrelated queries score exactly 0. Retrieval now also uses query-term coverage (≥ ⅓ of meaningful terms present; migration `20261103000006`), and both abstention cases still pass.
 
 ## Known gaps (not tested)
 
@@ -46,3 +49,6 @@ Nothing was skipped. No test hard-codes a passing result for missing behaviour.
 | Planner | what-if save left the slider out of sync (per-day rounding) | sync to saved total |
 | Agent | cited copilot items outranked by generic review items in "essential" | agent items rank first |
 | Quiz | headings and wrapped lines produced broken questions | heading filter, line re-join |
+| Syllabus import | wrapped PDF lines split dates from titles; trailing dots kept | line unwrapping, cleanup loop (tested on the real fixture PDF) |
+| Retrieval | short relevant questions abstained (rank-only threshold) | lexical coverage evidence rule |
+| UI | hero card hidden behind landscape art; dark islands too dark; week grid wasted hours | stacking, palette, fitted hours |

@@ -36,7 +36,12 @@
 | Nature Flow 3.0 — reference alignment (S1–S4) | Done: bold sans headings, mint nav pill + pine-ridge sidebar, richer landscape, Mission Control briefing card + hero stats + suggested next steps + 7-day progress line; routes renamed Deadline first / Balanced / Full recovery with an explained "Recommended" rule and per-day load; Study Schedule week grid (time-zone positioned blocks, deadlines, week navigation, checkbox toggles) + list view; Knowledge Vault landscape course cards + recent documents; **Smart Syllabus Import** (deterministic extraction, editable review, nothing saved before confirm) | unit 52, E2E 46 |
 | Nature Flow 3.0 — S5 Preferences + privacy | Done: theme cards (Alpine morning / Moonlit forest / System), accessibility notes, **data export (JSON)** and **account deletion** (typed confirmation, files + cascade); Insights shows focus time | E2E |
 | Nature Flow 3.0 — S6 Learning universe | Done: low-poly floating islands (one per course; lushness = real plan progress, autumn tint = overdue required work), pines = documents, stones = assignments, central great tree, dashed path in next-deadline order (explicitly not prerequisites), labels above islands, inspector lists landmarks with actions; DOM fallback unchanged | browser review + E2E fallback |
-| Deployment / submission | **Not performed** | needs your approval + Supabase cloud project + Vercel |
+| Practice: spaced revision + adaptive retests + baseline vs latest | Done (deterministic, from graded attempts) | unit 4 + integration |
+| One-click judge demo | Done: anonymous sign-in (Turnstile-ready), synthetic seed through RLS incl. indexed PDF, demo banner, POST leave, daily cleanup cron (CRON_SECRET) | integration 2 + E2E 2 |
+| 30-case evaluation | Done: `npm run eval` → `evals/REPORT.md` — **25 pass · 0 fail · 5 skipped** (tool selection needs a real LLM) | eval run |
+| Deployment preparation | Done: docs/DEPLOYMENT.md, vercel.json cron, `.env.example`, `npm run preflight` (local PASS; `--production` correctly fails 6 checks until configured) | preflight run |
+| Submission pack | Done: demo script, user-testing protocol, LinkedIn draft, M8 checklist (submission/) | — |
+| Deployment / submission | **Not performed** — blocked on your accounts (Supabase/Vercel logins, OpenAI key, Resend, Turnstile) | docs/DEPLOYMENT.md |
 
 ## M0 audit findings
 - `^0.x` ranges froze stale versions (`@openai/agents ^0.3`, `@supabase/ssr ^0.6`, `three ^0.175`); `openai ^6` conflicted with Agents SDK 0.21 (`openai ^7.2`). All updated and pinned.
@@ -151,4 +156,8 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | S1–S4 | `typecheck`, `lint`, `npm test` 52/52, `test:integration` 63/63, `test:e2e` 46/46 | PASS | — |
 | 2026-11-03 | S5/S6 | Browser review: dark islands too dark, week grid wasted hours, sidebar footer over ridge art, row spacing — all fixed; README screenshots recaptured from the redesigned app | PASS | — |
 | 2026-11-03 | S5/S6 | `typecheck`, `lint`, `npm test` 52/52, `test:integration` 63/63, `test:e2e` 47/47 (adds privacy export/delete) | PASS | — |
+| 2026-11-03 | M8 prep | `supabase migration up` (`20261103000006_search_coverage.sql`); local Supabase restarted with anonymous sign-ins | PASS | — |
+| 2026-11-03 | M8 prep | `npm run eval` first run: 24 pass, **1 fail (R2 abstained)** → measured ranks, added coverage evidence → 25 pass, 0 fail, 5 skipped | PASS | OpenAI key for T1–T5 |
+| 2026-11-03 | M8 prep | `npm run preflight` (local PASS; `--production` 6 required checks fail as expected) | PASS | production env |
+| 2026-11-03 | M8 prep | `typecheck`, `lint`, `npm test` 56/56, `test:integration` 66/66, `test:e2e` 49/49 | PASS | — |
 

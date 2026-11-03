@@ -67,15 +67,3 @@ export async function getInsights(supabase: ServerSupabase, timezone: string, no
   };
 }
 
-/** Distinct terms answered incorrectly in graded attempts since `sinceIso` (evidence-based "topics to review"). */
-export async function recentWeakTerms(supabase: ServerSupabase, sinceIso: string): Promise<string[]> {
-  const { data, error } = await supabase.from("quiz_attempts").select("results").gte("created_at", sinceIso).order("created_at", { ascending: false }).limit(20);
-  if (error) throw fromDbError(error);
-  const terms = new Set<string>();
-  for (const attempt of data) {
-    for (const r of (Array.isArray(attempt.results) ? attempt.results : []) as { correct?: boolean; term?: string }[]) {
-      if (r && r.correct === false && typeof r.term === "string") terms.add(r.term);
-    }
-  }
-  return [...terms];
-}

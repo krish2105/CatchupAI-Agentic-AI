@@ -6,7 +6,8 @@ import { ButtonLink, Chip, EmptyCard } from "@/components/ui/primitives";
 import Sparkline from "@/components/ui/sparkline";
 import { requirePageUser } from "@/lib/auth/session";
 import { listAgentRuns } from "@/lib/db/agent-runs";
-import { getInsights, recentWeakTerms } from "@/lib/db/insights";
+import { getInsights } from "@/lib/db/insights";
+import { getPracticeEvidence } from "@/lib/quiz/service";
 import { getOverview } from "@/lib/db/overview";
 import { getProfile } from "@/lib/db/profiles";
 import { getActivePlan } from "@/lib/db/tasks";
@@ -21,13 +22,13 @@ const COURSE_COLORS = ["var(--aqua)", "var(--violet)", "var(--coral)", "var(--ac
 export default async function DashboardPage() {
   const { supabase, user } = await requirePageUser("/dashboard");
   const now = await renderTime();
-  const [overview, profile, plan, active, runs, weakTerms] = await Promise.all([
+  const [overview, profile, plan, active, runs, practice] = await Promise.all([
     getOverview(supabase),
     getProfile(supabase, user.id),
     computePlan(supabase, user.id, { now }),
     getActivePlan(supabase),
     listAgentRuns(supabase, 1),
-    recentWeakTerms(supabase, new Date(now - 14 * 86400_000).toISOString()),
+    getPracticeEvidence(supabase, now),
   ]);
   const insights = await getInsights(supabase, profile.timezone, now);
   const tz = profile.timezone;
@@ -101,7 +102,7 @@ export default async function DashboardPage() {
           </div>
           <div className="glass mc-stat">
             <div className="icon" aria-hidden="true"><Layers className="ic" /></div>
-            <div><strong>{weakTerms.length ? weakTerms.length : "—"}</strong><span>{weakTerms.length ? "Topics to review" : "No weak topics yet"}</span></div>
+            <div><strong>{practice.revision.length ? practice.revision.filter((r) => r.due).length : "—"}</strong><span>{practice.revision.length ? "Due for revision" : "No revision needed yet"}</span></div>
           </div>
         </div>
       </section>

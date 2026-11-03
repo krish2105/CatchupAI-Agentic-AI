@@ -722,6 +722,7 @@ export type Database = {
           content: string
           document_id: string
           filename: string
+          lexical_coverage: number
           lexical_rank: number
           page_end: number
           page_start: number

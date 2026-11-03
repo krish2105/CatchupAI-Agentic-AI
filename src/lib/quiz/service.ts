@@ -4,6 +4,7 @@ import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { generateClozeQuiz, gradeQuiz, type Passage, type QuizKey, type QuizQuestion } from "./cloze";
+import { revisionSchedule, topicProgress, type GradedAnswer, type RevisionItem, type TopicProgress } from "./revision";
 
 export type PublicQuestion = Omit<QuizQuestion, "term">;
 export type QuizSummary = { id: string; courseId: string; title: string; topic: string; createdAt: string; questionCount: number; latestScore: number | null; attempts: number };
@@ -27,20 +28,22 @@ async function passagesFor(supabase: ServerSupabase, courseId: string, topic: st
 }
 
 /** Generates a grounded quiz from the student's own passages. Keys are stored server-only. */
-export async function createQuiz(deps: { supabase: ServerSupabase; admin: AdminSupabase; userId: string; courseId: string; topic: string | null }) {
-  const { supabase, admin, userId, courseId, topic } = deps;
+export async function createQuiz(deps: { supabase: ServerSupabase; admin: AdminSupabase; userId: string; courseId: string; topic: string | null; focusTerms?: string[] }) {
+  const { supabase, admin, userId, courseId, focusTerms } = deps;
+  // An adaptive retest searches for and blanks the concepts the student missed.
+  const topic = focusTerms?.length ? focusTerms.join(" ") : deps.topic;
   const { data: course } = await supabase.from("courses").select("id, title").eq("id", courseId).maybeSingle();
   if (!course) throw new ApiError(404, "not_found", "Course not found.");
   const passages = await passagesFor(supabase, courseId, topic);
   const seed = crypto.randomUUID();
-  const { questions, keys } = generateClozeQuiz(passages, { seed, count: 5 });
+  const { questions, keys } = generateClozeQuiz(passages, { seed, count: 5, focusTerms });
   if (questions.length < 3) {
     throw new ApiError(409, "not_enough_material", topic ? "Not enough matching material for that topic. Try a broader topic or upload more notes." : "Upload and index more text-based notes to generate a check.");
   }
   const publicQuestions: PublicQuestion[] = questions.map(({ id, prompt, options, evidence }) => ({ id, prompt, options, evidence }));
   const { data: quiz, error } = await admin
     .from("quizzes")
-    .insert({ owner_id: userId, course_id: courseId, title: `${course.title} knowledge check`, topic: topic ?? "Whole course", questions: publicQuestions as unknown as Json })
+    .insert({ owner_id: userId, course_id: courseId, title: `${course.title} knowledge check`, topic: focusTerms?.length ? `Review: ${focusTerms.join(", ")}`.slice(0, 160) : (topic ?? "Whole course"), questions: publicQuestions as unknown as Json })
     .select("id, created_at")
     .single();
   if (error) throw fromDbError(error);
@@ -50,7 +53,7 @@ export async function createQuiz(deps: { supabase: ServerSupabase; admin: AdminS
     await admin.from("quizzes").delete().eq("id", quiz.id).eq("owner_id", userId);
     throw fromDbError(keyInsert.error);
   }
-  return { id: quiz.id, title: `${course.title} knowledge check`, topic: topic ?? "Whole course", questions: publicQuestions, createdAt: quiz.created_at };
+  return { id: quiz.id, title: `${course.title} knowledge check`, topic: focusTerms?.length ? `Review: ${focusTerms.join(", ")}`.slice(0, 160) : (topic ?? "Whole course"), questions: publicQuestions, createdAt: quiz.created_at };
 }
 
 export async function getQuiz(supabase: ServerSupabase, id: string) {
@@ -97,4 +100,23 @@ export async function submitQuiz(deps: { supabase: ServerSupabase; admin: AdminS
     .single();
   if (aErr) throw fromDbError(aErr);
   return { ...graded, attemptId: attempt.id };
+}
+
+export type PracticeEvidence = { revision: RevisionItem[]; progress: TopicProgress[] };
+
+/** Spaced-revision queue and baseline-vs-latest progress, derived only from the student's graded attempts. */
+export async function getPracticeEvidence(supabase: ServerSupabase, now: number): Promise<PracticeEvidence> {
+  const { data, error } = await supabase.from("quiz_attempts").select("results, score_percent, created_at, quizzes(course_id, topic)").order("created_at").limit(300);
+  if (error) throw fromDbError(error);
+  const answers: GradedAnswer[] = [];
+  const attempts: { courseId: string; topic: string; score: number; at: string }[] = [];
+  for (const row of data) {
+    const quiz = row.quizzes as unknown as { course_id: string; topic: string } | null;
+    if (!quiz) continue;
+    attempts.push({ courseId: quiz.course_id, topic: quiz.topic, score: Number(row.score_percent), at: row.created_at });
+    for (const r of (Array.isArray(row.results) ? row.results : []) as { term?: string; correct?: boolean }[]) {
+      if (typeof r?.term === "string" && typeof r.correct === "boolean") answers.push({ term: r.term, correct: r.correct, at: row.created_at, courseId: quiz.course_id });
+    }
+  }
+  return { revision: revisionSchedule(answers, now), progress: topicProgress(attempts) };
 }

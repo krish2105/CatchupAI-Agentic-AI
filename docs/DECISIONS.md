@@ -81,3 +81,8 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-044** Missed Class Rescue = a preset copilot request scoped to the course with the nearest required deadline, auto-run once (guarded against Strict Mode double effects and reloads). Unavailable without an AI runtime (honest notice).
 - **ADR-045** ⌘K command palette: native `<dialog>` + combobox/listbox semantics; only real destinations and actions are listed.
 
+## 2026-11-03: Practice, demo access, evaluation
+- **ADR-046** Spaced revision is a deterministic Leitner schedule over server-graded answers (miss → 1 day; correct → 3, 7, 14). Concepts never missed are not scheduled. Adaptive retests blank exactly the missed concepts.
+- **ADR-047** One-click demo = Supabase anonymous sign-in + server seed through the visitor's own RLS client (admin only inside ingestion). Protected by Turnstile when configured (Supabase verifies the token for all sign-in methods), deleted after 24 h by a CRON_SECRET-protected job.
+- **ADR-048** Evaluation runs the real system (local Supabase + deterministic engine). Cases needing an LLM are reported as skipped, never simulated. Retrieval evidence now includes query-term coverage after the eval exposed rank-only false abstentions.
+

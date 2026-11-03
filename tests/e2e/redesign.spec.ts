@@ -161,3 +161,28 @@ test("privacy: export contains only your data, and account deletion requires typ
     else await s.context.close();
   }
 });
+
+test.describe("one-click demo", () => {
+  test.use({ storageState: { cookies: [], origins: [] } });
+
+  test("a visitor can explore a seeded demo account without signing up", async ({ page }) => {
+    test.setTimeout(90_000);
+    await page.goto("/");
+    await page.waitForLoadState("networkidle");
+    await page.getByRole("button", { name: /Try the demo/ }).click();
+    await page.waitForURL(/\/dashboard$/, { timeout: 60_000 });
+    await expect(page.getByText("Demo account.")).toBeVisible();
+    await expect(page.getByRole("heading", { level: 1 })).toContainText("Alex");
+    await expect(page.getByLabel("Your recovery briefing")).toContainText("deadlines approaching");
+    await page.goto("/courses");
+    await expect(page.getByText(/1\/1 indexed/)).toBeVisible();
+    await page.goto("/dashboard");
+    await page.getByRole("button", { name: "Leave the demo" }).click();
+    await expect(page).toHaveURL(/\/$/);
+  });
+
+  test("the cleanup job refuses requests without the cron secret", async ({ request }) => {
+    expect((await request.get("/api/cron/cleanup-demo")).status()).toBe(403);
+    expect((await request.get("/api/cron/cleanup-demo", { headers: { authorization: "Bearer wrong" } })).status()).toBe(403);
+  });
+});

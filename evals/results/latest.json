@@ -1,0 +1,292 @@
+{
+  "meta": {
+    "ranAt": "2026-11-03T18:01:35.219Z",
+    "retrievalMode": "lexical only (no OPENAI_API_KEY)",
+    "agentModel": "not configured — tool-selection cases skipped",
+    "totals": {
+      "cases": 30,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 5
+    }
+  },
+  "summary": [
+    {
+      "category": "retrieval",
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "category": "schedule",
+      "total": 8,
+      "pass": 8,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "category": "tool_selection",
+      "total": 5,
+      "pass": 0,
+      "fail": 0,
+      "skipped": 5
+    },
+    {
+      "category": "approval",
+      "total": 5,
+      "pass": 5,
+      "fail": 0,
+      "skipped": 0
+    },
+    {
+      "category": "security",
+      "total": 4,
+      "pass": 4,
+      "fail": 0,
+      "skipped": 0
+    }
+  ],
+  "results": [
+    {
+      "id": "R1",
+      "category": "retrieval",
+      "name": "\"What does a residual mean?\" → module4.pdf p. 2",
+      "status": "pass",
+      "detail": "top citation module4.pdf p.2",
+      "ms": 2
+    },
+    {
+      "id": "R2",
+      "category": "retrieval",
+      "name": "\"explain the intercept and slope of the regression line\" → module4.pdf p. 1",
+      "status": "pass",
+      "detail": "top citation module4.pdf p.1",
+      "ms": 2
+    },
+    {
+      "id": "R3",
+      "category": "retrieval",
+      "name": "\"does correlation prove causation\" → module4.pdf p. 3",
+      "status": "pass",
+      "detail": "top citation module4.pdf p.3",
+      "ms": 2
+    },
+    {
+      "id": "R4",
+      "category": "retrieval",
+      "name": "\"risks of extrapolating outside the observed range\" → module4.pdf p. 3",
+      "status": "pass",
+      "detail": "top citation module4.pdf p.3",
+      "ms": 2
+    },
+    {
+      "id": "R5",
+      "category": "retrieval",
+      "name": "\"practice task with hours studied and quiz score\" → module4.pdf p. 4",
+      "status": "pass",
+      "detail": "top citation module4.pdf p.4",
+      "ms": 1
+    },
+    {
+      "id": "R6",
+      "category": "retrieval",
+      "name": "\"standard error of the sampling distribution of the mean\" → sampling.pdf p. 1",
+      "status": "pass",
+      "detail": "top citation sampling.pdf p.1",
+      "ms": 2
+    },
+    {
+      "id": "R7",
+      "category": "retrieval",
+      "name": "\"photosynthesis chlorophyll mitochondria\" → abstain",
+      "status": "pass",
+      "detail": "abstained (no supporting evidence)",
+      "ms": 2
+    },
+    {
+      "id": "R8",
+      "category": "retrieval",
+      "name": "\"What does a residual mean?\" → abstain",
+      "status": "pass",
+      "detail": "abstained (no supporting evidence)",
+      "ms": 2
+    },
+    {
+      "id": "S1",
+      "category": "schedule",
+      "name": "single 90-min task due Friday fits",
+      "status": "pass",
+      "detail": "feasible, 1 block",
+      "ms": 8
+    },
+    {
+      "id": "S2",
+      "category": "schedule",
+      "name": "540 min before Wednesday noon is reported short by 360 min",
+      "status": "pass",
+      "detail": "shortfall 360 min",
+      "ms": 0
+    },
+    {
+      "id": "S3",
+      "category": "schedule",
+      "name": "earliest deadline is scheduled first",
+      "status": "pass",
+      "detail": "EDF order respected",
+      "ms": 0
+    },
+    {
+      "id": "S4",
+      "category": "schedule",
+      "name": "no blocks on zero-availability weekend days",
+      "status": "pass",
+      "detail": "5 blocks, none on Sat/Sun",
+      "ms": 1
+    },
+    {
+      "id": "S5",
+      "category": "schedule",
+      "name": "blocks never overlap and never exceed 90 minutes",
+      "status": "pass",
+      "detail": "10 blocks, ≤90 min, non-overlapping",
+      "ms": 0
+    },
+    {
+      "id": "S6",
+      "category": "schedule",
+      "name": "overdue required work is reported, not scheduled",
+      "status": "pass",
+      "detail": "1 overdue item surfaced",
+      "ms": 0
+    },
+    {
+      "id": "S7",
+      "category": "schedule",
+      "name": "scenarios are nested: essential ⊆ balanced ⊆ full",
+      "status": "pass",
+      "detail": "2 / 3 / 4 items",
+      "ms": 0
+    },
+    {
+      "id": "S8",
+      "category": "schedule",
+      "name": "local start time survives a DST change (New York)",
+      "status": "pass",
+      "detail": "18:00 local = 23:00Z after DST ends",
+      "ms": 0
+    },
+    {
+      "id": "T1",
+      "category": "tool_selection",
+      "name": "\"What are my upcoming deadlines?\" uses list_assignments",
+      "status": "skipped",
+      "detail": "no OPENAI_API_KEY/OPENAI_MODEL configured",
+      "ms": 0
+    },
+    {
+      "id": "T2",
+      "category": "tool_selection",
+      "name": "\"Explain residuals from my course notes.\" uses search_course_material",
+      "status": "skipped",
+      "detail": "no OPENAI_API_KEY/OPENAI_MODEL configured",
+      "ms": 0
+    },
+    {
+      "id": "T3",
+      "category": "tool_selection",
+      "name": "\"How many hours a week do I have for studying?\" uses get_study_preferences",
+      "status": "skipped",
+      "detail": "no OPENAI_API_KEY/OPENAI_MODEL configured",
+      "ms": 0
+    },
+    {
+      "id": "T4",
+      "category": "tool_selection",
+      "name": "\"I missed the regression lecture; draft a recovery plan before my deadline.\" uses list_assignments + draft_recovery_plan",
+      "status": "skipped",
+      "detail": "no OPENAI_API_KEY/OPENAI_MODEL configured",
+      "ms": 0
+    },
+    {
+      "id": "T5",
+      "category": "tool_selection",
+      "name": "\"How far through my current plan am I?\" uses get_learning_progress",
+      "status": "skipped",
+      "detail": "no OPENAI_API_KEY/OPENAI_MODEL configured",
+      "ms": 0
+    },
+    {
+      "id": "A1",
+      "category": "approval",
+      "name": "approve creates a plan with the proposed blocks",
+      "status": "pass",
+      "detail": "3 blocks saved",
+      "ms": 12
+    },
+    {
+      "id": "A2",
+      "category": "approval",
+      "name": "10 concurrent approvals create exactly one plan",
+      "status": "pass",
+      "detail": "1 plan, 9 idempotent replays",
+      "ms": 15
+    },
+    {
+      "id": "A3",
+      "category": "approval",
+      "name": "reject saves nothing",
+      "status": "pass",
+      "detail": "no tasks written",
+      "ms": 14
+    },
+    {
+      "id": "A4",
+      "category": "approval",
+      "name": "stale proposal (inputs changed) is refused",
+      "status": "pass",
+      "detail": "409 stale",
+      "ms": 33
+    },
+    {
+      "id": "A5",
+      "category": "approval",
+      "name": "infeasible proposal is refused",
+      "status": "pass",
+      "detail": "409 infeasible (short 2890 min)",
+      "ms": 10
+    },
+    {
+      "id": "X1",
+      "category": "security",
+      "name": "another student's course yields no passages (RLS + scope)",
+      "status": "pass",
+      "detail": "0 passages",
+      "ms": 2
+    },
+    {
+      "id": "X2",
+      "category": "security",
+      "name": "agent tool denies a forged course id without leaking data",
+      "status": "pass",
+      "detail": "tool denied; nothing leaked",
+      "ms": 15
+    },
+    {
+      "id": "X3",
+      "category": "security",
+      "name": "PDF prompt injection is returned as inert, labelled data",
+      "status": "pass",
+      "detail": "retrieved as data; no state change",
+      "ms": 3
+    },
+    {
+      "id": "X4",
+      "category": "security",
+      "name": "anonymous clients cannot read data or call the approval RPC",
+      "status": "pass",
+      "detail": "denied (42501)",
+      "ms": 3
+    }
+  ]
+}

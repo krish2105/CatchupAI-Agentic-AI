@@ -1,21 +1,15 @@
-# Final Hackathon Submission Check
+# M8 release and submission checklist
 
-## Official November public rules
-- [ ] Registered via official Nas.io challenge.
-- [ ] Completed Day 0 mandatory watch/submission.
-- [ ] Completed and submitted checkpoint work at the platform's requested cadence.
-- [ ] Confirmed Day 8 actual deadline/time zone and private form fields.
-- [ ] Submitted final project in the platform and saved confirmation.
-- [ ] Published LinkedIn final showcase per platform instructions.
+Status is updated only with verified evidence (see BUILD_STATUS.md, QA_REPORT.md, evals/REPORT.md).
 
-## Recommended artifacts, based in part on April 2026 precedent
-- [ ] Working and publicly demonstrable live app link.
-- [ ] GitHub repository or README/source documentation link.
-- [ ] Recorded app walkthrough/explainer/video or 6-slide deck.
-- [ ] Screenshots of REAL app, REAL tool calls, REAL evidence sources, and plan approval.
-- [ ] Architecture + agent tools/RAG explanation.
-- [ ] QA evidence (auth isolation, source correctness, plan feasibility, approval idempotency).
-- [ ] DDS community post/link if requested.
-- [ ] No keys/private data in code, links, screenshots or demo.
-
-**Disclaimer:** November's exact submission field requirements are not publicly visible. Historical link counts are not mandatory requirements.
+| Gate | Status | Evidence / blocker |
+| --- | --- | --- |
+| Production build, type checks and critical tests pass | ✅ | typecheck, lint, unit, integration, E2E (production build) all green — see BUILD_STATUS execution log |
+| Two-account security and RLS checks pass | ✅ | `tests/integration/*`, E2E cross-tenant suites, eval cases X1–X4 |
+| Real agent calls, citations and approval flow verified | ⚠️ partial | Tools, citations, approval verified with the scripted model; **live OpenAI run pending your key** |
+| Deployed URL works after a fresh browser session | ❌ | Needs Supabase cloud + Vercel (docs/DEPLOYMENT.md) |
+| 30-case evaluation report contains actual results | ⚠️ partial | `evals/REPORT.md`: 25 pass, 0 fail, 5 tool-selection cases skipped until a model is configured |
+| Demo recording and architecture explanation ready | ⚠️ partial | Script: docs/09_DEMO_SCRIPT.md; architecture in README; recording needs the live URL |
+| GitHub README, screenshots and limitations | ✅ | README.md, docs/screenshots |
+| Volunteer testing (3–5) | ❌ | Protocol: docs/USER_TESTING.md; needs the live URL |
+| Official Nas.io submission and LinkedIn post | ❌ | Yours to submit; draft in submission/LINKEDIN_SHOWCASE_TEMPLATE.md |

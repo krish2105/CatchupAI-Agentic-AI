@@ -12,11 +12,16 @@ export type Citation = {
   snippet: string;
   score: number;
   lexicalRank: number | null;
+  lexicalCoverage: number | null;
   vectorSimilarity: number | null;
 };
 
-/** Minimum evidence for a passage to count as support; below this the system abstains. */
-export const EVIDENCE_THRESHOLD = { lexicalRank: 0.08, vectorSimilarity: 0.3 } as const;
+/**
+ * Minimum evidence for a passage to count as support; below this the system abstains.
+ * Lexical: at least a third of the question's meaningful terms appear in the passage (coverage), or a strong
+ * rank. Vector: cosine similarity. Calibrated with `npm run eval`; re-check once real embeddings are enabled.
+ */
+export const EVIDENCE_THRESHOLD = { lexicalCoverage: 0.34, lexicalRank: 0.08, vectorSimilarity: 0.3 } as const;
 
 /**
  * Searches ONLY the given course of the signed-in student. Runs with the student's client, so RLS and the
@@ -45,7 +50,10 @@ export async function searchCourseMaterial(
   if (error) throw fromDbError(error);
   const citations = (data ?? [])
     .filter(
-      (r) => (r.lexical_rank ?? 0) >= EVIDENCE_THRESHOLD.lexicalRank || (r.vector_similarity ?? 0) >= EVIDENCE_THRESHOLD.vectorSimilarity,
+      (r) =>
+        (r.lexical_coverage ?? 0) >= EVIDENCE_THRESHOLD.lexicalCoverage ||
+        (r.lexical_rank ?? 0) >= EVIDENCE_THRESHOLD.lexicalRank ||
+        (r.vector_similarity ?? 0) >= EVIDENCE_THRESHOLD.vectorSimilarity,
     )
     .map((r) => ({
       chunkId: r.chunk_id,
@@ -56,6 +64,7 @@ export async function searchCourseMaterial(
       snippet: r.content.length > 700 ? `${r.content.slice(0, 700)}…` : r.content,
       score: r.score,
       lexicalRank: r.lexical_rank,
+      lexicalCoverage: r.lexical_coverage,
       vectorSimilarity: r.vector_similarity,
     }));
   return { citations, abstained: citations.length === 0, mode: embedding ? "hybrid" : "lexical" };

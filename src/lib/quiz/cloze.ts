@@ -57,7 +57,7 @@ function shuffle<T>(items: T[], random: () => number): T[] {
   return out;
 }
 
-export function generateClozeQuiz(passages: Passage[], opts: { seed: string; count?: number }): { questions: QuizQuestion[]; keys: QuizKey[] } {
+export function generateClozeQuiz(passages: Passage[], opts: { seed: string; count?: number; focusTerms?: string[] }): { questions: QuizQuestion[]; keys: QuizKey[] } {
   const count = opts.count ?? 5;
   const random = rng(opts.seed);
   // Course vocabulary: how many passages mention each term (key concepts recur).
@@ -71,8 +71,12 @@ export function generateClozeQuiz(passages: Passage[], opts: { seed: string; cou
     for (const sentence of sentences(passage.content)) {
       const own = [...new Set(terms(sentence))];
       if (own.length < 3) continue;
-      // Prefer recurring course terms; break ties toward longer (more specific) words.
-      const best = own.map((t) => ({ t, score: (df.get(t) ?? 0) * 10 + t.length })).sort((a, b) => b.score - a.score)[0];
+      // Adaptive retest: a sentence containing a concept the student missed blanks exactly that concept.
+      const focus = (opts.focusTerms ?? []).map((f) => f.toLowerCase()).find((f) => own.includes(f));
+      // Otherwise prefer recurring course terms; break ties toward longer (more specific) words.
+      const best = focus
+        ? { t: focus, score: 10_000 + (df.get(focus) ?? 0) }
+        : own.map((t) => ({ t, score: (df.get(t) ?? 0) * 10 + t.length })).sort((a, b) => b.score - a.score)[0];
       candidates.push({ passage, sentence, term: best.t, score: best.score });
     }
   }

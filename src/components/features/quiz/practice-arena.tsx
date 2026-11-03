@@ -1,17 +1,18 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, FileText, RotateCcw, Sparkles, XCircle } from "lucide-react";
+import { ArrowRight, CheckCircle2, FileText, Repeat, RotateCcw, Sparkles, TrendingUp, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
+import type { RevisionItem, TopicProgress } from "@/lib/quiz/revision";
 import type { PublicQuestion, QuizResult, QuizSummary } from "@/lib/quiz/service";
 
 type ActiveQuiz = { id: string; title: string; topic: string; questions: PublicQuestion[] };
 const LETTERS = ["A", "B", "C", "D"];
 
-function Runner({ quiz, onDone }: { quiz: ActiveQuiz; onDone: () => void }) {
+function Runner({ quiz, onDone, baseline }: { quiz: ActiveQuiz; onDone: () => void; baseline: TopicProgress | null }) {
   const [index, setIndex] = useState(0);
   const [answers, setAnswers] = useState<number[]>([]);
   const [result, setResult] = useState<QuizResult | null>(null);
@@ -40,6 +41,13 @@ function Runner({ quiz, onDone }: { quiz: ActiveQuiz; onDone: () => void }) {
       <div className="card quiz-card" aria-live="polite">
         <div className="quiz-top"><span className="label">Results · saved</span><Chip tone={result.scorePercent >= 80 ? "good" : "warn"}>{correct} / {result.results.length} correct</Chip></div>
         <div className="quiz-question" style={{ marginTop: 18 }}>You scored {Math.round(result.scorePercent)}%.</div>
+        {baseline ? (
+          <p className="muted" style={{ marginTop: -12, marginBottom: 18, fontSize: 13 }}>
+            On this topic: baseline {Math.round(baseline.baseline)}% → now {Math.round(result.scorePercent)}% ({result.scorePercent - baseline.baseline >= 0 ? "+" : ""}{Math.round(result.scorePercent - baseline.baseline)} pts).
+          </p>
+        ) : (
+          <p className="muted" style={{ marginTop: -12, marginBottom: 18, fontSize: 13 }}>This is your baseline for this topic. Retake it later to measure progress.</p>
+        )}
         <ol style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 12 }} aria-label="Answers with sources">
           {result.results.map((r, i) => {
             const question = quiz.questions[i];
@@ -61,6 +69,7 @@ function Runner({ quiz, onDone }: { quiz: ActiveQuiz; onDone: () => void }) {
           <div style={{ marginTop: 18, display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
             <span className="label">Review next:</span>
             {result.weakTerms.map((t) => <Chip key={t} tone="warn">{t}</Chip>)}
+            <span className="muted" style={{ fontSize: 11 }}>Scheduled for revision tomorrow.</span>
             <Link className="btn small" href="/assistant"><Sparkles className="ic" aria-hidden="true" /> Ask the copilot</Link>
           </div>
         ) : null}
@@ -99,7 +108,17 @@ function Runner({ quiz, onDone }: { quiz: ActiveQuiz; onDone: () => void }) {
   );
 }
 
-export default function PracticeArena({ courses, quizzes }: { courses: { id: string; title: string; ready: boolean }[]; quizzes: QuizSummary[] }) {
+export default function PracticeArena({
+  courses,
+  quizzes,
+  revision,
+  progress,
+}: {
+  courses: { id: string; title: string; ready: boolean }[];
+  quizzes: QuizSummary[];
+  revision: RevisionItem[];
+  progress: TopicProgress[];
+}) {
   const router = useRouter();
   const usable = courses.filter((c) => c.ready);
   const [courseId, setCourseId] = useState(usable[0]?.id ?? "");
@@ -107,6 +126,23 @@ export default function PracticeArena({ courses, quizzes }: { courses: { id: str
   const [active, setActive] = useState<ActiveQuiz | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const titles = Object.fromEntries(courses.map((c) => [c.id, c.title]));
+  const due = revision.filter((r) => r.due);
+  const dueByCourse = [...new Set(due.map((d) => d.courseId))].map((id) => ({ id, terms: due.filter((d) => d.courseId === id).map((d) => d.term).slice(0, 5) }));
+  const upcoming = revision.filter((r) => !r.due).slice(0, 6);
+
+  async function retest(course: string, focusTerms: string[]) {
+    setBusy(true);
+    setError(null);
+    try {
+      setActive((await api<{ quiz: ActiveQuiz }>("/api/quizzes/generate", { method: "POST", body: { courseId: course, topic: null, focusTerms } })).quiz);
+    } catch (e) {
+      setError(e instanceof ClientApiError ? e.message : "Couldn't build a retest.");
+    } finally {
+      setBusy(false);
+    }
+  }
 
   async function generate(event: React.FormEvent) {
     event.preventDefault();
@@ -134,12 +170,64 @@ export default function PracticeArena({ courses, quizzes }: { courses: { id: str
   if (active) {
     return (
       <div className="quiz-wrap">
-        <Runner key={active.id} quiz={active} onDone={() => { setActive(null); router.refresh(); }} />
+        <Runner
+          key={active.id}
+          quiz={active}
+          baseline={progress.find((p) => p.topic === active.topic && quizzes.some((q) => q.topic === active.topic)) ?? null}
+          onDone={() => { setActive(null); router.refresh(); }}
+        />
       </div>
     );
   }
 
   return (
+    <>
+    <div className="two-column" style={{ marginBottom: 18 }}>
+      <section className="card card-inner" aria-labelledby="due-head">
+        <div className="split-head"><h3 id="due-head">Due for revision</h3><Chip tone={due.length ? "warn" : undefined}>{due.length} due</Chip></div>
+        {revision.length === 0 ? (
+          <p className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>Concepts you miss in a check come back here: tomorrow, then after 3, 7 and 14 days as you get them right.</p>
+        ) : (
+          <>
+            {dueByCourse.map((c) => (
+              <div key={c.id} className="task-item" style={{ flexWrap: "wrap" }}>
+                <span style={{ display: "grid", gap: 4 }}>
+                  <strong style={{ fontSize: 12.5 }}>{titles[c.id] ?? "Course"}</strong>
+                  <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>{c.terms.map((t) => <Chip key={t} tone="warn">{t}</Chip>)}</span>
+                </span>
+                <button type="button" className="btn small primary" disabled={busy} onClick={() => retest(c.id, c.terms)}><Repeat className="ic" aria-hidden="true" /> Retest {c.terms.length}</button>
+              </div>
+            ))}
+            {upcoming.length ? (
+              <p className="muted" style={{ fontSize: 11.5, marginTop: 10 }}>
+                Coming up: {upcoming.map((u) => `${u.term} (${new Date(u.dueAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })})`).join(", ")}
+              </p>
+            ) : null}
+          </>
+        )}
+      </section>
+      <section className="card card-inner" aria-labelledby="progress-topic-head">
+        <div className="split-head"><h3 id="progress-topic-head">Baseline vs latest</h3><TrendingUp className="ic" aria-hidden="true" style={{ color: "var(--accent)" }} /></div>
+        {progress.length === 0 ? (
+          <p className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>Your first attempt on a topic is its baseline; retakes show what changed.</p>
+        ) : (
+          <ul style={{ listStyle: "none", margin: 0, padding: 0 }} aria-label="Progress by topic">
+            {progress.slice(0, 6).map((p) => (
+              <li key={`${p.courseId}-${p.topic}`} className="task-item">
+                <span style={{ display: "grid", gap: 2, minWidth: 0 }}>
+                  <span style={{ overflowWrap: "anywhere" }}>{p.topic}</span>
+                  <span className="muted" style={{ fontSize: 10.5 }}>{titles[p.courseId] ?? "Course"} · {p.attempts} attempt{p.attempts === 1 ? "" : "s"}</span>
+                </span>
+                <span style={{ gap: 8 }}>
+                  <b>{Math.round(p.baseline)}% → {Math.round(p.latest)}%</b>
+                  {p.attempts > 1 ? <Chip tone={p.delta >= 0 ? "good" : "warn"}>{p.delta >= 0 ? "+" : ""}{Math.round(p.delta)}</Chip> : <Chip>Baseline</Chip>}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+    </div>
     <div className="two-column">
       <div className="card card-inner">
         <div className="split-head"><h3>New knowledge check</h3><Chip>From your notes</Chip></div>
@@ -185,5 +273,6 @@ export default function PracticeArena({ courses, quizzes }: { courses: { id: str
         )}
       </div>
     </div>
+    </>
   );
 }

@@ -34,7 +34,7 @@ describe("AI runtime selection", () => {
 
 describe("verifyAnswer", () => {
   it("drops facts citing sources that were never retrieved", () => {
-    const sources = new Map([["S1", { sourceId: "S1", chunkId: "c", documentId: "d", filename: "f.pdf", pageStart: 2, pageEnd: 2, snippet: "", score: 1, lexicalRank: 1, vectorSimilarity: null }]]);
+    const sources = new Map([["S1", { sourceId: "S1", chunkId: "c", documentId: "d", filename: "f.pdf", pageStart: 2, pageEnd: 2, snippet: "", score: 1, lexicalRank: 1, lexicalCoverage: 1, vectorSimilarity: null }]]);
     const { answer, citations, removed } = verifyAnswer(
       { facts: [{ statement: "ok", sourceIds: ["S1"] }, { statement: "made up", sourceIds: ["S2"] }, { statement: "tool fact", sourceIds: [] }], suggestions: [], clarifyingQuestion: null },
       sources,

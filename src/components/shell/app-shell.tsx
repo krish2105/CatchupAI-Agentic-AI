@@ -10,7 +10,7 @@ import Brand from "./brand";
 import CommandPalette from "./command-palette";
 import ThemeButton from "./theme-button";
 
-export type ShellUser = { displayName: string; email: string };
+export type ShellUser = { displayName: string; email: string; isAnonymous?: boolean };
 export type ShellMilestone = { completed: number; total: number } | null;
 
 function initials(name: string) {
@@ -132,7 +132,7 @@ export default function AppShell({
               <div className="avatar" aria-hidden="true">{initials(user.displayName || user.email)}</div>
               <div style={{ minWidth: 0 }}>
                 <strong style={{ display: "block", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.displayName || "Student"}</strong>
-                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.email}</span>
+                <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{user.isAnonymous ? "Temporary demo account" : user.email}</span>
               </div>
             </div>
           ) : null}
@@ -172,7 +172,17 @@ export default function AppShell({
         </header>
         <CommandPalette />
         <main id="main" tabIndex={-1} className="page">
-          <div className="content">{children}</div>
+          <div className="content">
+            {user?.isAnonymous ? (
+              <div className="demo-banner" role="status">
+                <strong>Demo account.</strong> You&apos;re exploring synthetic data in a temporary account that is deleted after 24 hours.{" "}
+                <form action="/auth/signout-demo" method="post" style={{ display: "inline" }}>
+                  <button type="submit" className="demo-leave">Leave the demo</button>
+                </form>
+              </div>
+            ) : null}
+            {children}
+          </div>
         </main>
       </div>
     </div>

@@ -3,6 +3,7 @@ import Brand from "@/components/shell/brand";
 import ThemeButton from "@/components/shell/theme-button";
 import Landscape from "@/components/nature/landscape";
 import { ButtonLink } from "@/components/ui/primitives";
+import DemoButton from "@/components/features/demo/demo-button";
 
 const steps = [
   { n: "01", icon: BookOpenCheck, title: "Grounded in your lessons", body: "Upload text-based course PDFs into a private vault. Answers cite the exact source pages that were retrieved — or say they couldn't verify it." },
@@ -37,7 +38,7 @@ export default function Home() {
               <ButtonLink href="/login" variant="primary">
                 Get started <ArrowRight className="ic" aria-hidden="true" />
               </ButtonLink>
-              <ButtonLink href="#how-it-works" variant="ghost">How it works</ButtonLink>
+              <DemoButton className="btn ghost" label="Try the demo, no sign-up" />
             </div>
           </div>
           <div className="hero-visual" aria-hidden="true" />

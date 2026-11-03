@@ -1,24 +1,21 @@
-# LinkedIn final project showcase — user review required
+# LinkedIn showcase — draft (edit before posting; replace every [placeholder])
 
-I built **CatchUp AI**, an agentic learning recovery assistant for students who are juggling missed classes, tight assignment deadlines, and limited study time.
+Missing two classes shouldn't mean losing the semester.
 
-Instead of offering a generic study timetable, CatchUp AI is designed to [INSERT ONLY ACTUALLY VERIFIED WORKING CAPABILITIES].
+For the Decoding Data Science Agentic AI Challenge I built **CatchUp AI**, an agentic recovery planner for students who've fallen behind.
 
-In the demo, I [DESCRIBE ONE WORKING COURSE/PDF -> REAL TOOL CALL -> CITED ANSWER -> FEASIBLE STUDY PROPOSAL -> HUMAN APPROVAL -> PERSISTED TASK FLOW].
+What makes it agentic (and honest):
+• It reads your real deadlines, weekly availability and uploaded course PDFs through permission-checked tools — and shows every tool call it actually ran.
+• Answers cite the exact page in your notes, or say "I couldn't verify that".
+• A deterministic planner compares three recovery routes and states the shortfall in minutes when a week doesn't fit.
+• The AI only drafts. Nothing is saved until you approve, and approval is an idempotent database transaction.
+• Built-in practice: knowledge checks from your own notes, spaced revision of what you missed, and a focus timer.
 
-**What makes it agentic:** [INSERT EXECUTED TOOLS AND WHAT THEY DID, NOT ASPIRATIONAL CLAIMS].
+Stack: Next.js, Supabase (Postgres + row-level security + pgvector), OpenAI Agents SDK, React Three Fiber.
+Quality: [N] automated tests and a 30-case evaluation ([X] passed) — results in the repo.
 
-**Stack:** [INSERT VERIFIED FRONTEND, BACKEND, AI MODEL, DATABASE AND DEPLOYMENT].
+Try it (one-click demo, synthetic data): [live URL]
+Code: https://github.com/krish2105/CatchupAI-Agentic-AI
+Demo video: [video URL]
 
-Live demo: [URL]
-Code / README: [URL]
-2–4 minute walkthrough: [URL]
-
-Built for the Decoding Data Science **Building Agentic AI Application** challenge (November 2026). The most important lesson from the project: [USER'S OWN LEARNING].
-
-[ADD ORGANIZER'S EXACT HASHTAGS/MENTIONS IF THE PARTICIPANT PORTAL REQUIRES THEM]
-
-#AgenticAI #AIEngineering #EdTech
-
----
-Check platform rules, permissions and claims before posting. This text is a *draft*, not a submission or evidence of a completed app.
+#AgenticAI #EdTech #NextJS #Supabase [organizer tags from the challenge page]
