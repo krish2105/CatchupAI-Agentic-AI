@@ -8,6 +8,7 @@ import { APP_ROUTES, routeForPath } from "@/lib/nav/routes";
 import PineRidge from "@/components/nature/pine-ridge";
 import Brand from "./brand";
 import CommandPalette from "./command-palette";
+import GuidedTour, { startTour } from "@/components/features/demo/guided-tour";
 import NotificationBell from "./notification-bell";
 import ThemeButton from "./theme-button";
 import type { Notice } from "@/lib/db/notifications";
@@ -183,11 +184,13 @@ export default function AppShell({
           </div>
         </header>
         <CommandPalette />
+        {user?.isAnonymous ? <GuidedTour /> : null}
         <main id="main" tabIndex={-1} className="page">
           <div className="content">
             {user?.isAnonymous ? (
               <div className="demo-banner" role="status">
                 <strong>Demo account.</strong> You&apos;re exploring synthetic data in a temporary account that is deleted after 24 hours.{" "}
+                <button type="button" className="demo-leave" onClick={startTour}>Start the guided tour</button>{" · "}
                 <form action="/auth/signout-demo" method="post" style={{ display: "inline" }}>
                   <button type="submit" className="demo-leave">Leave the demo</button>
                 </form>

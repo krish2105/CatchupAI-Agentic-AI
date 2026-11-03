@@ -178,6 +178,17 @@ test.describe("one-click demo", () => {
     await expect(page.getByText("Demo account.")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Alex");
     await expect(page.getByLabel("Your recovery briefing")).toContainText("deadlines in the next 7 days");
+    // The guided tour opens on its own for demo accounts and walks the real screens.
+    const tour = page.getByRole("region", { name: "Mission control" });
+    await expect(page.getByText("Guided tour · 1 of 9")).toBeVisible();
+    await expect(tour).toBeVisible();
+    await page.getByRole("button", { name: /Next: Missed class rescue/ }).click();
+    await expect(page).toHaveURL(/\/assistant$/);
+    await expect(page.getByText("Guided tour · 2 of 9")).toBeVisible();
+    await page.getByRole("button", { name: "Close the tour" }).click();
+    await expect(page.getByRole("button", { name: "Resume tour (2/9)" })).toBeVisible();
+    await page.reload();
+    await expect(page.getByRole("button", { name: "Resume tour (2/9)" })).toBeVisible();
     await page.goto("/courses");
     await expect(page.getByText(/1\/1 indexed/)).toBeVisible();
     await page.goto("/dashboard");
