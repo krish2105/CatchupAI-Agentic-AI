@@ -1,0 +1,37 @@
+{
+  "name": "Nature Flow 3.0",
+  "colors": {
+    "ivory": "#F7F5EE",
+    "pearl": "#EEF1EA",
+    "mistGreen": "#DDE8DC",
+    "sage": "#9DB8A0",
+    "eucalyptus": "#5E8C78",
+    "deepForest": "#1F3B2E",
+    "subtleAqua": "#7FC4C0",
+    "sunlightGold": "#E2B866",
+    "darkBackground": "#10201A"
+  },
+  "typography": {
+    "headings": "Editorial serif, e.g. Fraunces or Georgia",
+    "ui": "Modern sans, e.g. Manrope or system sans",
+    "bodyMinimumPx": 16
+  },
+  "radius": {
+    "card": 20,
+    "control": 12,
+    "pill": 999
+  },
+  "effects": {
+    "shadow": "soft natural shadows",
+    "glass": "frosted only on overlays",
+    "animation": "gentle; respect reduced motion"
+  },
+  "doNotUse": [
+    "neon",
+    "purple gradients",
+    "heavy glass everywhere",
+    "stock watermarks",
+    "unreadable small body text",
+    "unapproved agent mutations"
+  ]
+}

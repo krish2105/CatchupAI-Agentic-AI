@@ -1,0 +1,67 @@
+{
+  "product": "CatchUp AI \u2014 Nature Flow 3.0",
+  "export_date": "2026-11-03",
+  "assets": [
+    {
+      "path": "assets/hero_light_3840x1280.webp",
+      "role": "app_asset",
+      "description": "Light panoramic lake hero; use as a background image with a text-safe left side",
+      "width": 3840,
+      "height": 1280
+    },
+    {
+      "path": "assets/hero_dark_3840x1280.webp",
+      "role": "app_asset",
+      "description": "Dark panoramic lake hero; use as a background image with a text-safe left side",
+      "width": 3840,
+      "height": 1280
+    },
+    {
+      "path": "screenshots/03_mission_control_light_1440x1000.png",
+      "role": "visual_reference",
+      "description": "Mission Control: hero, command bar, metric cards, recovery routes and next actions",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "screenshots/04_learning_universe_3d_1440x1000.png",
+      "role": "visual_reference",
+      "description": "Learning Universe: floating learning islands, subject labels, mastery, citations and 2D toggle",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "screenshots/05_recovery_lab_1440x1000.png",
+      "role": "visual_reference",
+      "description": "Recovery Lab: scenario comparison and approval diff with warnings",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "screenshots/06_ai_copilot_1440x1000.png",
+      "role": "visual_reference",
+      "description": "AI Copilot: verifiable materials, citations, tool timeline and approval/reject",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "screenshots/07_focus_sanctuary_1440x1000.png",
+      "role": "visual_reference",
+      "description": "Focus Sanctuary: distraction-free deep work timer over landscape",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "screenshots/08_dark_and_mobile_1440x1000.png",
+      "role": "visual_reference",
+      "description": "Moonlit theme and 3 mobile screens, all with consistent bottom navigation",
+      "width": 1440,
+      "height": 1000
+    },
+    {
+      "path": "assets/learning_universe_art_direction.svg",
+      "role": "art_direction",
+      "description": "Vector terrarium island concept for topic relationships; replace with R3F in application"
+    }
+  ]
+}

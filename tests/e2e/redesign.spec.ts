@@ -34,9 +34,9 @@ test("mission control briefing reflects real data and missed class rescue runs t
     await s.page.reload();
     await expect(s.page.getByText(/1 deadline in the next 7 days · 1h 30m of recommended work/)).toBeVisible();
     const briefing = s.page.getByLabel("Your recovery briefing");
-    await expect(briefing).toContainText("1 deadline approaching");
+    await expect(briefing).toContainText("1 deadline in the next 7 days");
     await expect(briefing).toContainText("Your balanced plan fits");
-    await expect(briefing.getByRole("link", { name: "Build recovery plan" })).toHaveAttribute("href", "/recovery");
+    await expect(briefing.getByRole("link", { name: "Plan recovery" })).toHaveAttribute("href", "/recovery");
 
     await s.page.getByRole("link", { name: "Missed class rescue" }).click();
     await expect(s.page).toHaveURL(/\/assistant$/);
@@ -173,7 +173,7 @@ test.describe("one-click demo", () => {
     await page.waitForURL(/\/dashboard$/, { timeout: 60_000 });
     await expect(page.getByText("Demo account.")).toBeVisible();
     await expect(page.getByRole("heading", { level: 1 })).toContainText("Alex");
-    await expect(page.getByLabel("Your recovery briefing")).toContainText("deadlines approaching");
+    await expect(page.getByLabel("Your recovery briefing")).toContainText("deadlines in the next 7 days");
     await page.goto("/courses");
     await expect(page.getByText(/1\/1 indexed/)).toBeVisible();
     await page.goto("/dashboard");
