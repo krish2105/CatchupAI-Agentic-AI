@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Activity, ArrowRight, CalendarClock, CheckCircle2, Circle, Clock3, FlaskConical, Layers, Leaf, LifeBuoy, Target } from "lucide-react";
+import { Activity, ArrowRight, CalendarClock, CheckCircle2, Circle, Clock3, FileText, FlaskConical, Layers, Leaf, LifeBuoy, Sprout } from "lucide-react";
 import Landscape from "@/components/nature/landscape";
-import { ButtonLink, Chip, EmptyCard, ProgressArc, StatCard } from "@/components/ui/primitives";
+import { ButtonLink, Chip, EmptyCard } from "@/components/ui/primitives";
+import Sparkline from "@/components/ui/sparkline";
 import { requirePageUser } from "@/lib/auth/session";
 import { listAgentRuns } from "@/lib/db/agent-runs";
+import { getInsights, recentWeakTerms } from "@/lib/db/insights";
 import { getOverview } from "@/lib/db/overview";
 import { getProfile } from "@/lib/db/profiles";
 import { getActivePlan } from "@/lib/db/tasks";
@@ -19,13 +21,15 @@ const COURSE_COLORS = ["var(--aqua)", "var(--violet)", "var(--coral)", "var(--ac
 export default async function DashboardPage() {
   const { supabase, user } = await requirePageUser("/dashboard");
   const now = await renderTime();
-  const [overview, profile, plan, active, runs] = await Promise.all([
+  const [overview, profile, plan, active, runs, weakTerms] = await Promise.all([
     getOverview(supabase),
     getProfile(supabase, user.id),
     computePlan(supabase, user.id, { now }),
     getActivePlan(supabase),
     listAgentRuns(supabase, 1),
+    recentWeakTerms(supabase, new Date(now - 14 * 86400_000).toISOString()),
   ]);
+  const insights = await getInsights(supabase, profile.timezone, now);
   const tz = profile.timezone;
   const firstName = (profile.displayName ?? "").split(" ")[0] || "there";
   const balanced = plan.scenarios.find((s) => s.key === "balanced")!;
@@ -53,47 +57,87 @@ export default async function DashboardPage() {
       ? { label: balanced.feasible ? "Approve a recovery route" : "Your week is over capacity", detail: balanced.feasible ? "The balanced route fits your time." : `Short by ${formatMinutes(balanced.shortfallMinutes)}. Compare routes.`, href: "/recovery" }
       : { label: "Add your course work", detail: "Courses, deadlines and notes power every recommendation.", href: "/courses" };
 
+  const weekDeadlines = weekAhead.length;
+  const behind = hasWork && !balanced.feasible;
+  const outlook = hasWork ? balanced.coveragePercent : null;
+  const progressSeries = insights.days.slice(-7).map((d) => d.minutes);
+  const progressTotal = progressSeries.reduce((s, m) => s + m, 0);
+
   return (
     <>
-      <section className="hero" aria-labelledby="dash-heading">
+      <section className="hero mc-hero" aria-labelledby="dash-heading">
         <Landscape />
         <div className="hero-copy">
-          <div className="eyebrow">Weekly recovery briefing · {dateLabel}</div>
-          <h1 id="dash-heading">
-            {hasWork && !balanced.feasible ? "Let's get you" : "Make a little"} <em>{hasWork && !balanced.feasible ? `back on track, ${firstName}.` : "room for progress."}</em>
-          </h1>
+          <div className="eyebrow">Mission control · {dateLabel}</div>
+          <h1 id="dash-heading">{behind ? <>Back on track, <em>{firstName}.</em></> : <>Hello, <em>{firstName}.</em></>}</h1>
           <p>{briefing}</p>
-          <div className="hero-ctas">
-            <ButtonLink href="/assistant?rescue=1" variant="primary"><LifeBuoy className="ic" aria-hidden="true" /> Missed class rescue</ButtonLink>
-            <ButtonLink href="/recovery" variant="ghost"><FlaskConical className="ic" aria-hidden="true" /> Plan recovery</ButtonLink>
-            <ButtonLink href="/focus" variant="ghost"><Leaf className="ic" aria-hidden="true" /> Focus sprint</ButtonLink>
-          </div>
         </div>
-        <div className="hero-visual" style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "28px" }}>
-          <div className="glass" style={{ padding: 20, width: "min(100%, 320px)", display: "grid", gap: 12 }} aria-label="Your recovery plan">
-            <div className="split-head" style={{ marginBottom: 0 }}>
-              <span className="label">Your recovery plan</span>
-              {active ? <Chip tone="good">Active</Chip> : <Chip>Not approved</Chip>}
-            </div>
-            <div style={{ display: "flex", gap: 14, alignItems: "center" }}>
-              <ProgressArc percent={active ? (tasks.length ? Math.round((done / tasks.length) * 100) : 0) : hasWork ? balanced.coveragePercent : null} caption={active ? "Blocks done" : "Fits now"} />
-            </div>
-            <Link href={nextAction.href} className="focus-item" style={{ borderBottom: 0, padding: 0, textDecoration: "none" }}>
-              <div style={{ minWidth: 0 }}>
-                <strong style={{ overflowWrap: "anywhere" }}>{nextAction.label}</strong>
-                <p>{nextAction.detail}</p>
-              </div>
-              <span><ArrowRight className="ic" aria-hidden="true" /></span>
-            </Link>
+        <div className="glass mc-briefing" aria-label="Your recovery briefing">
+          <span className="label">Your recovery briefing</span>
+          <h2>{!overview.courses.length ? "Let's set up your week" : weekDeadlines ? `${weekDeadlines} deadline${weekDeadlines === 1 ? "" : "s"} approaching` : "No deadlines this week"}</h2>
+          <p>
+            {!hasWork
+              ? "Add assignments to see whether your week fits."
+              : balanced.feasible
+                ? `Your balanced plan fits, with ${formatMinutes(Math.max(0, balanced.availableBeforeDeadlineMinutes - balanced.requiredMinutes))} to spare.`
+                : `You're about ${formatMinutes(balanced.shortfallMinutes)} short before your deadlines. Let's build a realistic plan.`}
+          </p>
+          <ButtonLink href={hasWork ? "/recovery" : "/courses"} variant="primary" small style={{ justifySelf: "start" }}>
+            {hasWork ? "Build recovery plan" : "Add a course"} <ArrowRight className="ic" aria-hidden="true" />
+          </ButtonLink>
+        </div>
+        <div className="mc-stats">
+          <div className="glass mc-stat">
+            <div className="ring" style={{ "--value": outlook ?? 0 } as React.CSSProperties} aria-hidden="true"><Sprout /></div>
+            <div><strong>{outlook === null ? "—" : `${outlook}%`}</strong><span>Recovery outlook</span></div>
+          </div>
+          <div className="glass mc-stat">
+            <div className="icon" aria-hidden="true"><CalendarClock className="ic" /></div>
+            <div><strong>{weekDeadlines}</strong><span>Deadlines this week</span></div>
+          </div>
+          <div className="glass mc-stat">
+            <div className="icon" aria-hidden="true"><Clock3 className="ic" /></div>
+            <div><strong>{formatMinutes(weekly)}</strong><span>Study capacity / week</span></div>
+          </div>
+          <div className="glass mc-stat">
+            <div className="icon" aria-hidden="true"><Layers className="ic" /></div>
+            <div><strong>{weakTerms.length ? weakTerms.length : "—"}</strong><span>{weakTerms.length ? "Topics to review" : "No weak topics yet"}</span></div>
           </div>
         </div>
       </section>
 
-      <div className="stat-row">
-        <StatCard label="Study capacity" value={formatMinutes(weekly)} caption="Per week, from your settings" icon={Clock3} />
-        <StatCard label="Coming up" value={String(overview.upcomingCount).padStart(2, "0")} caption="Assignments due in 14 days" icon={CalendarClock} />
-        <StatCard label="Recovery outlook" value={hasWork ? `${balanced.coveragePercent}%` : null} caption={hasWork ? "Of the balanced route fits" : "No upcoming work"} icon={Target} />
-        <StatCard label="Learning worlds" value={String(overview.courses.length).padStart(2, "0")} caption="Courses in your universe" icon={Layers} />
+      <div className="mc-row">
+        <section className="card card-inner" aria-labelledby="next-steps">
+          <div className="split-head"><h3 id="next-steps">Suggested next steps</h3><Chip>{nextAction.label}</Chip></div>
+          <div className="next-steps">
+            <Link className="card next-step" href="/assistant?rescue=1">
+              <span className="icon" aria-hidden="true"><LifeBuoy className="ic" /></span>
+              <span><strong>Missed class rescue</strong><span>Copilot plans your catch-up</span></span>
+              <ArrowRight className="ic go" aria-hidden="true" />
+            </Link>
+            <Link className="card next-step" href="/focus">
+              <span className="icon" aria-hidden="true"><Leaf className="ic" /></span>
+              <span><strong>Focus sprint</strong><span>25-minute session</span></span>
+              <ArrowRight className="ic go" aria-hidden="true" />
+            </Link>
+            <Link className="card next-step" href={active ? "/planner" : "/recovery"}>
+              <span className="icon" aria-hidden="true"><FlaskConical className="ic" /></span>
+              <span><strong>{active ? "Review your plan" : "Review & approve"}</strong><span>{active ? `${done}/${tasks.length} blocks done` : "Compare three routes"}</span></span>
+              <ArrowRight className="ic go" aria-hidden="true" />
+            </Link>
+            <Link className="card next-step" href="/courses?import=syllabus">
+              <span className="icon" aria-hidden="true"><FileText className="ic" /></span>
+              <span><strong>Import syllabus</strong><span>Extract deadlines, then confirm</span></span>
+              <ArrowRight className="ic go" aria-hidden="true" />
+            </Link>
+          </div>
+        </section>
+        <section className="card card-inner" aria-labelledby="progress-head">
+          <div className="split-head"><h3 id="progress-head">Your progress</h3><Link className="text-link" href="/insights">See insights <ArrowRight className="ic" aria-hidden="true" /></Link></div>
+          <strong style={{ fontSize: 26, fontWeight: 800, color: "var(--heading)" }}>{formatMinutes(progressTotal)}</strong>
+          <p className="muted" style={{ fontSize: 12, margin: "2px 0 8px" }}>Study blocks completed in the last 7 days</p>
+          <Sparkline values={progressSeries} label={`Completed study minutes per day, last 7 days: ${progressSeries.join(", ")}`} />
+        </section>
       </div>
 
       <div className="three-column">

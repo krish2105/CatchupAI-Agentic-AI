@@ -6,9 +6,7 @@ import { useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import type { DocumentDto } from "@/lib/db/documents";
-import { browserClient } from "@/lib/supabase/client";
-
-const MAX_BYTES = 10 * 1024 * 1024;
+import { uploadAndProcessPdf } from "@/lib/client/upload";
 
 function statusChip(doc: DocumentDto) {
   switch (doc.status) {
@@ -32,21 +30,8 @@ export default function DocumentsPanel({ courseId, documents }: { courseId: stri
 
   async function handleFile(file: File) {
     setError(null);
-    if (!/\.pdf$/i.test(file.name) || (file.type && file.type !== "application/pdf")) return setError("Only text-based PDF files are supported.");
-    if (file.size > MAX_BYTES) return setError("PDFs must be 10 MB or smaller.");
     try {
-      setProgress(`Registering ${file.name}…`);
-      const { document, uploadPath } = await api<{ document: DocumentDto; uploadPath: string }>("/api/documents", {
-        method: "POST",
-        body: { courseId, filename: file.name, sizeBytes: file.size },
-      });
-      setProgress("Uploading privately…");
-      const upload = await browserClient().storage.from("course-documents").upload(uploadPath, file, { contentType: "application/pdf", upsert: false });
-      if (upload.error) {
-        await api(`/api/documents/${document.id}`, { method: "DELETE" }).catch(() => undefined);
-        throw new Error("The upload was rejected. Check the file and try again.");
-      }
-      await process(document.id);
+      await uploadAndProcessPdf(courseId, file, setProgress);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Upload failed.");
     } finally {

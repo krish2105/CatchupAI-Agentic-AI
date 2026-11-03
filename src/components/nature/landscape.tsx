@@ -17,8 +17,9 @@ function pines(seed: number, count: number, xStart: number, xEnd: number, baseY:
   }).join(" ");
 }
 
-const FAR_PINES = pines(7, 70, 0, 1200, 262, 26);
-const NEAR_PINES = pines(19, 34, 640, 1200, 300, 54);
+const FAR_PINES = pines(7, 90, 0, 1200, 262, 26);
+const NEAR_PINES = pines(19, 46, 700, 1200, 304, 64);
+const FRAME_PINES = pines(43, 12, 1090, 1200, 330, 120);
 const LEFT_PINES = pines(31, 14, 0, 260, 300, 46);
 
 export default function Landscape({ className = "landscape" }: { className?: string }) {
@@ -33,6 +34,11 @@ export default function Landscape({ className = "landscape" }: { className?: str
           <stop offset="0" style={{ stopColor: "var(--land-lake1)" }} />
           <stop offset="1" style={{ stopColor: "var(--land-lake2)" }} />
         </linearGradient>
+        <linearGradient id="nf-far" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" style={{ stopColor: "var(--land-far2)" }} />
+          <stop offset="0.55" style={{ stopColor: "var(--land-far)" }} />
+          <stop offset="1" style={{ stopColor: "var(--land-far2)" }} />
+        </linearGradient>
         <radialGradient id="nf-sun-glow">
           <stop offset="0" style={{ stopColor: "var(--land-sun-glow)" }} />
           <stop offset="1" style={{ stopColor: "var(--land-sun-glow)", stopOpacity: 0 }} />
@@ -41,7 +47,8 @@ export default function Landscape({ className = "landscape" }: { className?: str
       <rect width="1200" height="420" fill="url(#nf-sky)" />
       <circle cx="720" cy="92" r="120" fill="url(#nf-sun-glow)" />
       <circle cx="720" cy="92" r="30" style={{ fill: "var(--land-sun)" }} />
-      <path d="M0,250 L120,190 L210,214 L330,130 L420,186 L520,150 L640,96 L760,170 L860,120 L980,182 L1080,140 L1200,196 L1200,300 L0,300 Z" style={{ fill: "var(--land-far)" }} />
+      <path d="M0,250 L120,190 L210,214 L330,130 L420,186 L520,150 L640,96 L760,170 L860,120 L980,182 L1080,140 L1200,196 L1200,300 L0,300 Z" fill="url(#nf-far)" />
+      <path d="M640,96 L600,150 L626,140 L612,186 L652,150 L660,176 L700,138 Z M860,120 L830,168 L852,160 L844,190 L874,160 L900,158 Z M330,130 L300,178 L322,170 L316,200 L346,172 L372,170 Z" style={{ fill: "var(--land-far2)" }} opacity="0.5" />
       <path d="M640,96 L604,128 L622,124 L640,140 L660,122 L676,130 Z M860,120 L834,140 L850,138 L862,150 L874,138 L888,142 Z M330,130 L304,152 L318,150 L332,162 L346,150 L358,154 Z" style={{ fill: "var(--land-snow)" }} />
       <g className="mist">
         <ellipse cx="420" cy="238" rx="360" ry="22" style={{ fill: "var(--land-mist)" }} />
@@ -56,6 +63,7 @@ export default function Landscape({ className = "landscape" }: { className?: str
       </g>
       <path d="M560,420 C700,372 900,352 1200,340 L1200,420 Z" style={{ fill: "var(--land-near)" }} />
       <path d={NEAR_PINES} style={{ fill: "var(--land-tree)" }} />
+      <path d={FRAME_PINES} style={{ fill: "var(--land-tree)" }} />
       <path d={LEFT_PINES} style={{ fill: "var(--land-tree)" }} opacity="0.85" />
     </svg>
   );

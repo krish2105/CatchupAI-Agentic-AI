@@ -33,7 +33,10 @@ test("mission control briefing reflects real data and missed class rescue runs t
     await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Worksheet", dueAt: new Date(Date.now() + 3 * 86400_000).toISOString(), estimatedMinutes: 90 } });
     await s.page.reload();
     await expect(s.page.getByText(/1 deadline in the next 7 days · 1h 30m of recommended work/)).toBeVisible();
-    await expect(s.page.getByLabel("Your recovery plan")).toContainText("Approve a recovery route");
+    const briefing = s.page.getByLabel("Your recovery briefing");
+    await expect(briefing).toContainText("1 deadline approaching");
+    await expect(briefing).toContainText("Your balanced plan fits");
+    await expect(briefing.getByRole("link", { name: "Build recovery plan" })).toHaveAttribute("href", "/recovery");
 
     await s.page.getByRole("link", { name: "Missed class rescue" }).click();
     await expect(s.page).toHaveURL(/\/assistant$/);
@@ -92,6 +95,38 @@ test("recovery lab shows route timelines and the exact changes before approval",
     const changes = s.page.getByLabel("Exact changes before approval");
     await expect(changes).toContainText("Adds 1 study block (1h)");
     await expect(changes).toContainText("No current plan to replace");
+  } finally {
+    await s.cleanup();
+  }
+});
+
+test("smart syllabus import proposes deadlines and saves only what the student confirms", async ({ browser }) => {
+  test.setTimeout(90_000);
+  const s = await freshStudent(browser);
+  try {
+    await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } });
+    await s.page.goto("/courses?import=syllabus");
+    await s.page.waitForLoadState("networkidle");
+    const dialog = s.page.getByRole("dialog", { name: /Turn a syllabus into deadlines/ });
+    await expect(dialog).toBeVisible();
+    await dialog.getByLabel("Syllabus PDF").setInputFiles("tests/fixtures/syllabus.pdf");
+    await dialog.getByRole("button", { name: "Find deadlines" }).click();
+
+    const rows = s.page.getByRole("list", { name: "Detected deadlines" }).getByRole("listitem");
+    await expect(rows).toHaveCount(4, { timeout: 30_000 });
+    await expect(rows.first()).toContainText("p. 1");
+    const before = await s.db.from("assignments").select("id").eq("owner_id", s.userId);
+    expect(before.data).toEqual([]);
+
+    await s.page.getByLabel("Include Final project report").uncheck();
+    await s.page.getByLabel("Estimated hours (row 1)").fill("2");
+    await s.page.getByRole("button", { name: "Add 3 deadlines" }).click();
+    await expect(s.page.getByText("3 deadlines added to the course.")).toBeVisible();
+
+    const { data } = await s.db.from("assignments").select("title, due_at, estimated_minutes").eq("owner_id", s.userId).order("due_at");
+    expect(data!.map((a) => a.title)).toEqual(["Quiz 1: Regression basics", "Assignment 2 (Regression worksheet)", "Midterm exam"]);
+    expect(new Date(data![0].due_at).toISOString()).toBe("2026-11-12T16:00:00.000Z");
+    expect(data![0].estimated_minutes).toBe(120);
   } finally {
     await s.cleanup();
   }

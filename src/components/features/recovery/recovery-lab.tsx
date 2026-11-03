@@ -31,7 +31,7 @@ export default function RecoveryLab({
   const savedTotal = savedWeekly.reduce((s, m) => s + m, 0);
   const [plan, setPlan] = useState(initialPlan);
   const [weekly, setWeekly] = useState(savedTotal);
-  const [selected, setSelected] = useState<ScenarioKey>(() => initialPlan.scenarios.find((s) => s.feasible)?.key ?? "essential");
+  const [selected, setSelected] = useState<ScenarioKey>(() => (["balanced", "essential", "full"] as const).find((k) => initialPlan.scenarios.find((s) => s.key === k)?.feasible) ?? "essential");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [proposal, setProposal] = useState<ProposalDto | null>(initialProposal);
@@ -61,6 +61,12 @@ export default function RecoveryLab({
   }, [weekly, savedTotal]);
 
   const scenario = plan.scenarios.find((s) => s.key === selected)!;
+  // Recommendation rule (explainable): the most complete route that still fits; balanced beats full on ties.
+  const recommended = (["balanced", "essential", "full"] as const).find((k) => plan.scenarios.find((s) => s.key === k)?.feasible) ?? null;
+  const perStudyDay = (tasks: { startsAt: string; minutes: number }[]) => {
+    const days = new Set(tasks.map((t) => new Intl.DateTimeFormat("en-CA", { timeZone: plan.timezone }).format(new Date(t.startsAt)))).size;
+    return days ? Math.round(tasks.reduce((s, t) => s + t.minutes, 0) / days) : 0;
+  };
   const whatIf = weekly !== savedTotal;
 
   async function saveAvailability() {
@@ -145,12 +151,15 @@ export default function RecoveryLab({
             aria-pressed={s.key === selected}
             onClick={() => setSelected(s.key)}
           >
-            {s.requiredMinutes === 0 ? <Chip>Nothing to plan</Chip> : s.feasible ? <Chip tone="good">Fits your time</Chip> : <Chip tone="warn">Short by {formatMinutes(s.shortfallMinutes)}</Chip>}
+            <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              {s.requiredMinutes === 0 ? <Chip>Nothing to plan</Chip> : s.feasible ? <Chip tone="good">Fits your time</Chip> : <Chip tone="warn">Short by {formatMinutes(s.shortfallMinutes)}</Chip>}
+              {s.key === recommended ? <Chip>Recommended</Chip> : null}
+            </span>
             <div className="scenario-title">{s.title}</div>
             <div className="scenario-sub">{s.description}</div>
             <div className="scenario-number">{s.coveragePercent}% <small>of the work fits</small></div>
             <div className="scenario-bar" aria-hidden="true"><span style={{ width: `${s.coveragePercent}%`, background: BAR[s.key] }} /></div>
-            <div className="scenario-meta">{formatMinutes(s.scheduledMinutes)} scheduled of {formatMinutes(s.requiredMinutes)} needed · {s.items.length} item{s.items.length === 1 ? "" : "s"}</div>
+            <div className="scenario-meta">{formatMinutes(s.scheduledMinutes)} scheduled of {formatMinutes(s.requiredMinutes)} needed · {s.items.length} item{s.items.length === 1 ? "" : "s"}{s.tasks.length ? ` · ≈${formatMinutes(perStudyDay(s.tasks))} per study day` : ""}</div>
             <RouteTimeline tasks={s.tasks} items={s.items} timezone={plan.timezone} start={plan.horizon.start} />
           </button>
         ))}
@@ -197,7 +206,7 @@ export default function RecoveryLab({
         <div className="card card-inner">
           <div className="split-head"><h3>How this is calculated</h3><AlertTriangle className="ic" aria-hidden="true" style={{ color: "var(--accent)" }} /></div>
           <p style={{ fontSize: 12, lineHeight: 1.85, color: "var(--muted)" }}>
-            Your daily windows start at your study time in {plan.timezone}. Work is placed earliest-deadline-first in blocks of up to 90 minutes with
+            “Recommended” is the most complete route that still fits your time. Your daily windows start at your study time in {plan.timezone}. Work is placed earliest-deadline-first in blocks of up to 90 minutes with
             10-minute breaks. If that can&apos;t fit everything before each deadline, no other order of the same blocks can — so the shortfall is real.
           </p>
           <div className="mini-activity" style={{ marginTop: 15 }}><div className="activity-dot" /><div><strong>Understand capacity</strong><p>Required work is compared to real availability.</p></div></div>

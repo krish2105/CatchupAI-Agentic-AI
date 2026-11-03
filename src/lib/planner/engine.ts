@@ -212,9 +212,9 @@ export function schedule(items: WorkItem[], windows: Window[], horizonEnd: numbe
 }
 
 const SCENARIO_COPY: Record<ScenarioKey, { title: string; description: string }> = {
-  essential: { title: "Essential rescue", description: "Every required deadline plus the single most important study topic." },
+  essential: { title: "Deadline first", description: "Every required deadline, plus the single most important study topic." },
   balanced: { title: "Balanced recovery", description: "Required work plus all recommended study and review sessions." },
-  full: { title: "Full catch-up", description: "Everything, including optional work, if your time allows it." },
+  full: { title: "Full recovery", description: "Everything, including optional work, if your time allows it." },
 };
 
 export function selectScenarioItems(key: ScenarioKey, items: WorkItem[]): WorkItem[] {

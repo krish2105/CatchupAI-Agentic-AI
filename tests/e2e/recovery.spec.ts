@@ -11,7 +11,8 @@ test.describe("recovery lab → approval → planner", () => {
       await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Regression worksheet", dueAt: inDays(5), estimatedMinutes: 200 } });
 
       await s.page.goto("/recovery");
-      const essential = s.page.getByRole("button", { name: /Essential rescue/ });
+      const essential = s.page.getByRole("button", { name: /Deadline first/ });
+      await essential.click();
       await expect(essential).toHaveAttribute("aria-pressed", "true");
       await expect(essential).toContainText("Fits your time");
       await s.page.getByRole("button", { name: /Review and approve/ }).click();
@@ -31,9 +32,11 @@ test.describe("recovery lab → approval → planner", () => {
 
       await s.page.reload();
       await expect(s.page.getByText("0 / 3")).toBeVisible();
+      await s.page.getByRole("group", { name: "Schedule view" }).getByRole("button", { name: "List" }).click();
       await s.page.getByRole("checkbox", { name: /Regression worksheet \(part 1 of 3\)/ }).click();
       await expect(s.page.getByText("1 / 3")).toBeVisible();
       await s.page.reload();
+      await s.page.getByRole("group", { name: "Schedule view" }).getByRole("button", { name: "List" }).click();
       await expect(s.page.getByRole("checkbox", { name: /part 1 of 3/ })).toHaveAttribute("aria-checked", "true");
 
       await s.page.goto("/dashboard");
@@ -67,13 +70,13 @@ test.describe("recovery lab → approval → planner", () => {
       const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
       await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Big project", dueAt: inDays(2), estimatedMinutes: 540 } });
       await s.page.goto("/recovery");
-      await expect(s.page.getByRole("button", { name: /Essential rescue/ })).toContainText(/Short by \d+h/);
+      await expect(s.page.getByRole("button", { name: /Deadline first/ })).toContainText(/Short by \d+h/);
       await expect(s.page.getByRole("button", { name: /Review and approve/ })).toBeDisabled();
       await expect(s.page.getByText("Infeasible routes can't be approved.")).toBeVisible();
 
       // What-if: more weekly time makes it fit, but approval requires saving that availability first.
       await s.page.getByLabel(/STUDY TIME PER WEEK/).fill("2400");
-      await expect(s.page.getByRole("button", { name: /Essential rescue/ })).toContainText("Fits your time");
+      await expect(s.page.getByRole("button", { name: /Deadline first/ })).toContainText("Fits your time");
       await expect(s.page.getByRole("button", { name: /Review and approve/ })).toBeDisabled();
       await s.page.getByRole("button", { name: "Save this availability" }).click();
       await expect(s.page.getByRole("button", { name: /Review and approve/ })).toBeEnabled();

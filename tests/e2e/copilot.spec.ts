@@ -39,6 +39,7 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     await expect(dialog).toContainText("Review the cited notes");
     await dialog.getByRole("button", { name: "Approve plan" }).click();
     await s.page.waitForURL(/\/planner\?approved=1$/);
+    await s.page.getByRole("group", { name: "Schedule view" }).getByRole("button", { name: "List" }).click();
     await expect(s.page.getByRole("link", { name: /statistics_module_4\.pdf · p\. 2/ })).toBeVisible();
 
     const { data: runs } = await s.db.from("agent_runs").select("status, tool_events").eq("owner_id", s.userId);

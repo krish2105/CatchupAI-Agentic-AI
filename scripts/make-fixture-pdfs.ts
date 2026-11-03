@@ -62,6 +62,17 @@ async function main() {
   for (let i = 1; i <= 51; i++) many.addPage([200, 200]).drawText(`Page ${i}`, { x: 20, y: 100, size: 12, font });
   writeFileSync("tests/fixtures/too_many_pages.pdf", await many.save());
 
+  writeFileSync(
+    "tests/fixtures/syllabus.pdf",
+    await textPdf(
+      [
+        { heading: "Applied Statistics - Syllabus (Fall 2026)", body: "Week 3 Lecture: Sampling distributions (Nov 5). Quiz 1: Regression basics due 12 Nov 2026, 16:00. Assignment 2 (Regression worksheet) due 2026-11-20 23:59." },
+        { heading: "Assessment calendar", body: "Midterm exam: 27/11/2026 10:00. Final project report due December 11. Office hours every Tuesday 3pm." },
+      ],
+      "Applied Statistics syllabus (synthetic)",
+    ),
+  );
+
   console.log(`Wrote fixtures: statistics (${sections.length} pages), injection, no_text, too_many_pages`);
 }
 

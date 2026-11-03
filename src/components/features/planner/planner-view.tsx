@@ -7,6 +7,8 @@ import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import type { ActivePlan, StudyTask } from "@/lib/db/tasks";
 import { formatMinutes } from "@/lib/time";
+import { Segmented } from "@/components/ui/controls";
+import WeekGrid from "./week-grid";
 
 function dayKey(iso: string, tz: string) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
@@ -17,7 +19,24 @@ function timeRange(t: StudyTask, tz: string) {
   return `${f.format(new Date(t.startsAt))}–${f.format(new Date(t.endsAt))}`;
 }
 
-export default function PlannerView({ plan, timezone, courseNames, now }: { plan: ActivePlan; timezone: string; courseNames: Record<string, string>; now: number }) {
+export default function PlannerView({
+  plan,
+  timezone,
+  courseNames,
+  now,
+  weekStart,
+  weekOffset,
+  deadlines,
+}: {
+  plan: ActivePlan;
+  timezone: string;
+  courseNames: Record<string, string>;
+  now: number;
+  weekStart: string;
+  weekOffset: number;
+  deadlines: { id: string; title: string; dueAt: string }[];
+}) {
+  const [view, setView] = useState<"week" | "list">("week");
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -46,7 +65,39 @@ export default function PlannerView({ plan, timezone, courseNames, now }: { plan
     }
   }
 
+  const progressCard = (
+      <div className="card card-inner" aria-live="polite">
+        <div className="label">Your progress</div>
+        <h3 style={{ fontSize: 23, letterSpacing: "-.9px", margin: "13px 0" }}>{done.length === tasks.length ? "Plan complete. Well done." : "One block at a time."}</h3>
+        <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.7 }}>{plan.title}. Approved {new Intl.DateTimeFormat("en-GB", { timeZone: timezone, dateStyle: "medium", timeStyle: "short" }).format(new Date(plan.createdAt))}.</p>
+        <div className="line" style={{ margin: "23px 0" }} />
+        <div className="label">Completed blocks</div>
+        <div style={{ fontSize: 42, letterSpacing: "-2px", fontWeight: 800, marginTop: 11 }}>{done.length} / {tasks.length}</div>
+        <p className="muted" style={{ fontSize: 12 }}>{formatMinutes(doneMinutes)} of {formatMinutes(totalMinutes)} studied</p>
+      </div>
+  );
+
+  const toolbar = (
+    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
+      <Segmented<"week" | "list"> label="Schedule view" value={view} onChange={setView} options={[{ value: "week", label: "Week" }, { value: "list", label: "List" }]} />
+      <span className="muted" style={{ fontSize: 12 }}>Need different times? Adjust your availability in Preferences, then approve a new route in the lab.</span>
+    </div>
+  );
+
+  if (view === "week") {
+    return (
+      <>
+        {toolbar}
+        {error ? <div style={{ marginBottom: 12 }}><Notice tone="danger" title={error} /></div> : null}
+        <WeekGrid tasks={plan.tasks} deadlines={deadlines} timezone={timezone} weekStart={weekStart} offset={weekOffset} courseNames={courseNames} onToggle={toggle} pending={pending} />
+        <div className="section-space">{progressCard}</div>
+      </>
+    );
+  }
+
   return (
+    <>
+    {toolbar}
     <div className="schedule-layout">
       <div className="card">
         <div className="card-inner" style={{ paddingBottom: 10 }}>
@@ -102,15 +153,8 @@ export default function PlannerView({ plan, timezone, courseNames, now }: { plan
           })}
         </ol>
       </div>
-      <div className="card card-inner" aria-live="polite">
-        <div className="label">Your progress</div>
-        <h3 style={{ fontSize: 23, letterSpacing: "-.9px", margin: "13px 0" }}>{done.length === tasks.length ? "Plan complete. Well done." : "One block at a time."}</h3>
-        <p style={{ fontSize: 12, color: "var(--muted)", lineHeight: 1.7 }}>{plan.title}. Approved {new Intl.DateTimeFormat("en-GB", { timeZone: timezone, dateStyle: "medium", timeStyle: "short" }).format(new Date(plan.createdAt))}.</p>
-        <div className="line" style={{ margin: "23px 0" }} />
-        <div className="label">Completed blocks</div>
-        <div style={{ fontSize: 42, letterSpacing: "-2px", fontWeight: 800, marginTop: 11 }}>{done.length} / {tasks.length}</div>
-        <p className="muted" style={{ fontSize: 12 }}>{formatMinutes(doneMinutes)} of {formatMinutes(totalMinutes)} studied</p>
-      </div>
+      {progressCard}
     </div>
+    </>
   );
 }

@@ -52,6 +52,8 @@ test("the core approval loop works with reduced motion, 3D off and keyboard only
     await approve.focus();
     await s.page.keyboard.press("Enter");
     await s.page.waitForURL(/\/planner\?approved=1$/);
+    await s.page.getByRole("group", { name: "Schedule view" }).getByRole("button", { name: "List" }).focus();
+    await s.page.keyboard.press("Enter");
     const check = s.page.getByRole("checkbox", { name: /Essay outline/ });
     await check.focus();
     await s.page.keyboard.press("Space");

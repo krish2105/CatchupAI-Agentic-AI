@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { Menu, Search, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { APP_ROUTES, routeForPath } from "@/lib/nav/routes";
+import PineRidge from "@/components/nature/pine-ridge";
 import Brand from "./brand";
 import CommandPalette from "./command-palette";
 import ThemeButton from "./theme-button";
@@ -123,6 +124,7 @@ export default function AppShell({
             </nav>
           </div>
         ))}
+        <PineRidge />
         <div className="side-bottom">
           <MilestoneBrief milestone={milestone} />
           {user ? (
