@@ -2,6 +2,7 @@ import { createMcpHandler, withMcpAuth } from "mcp-handler";
 import { z } from "zod";
 import { catchupPack, documents, memories, overview, searchNotes, studyPlan } from "@/lib/mcp/tools";
 import { ownerForMcpToken } from "@/lib/mcp/token";
+import { logEvent } from "@/lib/observability/log";
 import { adminClient } from "@/lib/supabase/admin";
 
 /**
@@ -45,8 +46,16 @@ const authed = withMcpAuth(
   handler,
   async (_req, token) => {
     if (!token) return undefined;
-    const ownerId = await ownerForMcpToken(adminClient(), token);
-    return ownerId ? { token: "[redacted]", clientId: "catchup-personal-token", scopes: ["read"], extra: { ownerId } } : undefined;
+    const admin = adminClient();
+    const ownerId = await ownerForMcpToken(admin, token);
+    if (!ownerId) return undefined;
+    // 120 requests per 10 minutes per student; over the limit the token is treated as invalid for now.
+    const { data: allowed } = await admin.rpc("consume_mcp_quota", { p_owner: ownerId, p_limit: 120, p_window_seconds: 600 });
+    if (allowed !== true) {
+      logEvent("warn", "mcp.rate_limited", { owner: ownerId.slice(0, 8) });
+      return undefined;
+    }
+    return { token: "[redacted]", clientId: "catchup-personal-token", scopes: ["read"], extra: { ownerId } };
   },
   { required: true },
 );

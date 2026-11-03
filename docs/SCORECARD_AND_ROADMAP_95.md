@@ -2,7 +2,7 @@
 
 _Re-assessed 2026-11-04 after sprint 2 (catch-up pack, study emails, feedback, copilot memory, MCP, quality page, forest, demo video). Scores judge what is verifiable today, not what the code could do._
 
-## Where it stands: **94 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91 → 94: sprint 2 shipped and deployed with green CI; live AI still unmeasured)
+## Where it stands: **95 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91 → 94 → 95: M8 hardening: claim-checked citations, red team with a fixed real attack, kill switch and budget, observability, RAG ground truth; live AI still unmeasured, so this is capped)
 
 | Lens | Score | What earns points | What costs points |
 | --- | --- | --- | --- |
@@ -40,7 +40,7 @@ _Re-assessed 2026-11-04 after sprint 2 (catch-up pack, study emails, feedback, c
 | 3 | **Evidence**: 3–5 volunteer sessions with `docs/VOLUNTEER_KIT.md`; LinkedIn post with the demo video | +2 | You run the sessions |
 | 4 | Error monitoring (Sentry free tier) and nudge SMTP (`python3 scripts/configure-nudge-email.py`) | +1 | You create the account / type the app password |
 
-94 + 6 = **100 possible**; **96 needs only the Gemini key (#2)**.
+95 + 5 = **100 possible**; **97 needs only the Gemini key (#2)**, because the live eval would then close the last mandatory M8 gate.
 
 ## Research notes
 - Agentic-AI hackathon rubrics reward a **working, deployable demo**, technical depth, usefulness and presentation ([NANDA Hack](https://nandahack.media.mit.edu/), [GOSIM Paris](https://luma.com/6wdrnx9j), [FAU](https://www.fau.edu/engineering/pdf/agentic-ai-hackathon.pdf), [AngelHack](https://angelhack.com/blog/ai-agent-hackathon/)).

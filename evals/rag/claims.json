@@ -1,0 +1,39 @@
+{
+  "about": "Claim-to-citation support labels. Each claim cites one passage; label = whether that passage supports the claim. Labelled by the developer by reading the fixture text (not an independent reviewer). Includes known-hard cases (negation, wrong number) on purpose.",
+  "passages": {
+    "bio1": "The cell membrane is a phospholipid bilayer that controls which substances enter and leave the cell. Embedded transport proteins move ions such as sodium and potassium across the membrane. Small nonpolar molecules like oxygen diffuse directly through the bilayer.",
+    "bio2": "Mitochondria produce most of the cell's ATP through cellular respiration. Glucose is first split during glycolysis in the cytoplasm, and the citric acid cycle then runs inside the mitochondrial matrix. Aerobic respiration yields about 38 ATP per glucose molecule in older textbook estimates.",
+    "bio3": "Chloroplasts capture light energy using chlorophyll pigments. The light-dependent reactions in the thylakoid membranes split water and release oxygen. The Calvin cycle in the stroma fixes carbon dioxide into sugar using ATP and NADPH.",
+    "bio4": "Mitosis produces two genetically identical daughter cells and has four phases: prophase, metaphase, anaphase and telophase. During metaphase the chromosomes line up along the cell's equator. Meiosis instead produces four genetically different gametes with half the chromosome number.",
+    "bio5": "Enzymes are proteins that speed up reactions by lowering the activation energy. Each enzyme has an active site that binds a specific substrate. High temperatures can denature an enzyme so that its active site no longer fits the substrate.",
+    "errata": "Correction to the mitochondria page: current estimates put aerobic respiration at about 30 to 32 ATP per glucose molecule, not 38, because transporting molecules into the mitochondria costs energy. Correction to the revision checklist: the unit test moved from Friday to Monday.",
+    "stats2": "A residual equals observed Y minus predicted Y_hat. Ordinary least squares fits beta_0 and beta_1 by minimizing the sum of squared residuals. Large residuals suggest poor fit for a particular observation.",
+    "stats3": "A basic linear regression analysis assumes a linear mean relationship and makes assumptions about residual behavior. Correlation does not prove causation. Extrapolating far outside the observed X range is risky."
+  },
+  "claims": [
+    { "id": "C1", "claim": "The cell membrane is a phospholipid bilayer.", "passage": "bio1", "label": true },
+    { "id": "C2", "claim": "Transport proteins move sodium and potassium ions across the membrane.", "passage": "bio1", "label": true },
+    { "id": "C3", "claim": "Oxygen diffuses directly through the bilayer.", "passage": "bio1", "label": true },
+    { "id": "C4", "claim": "The citric acid cycle runs inside the mitochondrial matrix.", "passage": "bio2", "label": true },
+    { "id": "C5", "claim": "Older textbooks estimate about 38 ATP per glucose from aerobic respiration.", "passage": "bio2", "label": true },
+    { "id": "C6", "claim": "Current estimates are about 30 to 32 ATP per glucose molecule.", "passage": "errata", "label": true },
+    { "id": "C7", "claim": "The light-dependent reactions split water and release oxygen.", "passage": "bio3", "label": true },
+    { "id": "C8", "claim": "During metaphase the chromosomes line up along the equator.", "passage": "bio4", "label": true },
+    { "id": "C9", "claim": "High temperatures can denature an enzyme so its active site no longer fits the substrate.", "passage": "bio5", "label": true },
+    { "id": "C10", "claim": "Your notes say: \"A residual equals observed Y minus predicted Y_hat.\"", "passage": "stats2", "label": true },
+    { "id": "C11", "claim": "Ordinary least squares minimizes the sum of squared residuals.", "passage": "stats2", "label": true },
+    { "id": "C12", "claim": "The unit test moved to Monday.", "passage": "errata", "label": true },
+    { "id": "C13", "claim": "Aerobic respiration yields about 50 ATP per glucose molecule.", "passage": "bio2", "label": false, "note": "wrong number" },
+    { "id": "C14", "claim": "Mitosis produces four genetically different gametes.", "passage": "bio2", "label": false, "note": "cites the wrong page" },
+    { "id": "C15", "claim": "Chloroplasts are found in every animal cell and store genetic memory.", "passage": "bio3", "label": false, "note": "invented" },
+    { "id": "C16", "claim": "Enzymes are carbohydrates that raise the activation energy of reactions.", "passage": "bio5", "label": false, "note": "contradicts the passage (mostly same words)" },
+    { "id": "C17", "claim": "Correlation proves causation.", "passage": "stats3", "label": false, "note": "negation dropped; same words" },
+    { "id": "C18", "claim": "Your notes say: \"Residuals are always zero for a good model.\"", "passage": "stats2", "label": false, "note": "fabricated quote" },
+    { "id": "C19", "claim": "The unit test is on page 99 of secret_answers.pdf.", "passage": "bio5", "label": false, "note": "injected citation" },
+    { "id": "C20", "claim": "Meiosis produces gametes with double the chromosome number.", "passage": "bio4", "label": false, "note": "wrong detail, same words" },
+    { "id": "C21", "claim": "Glucose is split during glycolysis in the cytoplasm.", "passage": "bio3", "label": false, "note": "right fact, wrong citation" },
+    { "id": "C22", "claim": "Extrapolating outside the observed range is risky.", "passage": "stats3", "label": true },
+    { "id": "C23", "claim": "The Calvin cycle uses ATP and NADPH to fix carbon dioxide into sugar.", "passage": "bio3", "label": true },
+    { "id": "C24", "claim": "Large residuals suggest a poor fit for that observation.", "passage": "stats2", "label": true }
+  ]
+}

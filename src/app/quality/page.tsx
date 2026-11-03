@@ -10,7 +10,7 @@ import { aiRuntimeStatus } from "@/lib/server/env";
 
 export const metadata: Metadata = { title: "Quality and trust", description: "How CatchUp AI is tested, evaluated and secured, with live status." };
 
-const CATEGORY: Record<string, string> = { retrieval: "Retrieval cites the right page", schedule: "Schedules respect time and deadlines", tool_selection: "Copilot picks the right tools", approval: "Approval saves exactly once", security: "Cross-account and injection attacks blocked" };
+const CATEGORY: Record<string, string> = { retrieval: "Retrieval cites the right page", schedule: "Schedules respect time and deadlines", tool_selection: "Copilot picks the right tools", approval: "Approval saves exactly once", security: "Cross-account and injection attacks blocked", robustness: "Bad tool input, bad model output, duplicate actions" };
 const KIND: Record<string, string> = { answer: "Copilot answers", plan: "Study plans", pack: "Catch-up packs", teach: "Teach-it-back" };
 const date = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric", hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
 

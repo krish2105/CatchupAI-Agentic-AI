@@ -75,6 +75,12 @@ describe("personal MCP token", () => {
     expect((await b.db.from("mcp_tokens").select("created_at")).data).toEqual([]);
   });
 
+  it("rate-limits MCP requests per student (server-only quota)", async () => {
+    const calls = await Promise.all([1, 2, 3].map(() => admin().rpc("consume_mcp_quota", { p_owner: b.id, p_limit: 2, p_window_seconds: 600 })));
+    expect(calls.map((c) => c.data).filter((x) => x === true)).toHaveLength(2);
+    expect((await a.db.rpc("consume_mcp_quota" as never, { p_owner: a.id, p_limit: 1000, p_window_seconds: 1 } as never)).error).not.toBeNull();
+  });
+
   it("serves only the token owner's data", async () => {
     const now = Date.now();
     expect((await overview(asAdmin(), a.id, now)).openAssignments.map((x) => x.title)).toEqual(["Secret sheet"]);

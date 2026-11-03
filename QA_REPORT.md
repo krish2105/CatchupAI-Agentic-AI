@@ -8,10 +8,10 @@
 | --- | --- |
 | `npm run typecheck` | PASS (exit 0) |
 | `npm run lint` | PASS (exit 0) |
-| `npm test` (Vitest unit) | **91 / 91 passed** (20 files) |
-| `npm run test:integration` (real local Supabase) | **92 / 92 passed** (15 files) |
+| `npm test` (Vitest unit) | **100 / 100 passed** (23 files) |
+| `npm run test:integration` (real local Supabase) | **99 / 99 passed** (16 files) |
 | `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **65 / 65 passed** (includes production build) |
-| `npm run eval` (30-case evaluation, see `evals/REPORT.md`) | **25 passed · 0 failed · 5 skipped** (tool-selection cases need a real LLM; not simulated) |
+| `npm run eval` (30-case evaluation, see `evals/REPORT.md`) | **30 passed · 0 failed · 8 skipped** of 38 (tool-selection cases need a real model; not simulated) + RAG eval (`evals/RAG_REPORT.md`) |
 | Secret scan (tracked files + `.next/static`) against the real local secret values and key patterns | 0 hits |
 
 Nothing was skipped. No test hard-codes a passing result for missing behaviour.

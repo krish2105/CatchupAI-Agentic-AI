@@ -43,14 +43,18 @@ export async function proxy(request: NextRequest) {
     }
   }
 
+  // One id per request, shared by logs and the response (Vercel's own id when present).
+  const requestId = request.headers.get("x-vercel-id")?.split("::").at(-1) || crypto.randomUUID();
   const nonce = Buffer.from(crypto.randomUUID()).toString("base64");
   const csp = contentSecurityPolicy(nonce);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("x-request-id", requestId);
   requestHeaders.set("content-security-policy", csp);
   const next = () => NextResponse.next({ request: { headers: requestHeaders } });
   const withCsp = (response: NextResponse) => {
     if (!path.startsWith("/api/")) response.headers.set("content-security-policy", csp);
+    response.headers.set("x-request-id", requestId);
     return response;
   };
 

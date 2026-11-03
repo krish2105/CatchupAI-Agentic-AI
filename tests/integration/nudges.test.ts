@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { saveFeedback } from "@/lib/feedback/service";
+import { unsubscribeSignature } from "@/lib/nudges/sign";
 import { getNudgePrefs, saveNudgePrefs, sendDueNudges, unsubscribe, type Mail } from "@/lib/nudges/service";
 import { approveProposal, createProposal } from "@/lib/planner/service";
 import type { AdminSupabase } from "@/lib/supabase/admin";
@@ -69,9 +70,19 @@ describe("daily nudge run", () => {
     expect(again.filter((m) => m.to === a.email)).toHaveLength(0);
   });
 
-  it("one-click unsubscribe turns both emails off", async () => {
-    await unsubscribe(asAdmin(), a.id);
+  it("unsubscribe links: GET only confirms (scanners prefetch links), POST turns both emails off", async () => {
+    const { GET, POST } = await import("@/app/api/nudges/unsubscribe/route");
+    await saveNudgePrefs(asServer(a.db), { dailyDigest: true, missedAlert: true });
+    const url = `https://app.test/api/nudges/unsubscribe?u=${a.id}&s=${unsubscribeSignature(a.id)}`;
+    const shown = await GET(new Request(url));
+    expect(shown.status).toBe(200);
+    expect(await shown.text()).toContain('<form method="post"');
+    expect(await getNudgePrefs(asServer(a.db))).toEqual({ dailyDigest: true, missedAlert: true });
+    expect((await POST(new Request(url.replace(a.id, b.id), { method: "POST", body: "List-Unsubscribe=One-Click" }))).status).toBe(400);
+    const oneClick = await POST(new Request(url, { method: "POST", body: "List-Unsubscribe=One-Click" }));
+    expect(await oneClick.json()).toEqual({ unsubscribed: true });
     expect(await getNudgePrefs(asServer(a.db))).toEqual({ dailyDigest: false, missedAlert: false });
+    await unsubscribe(asAdmin(), a.id);
   });
 });
 

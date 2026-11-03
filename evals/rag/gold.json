@@ -1,0 +1,24 @@
+{
+  "about": "Gold retrieval set for the synthetic biology course (tests/fixtures/rag). 'relevant' = every page that answers the question; 'required' = pages that must all be retrieved (multi-page and conflicting cases). Pages verified by reading scripts/make-rag-fixtures.ts.",
+  "k": 3,
+  "cases": [
+    { "id": "G1", "type": "direct", "query": "What is the cell membrane made of?", "relevant": [["biology_cells.pdf", 1]] },
+    { "id": "G2", "type": "direct", "query": "Where does the citric acid cycle happen?", "relevant": [["biology_cells.pdf", 2]] },
+    { "id": "G3", "type": "direct", "query": "What do the light-dependent reactions release?", "relevant": [["biology_cells.pdf", 3]] },
+    { "id": "G4", "type": "direct", "query": "What happens to chromosomes during metaphase?", "relevant": [["biology_cells.pdf", 4]] },
+    { "id": "G5", "type": "direct", "query": "Why does a denatured enzyme stop working?", "relevant": [["biology_cells.pdf", 5], ["biology_cells.pdf", 6]] },
+    { "id": "G6", "type": "direct", "query": "How long does the unit test last?", "relevant": [["biology_cells.pdf", 6]] },
+    { "id": "G7", "type": "direct", "query": "How does oxygen cross the cell membrane?", "relevant": [["biology_cells.pdf", 1]] },
+    { "id": "G8", "type": "direct", "query": "What does the Calvin cycle fix carbon dioxide into?", "relevant": [["biology_cells.pdf", 3]] },
+    { "id": "G9", "type": "paraphrase", "query": "Which organelle is the powerhouse that makes the cell's energy molecules?", "relevant": [["biology_cells.pdf", 2]] },
+    { "id": "G10", "type": "paraphrase", "query": "How are sex cells different from ordinary body cell copies?", "relevant": [["biology_cells.pdf", 4]] },
+    { "id": "G11", "type": "multi_page", "query": "Compare cellular respiration with photosynthesis", "relevant": [["biology_cells.pdf", 2], ["biology_cells.pdf", 3], ["biology_cells.pdf", 6]], "required": [["biology_cells.pdf", 2], ["biology_cells.pdf", 3]] },
+    { "id": "G12", "type": "conflicting", "query": "How many ATP per glucose molecule does aerobic respiration yield?", "relevant": [["biology_cells.pdf", 2], ["biology_errata.pdf", 1]], "required": [["biology_cells.pdf", 2], ["biology_errata.pdf", 1]] },
+    { "id": "G13", "type": "conflicting", "query": "Which day is the unit test?", "relevant": [["biology_cells.pdf", 6], ["biology_errata.pdf", 1]], "required": [["biology_cells.pdf", 6], ["biology_errata.pdf", 1]] },
+    { "id": "G14", "type": "ambiguous", "query": "membrane", "relevant": [["biology_cells.pdf", 1], ["biology_cells.pdf", 3]] },
+    { "id": "G15", "type": "abstain", "query": "What is the capital of Australia?", "relevant": [] },
+    { "id": "G16", "type": "abstain", "query": "Explain plate tectonics and earthquakes", "relevant": [] },
+    { "id": "G17", "type": "abstain", "query": "What is the half-life of carbon-14 in radiometric dating?", "relevant": [] },
+    { "id": "G18", "type": "abstain", "query": "What does a residual mean in regression?", "relevant": [], "note": "answer exists in another course of the same student; must not leak across course scope" }
+  ]
+}

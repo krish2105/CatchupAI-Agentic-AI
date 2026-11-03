@@ -1,4 +1,5 @@
 import "server-only";
+import { logEvent } from "@/lib/observability/log";
 import { createHash } from "node:crypto";
 import { ApiError, fromDbError } from "@/lib/http/errors";
 import type { AdminSupabase } from "@/lib/supabase/admin";
@@ -48,6 +49,7 @@ export async function processDocument(deps: {
 
   const fail = async (code: string): Promise<IngestResult> => {
     await admin.from("documents").update({ status: "failed", error_code: code, processed_at: new Date().toISOString() }).eq("id", doc.id).eq("owner_id", userId);
+    logEvent("warn", "ingest.failed", { documentId: doc.id, code });
     return { id: doc.id, status: "failed", errorCode: code };
   };
 
@@ -68,7 +70,7 @@ export async function processDocument(deps: {
         embeddings = await embedder.embed(chunks.map((c) => c.content));
       } catch (e) {
         // Keep the document searchable lexically; record that no embeddings were stored.
-        console.warn("[ingest] embedding failed; continuing with lexical search only", e instanceof Error ? e.message : e);
+        logEvent("warn", "ingest.embedding_failed", { documentId: doc.id, error: e instanceof Error ? e.name : "unknown" });
         embeddings = null;
       }
     }

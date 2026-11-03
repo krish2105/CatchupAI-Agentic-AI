@@ -37,3 +37,23 @@ Fixed earlier in this build (recorded in BUILD_STATUS): rejected/rotated session
 - Signed source links are bearer URLs for 120 s.
 - No global (cross-user) spend cap in the app: rely on the OpenAI project's monthly limit.
 - Anonymous sign-in remains enabled for the demo, now behind Turnstile CAPTCHA (enabled in production 2026-11-04) plus the smaller demo budgets.
+
+## M8 delta review (2026-11-04)
+**Scope:** surfaces added in sprint 2 (study emails, unsubscribe, feedback, copilot memory, MCP server and tokens, quality page, readiness check) and the agent and RAG answer path, reviewed against the relevant OWASP ASVS 5.0 areas (V1 encoding, V4 access control, V6 authentication, V8 authorization, V11 cryptography, V16 logging). No Critical findings.
+
+| ID | Sev. | Location | Finding | Fix | Regression test |
+| --- | --- | --- | --- | --- | --- |
+| H-2 | High | agent answer path | Injected text in a student PDF could be shown as a cited **fact** ("the plan was approved and saved"), because the source-id check passed | Retrieved passages that address an AI are flagged and can't back facts or study items | eval B4, unit `injection` |
+| M-4 | Medium | `verifyAnswer` | Citations were accepted when the id was retrieved, without checking the passage supports the claim | Claim-support check (quotes, numbers, coverage, negation) | unit `claim-support`, `runtime-gating` |
+| M-5 | Medium | AI routes | No global spend cap or emergency stop (see the earlier residual risk) | `ops_flags` kill switch and daily token budget, `AI_KILL_SWITCH` env override, one run at a time; checked before quota is spent | `ai-guard.test.ts` |
+| L-7 | Low | `GET /api/nudges/unsubscribe` | A state change on GET: mail scanners that prefetch links could unsubscribe students | GET shows a confirmation; POST (form or RFC 8058 one-click) unsubscribes | `nudges.test.ts` |
+| L-8 | Low | `/api/mcp` | No per-token rate limit (`consume_rate_limit` relies on a session) | `consume_mcp_quota` (service-only function): 120 requests per 10 min | `memory-mcp.test.ts` |
+| L-9 | Low | logging | Unstructured `console.error` lines with free text | Structured JSON logs with key and pattern redaction, request ids | unit `log` |
+
+**Verified for the new surfaces:** RLS and column grants on `notification_prefs`, `feedback`, `copilot_memories`, `mcp_tokens` (two-student tests, owner spoofing gives 42501). `ops_flags` and `mcp_usage` aren't readable by students. MCP and calendar tokens are stored as SHA-256 hashes only and rotation invalidates the old token. Unsubscribe links are signed with an HMAC and compared in constant time. The nudge cron requires a 32+ character bearer secret. The quality page shows aggregates only.
+
+**Data lifecycle:** deleting a document removes the stored file, its chunks and its retrievability (RAG eval: 0 passages, 0 chunks, 0 files). Account deletion cascades every student table. Remaining after a document is deleted: earlier copilot answers in run history keep their text and page references (no file content) until the run or account is deleted. Supabase backups follow the project's plan retention; deleted rows can persist in backups until they age out.
+
+**Backup and restore drill (local only):** a full `pg_dump` restored into a scratch database. Row counts identical for 7 core tables and `auth.users`; 25 RLS tables restored with RLS on; 29 restore errors, all platform-privilege items (default privileges, vault, superuser functions), as expected when restoring as `postgres`.
+
+**Residual (unchanged or new):** `style-src 'unsafe-inline'`; 120 s bearer source links; heuristic injection detection (see AI_SECURITY_RED_TEAM_REPORT.md); no error-alerting service yet (see OBSERVABILITY_REPORT.md).

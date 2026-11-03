@@ -49,14 +49,25 @@ describe("AI runtime selection", () => {
 });
 
 describe("verifyAnswer", () => {
-  it("drops facts citing sources that were never retrieved", () => {
-    const sources = new Map([["S1", { sourceId: "S1", chunkId: "c", documentId: "d", filename: "f.pdf", pageStart: 2, pageEnd: 2, snippet: "", score: 1, lexicalRank: 1, lexicalCoverage: 1, vectorSimilarity: null }]]);
+  it("drops facts citing sources that were never retrieved, or that the cited passage doesn't support", () => {
+    const snippet = "A residual equals observed Y minus predicted Y_hat. Large residuals suggest poor fit for a particular observation.";
+    const sources = new Map([["S1", { sourceId: "S1", chunkId: "c", documentId: "d", filename: "f.pdf", pageStart: 2, pageEnd: 2, snippet, score: 1, lexicalRank: 1, lexicalCoverage: 1, vectorSimilarity: null }]]);
+    const supported = "A residual is observed Y minus predicted Y_hat.";
     const { answer, citations, removed } = verifyAnswer(
-      { facts: [{ statement: "ok", sourceIds: ["S1"] }, { statement: "made up", sourceIds: ["S2"] }, { statement: "tool fact", sourceIds: [] }], suggestions: [], clarifyingQuestion: null },
+      {
+        facts: [
+          { statement: supported, sourceIds: ["S1"] },
+          { statement: "Residuals measure the student's motivation level.", sourceIds: ["S1"] },
+          { statement: "made up", sourceIds: ["S2"] },
+          { statement: "tool fact", sourceIds: [] },
+        ],
+        suggestions: [],
+        clarifyingQuestion: null,
+      },
       sources,
     );
-    expect(answer.facts.map((f) => f.statement)).toEqual(["ok", "tool fact"]);
+    expect(answer.facts.map((f) => f.statement)).toEqual([supported, "tool fact"]);
     expect(citations.map((c) => c.sourceId)).toEqual(["S1"]);
-    expect(removed).toBe(1);
+    expect(removed).toBe(2);
   });
 });

@@ -15,7 +15,8 @@ export type ToolEvent = {
   outcome: string;
 };
 
-export type SourceRef = Citation & { sourceId: string };
+/** suspicious = the passage contains instructions aimed at an AI (see rag/injection.ts); it can never back a fact. */
+export type SourceRef = Citation & { sourceId: string; suspicious?: boolean };
 
 /**
  * Trusted, server-built context passed to every tool. The model never sees or sets these values:

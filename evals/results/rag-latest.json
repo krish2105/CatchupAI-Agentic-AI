@@ -1,0 +1,345 @@
+{
+  "metrics": {
+    "ranAt": "2026-11-03T22:04:50.842Z",
+    "retrievalMode": "lexical only (no embedding key)",
+    "k": 3,
+    "evidenceThreshold": {
+      "lexicalCoverage": 0.34,
+      "lexicalRank": 0.08,
+      "vectorSimilarity": 0.3
+    },
+    "cases": 18,
+    "recallAt1": 90.9,
+    "recallAtK": 90.9,
+    "precisionAtK": 0.75,
+    "mrr": 0.909,
+    "multiPageAndConflictAllRequiredInTopK": "2/3",
+    "abstentionAccuracy": "4/4",
+    "falseAbstentions": [],
+    "latencyMs": {
+      "p50": 2,
+      "p95": 3
+    },
+    "tokensAndCost": "0 tokens, $0 (lexical retrieval runs in Postgres)",
+    "claimChecker": {
+      "threshold": 0.7,
+      "labelled": 24,
+      "tp": 15,
+      "fp": 1,
+      "fn": 0,
+      "tn": 8,
+      "precision": 0.938,
+      "recall": 1,
+      "falseAccepts": [
+        "C20"
+      ]
+    },
+    "checks": [
+      {
+        "name": "another student's course returns no passages",
+        "pass": true,
+        "detail": "0 passages"
+      },
+      {
+        "name": "deleted document: no passages, no chunks, no stored file",
+        "pass": true,
+        "detail": "before 1, after 0, chunks 0, files 0"
+      }
+    ]
+  },
+  "rows": [
+    {
+      "id": "G1",
+      "type": "direct",
+      "query": "What is the cell membrane made of?",
+      "retrieved": [
+        "biology_cells.pdf#1",
+        "biology_cells.pdf#4"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.5,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G2",
+      "type": "direct",
+      "query": "Where does the citric acid cycle happen?",
+      "retrieved": [
+        "biology_cells.pdf#2"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G3",
+      "type": "direct",
+      "query": "What do the light-dependent reactions release?",
+      "retrieved": [
+        "biology_cells.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G4",
+      "type": "direct",
+      "query": "What happens to chromosomes during metaphase?",
+      "retrieved": [
+        "biology_cells.pdf#4"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G5",
+      "type": "direct",
+      "query": "Why does a denatured enzyme stop working?",
+      "retrieved": [
+        "biology_cells.pdf#5",
+        "biology_cells.pdf#6"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G6",
+      "type": "direct",
+      "query": "How long does the unit test last?",
+      "retrieved": [
+        "biology_cells.pdf#6",
+        "biology_errata.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.5,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G7",
+      "type": "direct",
+      "query": "How does oxygen cross the cell membrane?",
+      "retrieved": [
+        "biology_cells.pdf#1",
+        "biology_cells.pdf#4",
+        "biology_cells.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G8",
+      "type": "direct",
+      "query": "What does the Calvin cycle fix carbon dioxide into?",
+      "retrieved": [
+        "biology_cells.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G9",
+      "type": "paraphrase",
+      "query": "Which organelle is the powerhouse that makes the cell's energy molecules?",
+      "retrieved": [
+        "biology_cells.pdf#1",
+        "biology_cells.pdf#4",
+        "biology_errata.pdf#1"
+      ],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": 0,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": false,
+      "ms": 2
+    },
+    {
+      "id": "G10",
+      "type": "paraphrase",
+      "query": "How are sex cells different from ordinary body cell copies?",
+      "retrieved": [
+        "biology_cells.pdf#4",
+        "biology_cells.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.5,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G11",
+      "type": "multi_page",
+      "query": "Compare cellular respiration with photosynthesis",
+      "retrieved": [
+        "biology_cells.pdf#6",
+        "biology_cells.pdf#2"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": false,
+      "abstained": false,
+      "correct": false,
+      "ms": 2
+    },
+    {
+      "id": "G12",
+      "type": "conflicting",
+      "query": "How many ATP per glucose molecule does aerobic respiration yield?",
+      "retrieved": [
+        "biology_cells.pdf#2",
+        "biology_errata.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G13",
+      "type": "conflicting",
+      "query": "Which day is the unit test?",
+      "retrieved": [
+        "biology_cells.pdf#6",
+        "biology_errata.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G14",
+      "type": "ambiguous",
+      "query": "membrane",
+      "retrieved": [
+        "biology_cells.pdf#1",
+        "biology_cells.pdf#6",
+        "biology_cells.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.6666666666666666,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G15",
+      "type": "abstain",
+      "query": "What is the capital of Australia?",
+      "retrieved": [],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": null,
+      "requiredAll": null,
+      "abstained": true,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G16",
+      "type": "abstain",
+      "query": "Explain plate tectonics and earthquakes",
+      "retrieved": [],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": null,
+      "requiredAll": null,
+      "abstained": true,
+      "correct": true,
+      "ms": 2
+    },
+    {
+      "id": "G17",
+      "type": "abstain",
+      "query": "What is the half-life of carbon-14 in radiometric dating?",
+      "retrieved": [],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": null,
+      "requiredAll": null,
+      "abstained": true,
+      "correct": true,
+      "ms": 3
+    },
+    {
+      "id": "G18",
+      "type": "abstain",
+      "query": "What does a residual mean in regression?",
+      "retrieved": [],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": null,
+      "requiredAll": null,
+      "abstained": true,
+      "correct": true,
+      "ms": 3
+    }
+  ]
+}

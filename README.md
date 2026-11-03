@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-248%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-264%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
 
 **Live:** [catchupai-chi.vercel.app](https://catchupai-chi.vercel.app) · click **Try the demo, no sign-up** for a guided tour on synthetic data.
 
@@ -60,6 +60,8 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 | Public deployment | ✅ https://catchupai-chi.vercel.app (Vercel + Supabase, CI on every push) |
 
 See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` for the test evidence.
+
+**Release reports (M8):** [live agent evaluation](LIVE_AGENT_EVALUATION_REPORT.md) · [RAG quality](RAG_QUALITY_REPORT.md) · [AI red team](AI_SECURITY_RED_TEAM_REPORT.md) · [security audit](SECURITY_AUDIT.md) · [observability](OBSERVABILITY_REPORT.md) · [incident runbook](INCIDENT_RESPONSE_RUNBOOK.md) · [production readiness](PRODUCTION_READINESS_REPORT.md) · [user validation](USER_VALIDATION_REPORT.md) · [submission package](submission/PROJECT_PACKAGE.md) · [iOS app](ios/README.md)
 
 ## Screenshots (Nature Flow 3.0)
 
