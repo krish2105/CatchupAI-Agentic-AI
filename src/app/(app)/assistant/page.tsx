@@ -21,11 +21,9 @@ export default async function AssistantPage({ searchParams }: { searchParams: Pr
   return (
     <>
       <PageHeading
-        eyebrow="Your personal learning operator"
-        title="AI copilot,"
-        accent="on your side."
-        accentColor="violet"
-        description="The copilot reads your real deadlines, availability and course documents through permission-checked tools, cites the pages it used, and drafts a plan for you to review."
+        eyebrow="Evidence-based agentic learning"
+        title="AI copilot"
+        description="Clear recommendations, verifiable sources, and your approval at every step. The copilot reads your deadlines, availability and notes through permission-checked tools."
         actions={ai.kind === "scripted" ? <Chip tone="warn">Scripted test model · not AI</Chip> : ai.configured ? <Chip tone="good">Runtime: {ai.model}</Chip> : <Chip tone="warn">AI runtime not configured</Chip>}
       />
       <Copilot initialRuns={runs} courses={courses.map((c) => ({ id: c.id, title: c.title }))} runtime={{ configured: ai.configured, kind: ai.kind, model: ai.model }} rescue={rescue} />

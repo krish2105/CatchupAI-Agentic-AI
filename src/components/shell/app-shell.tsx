@@ -74,7 +74,7 @@ export default function AppShell({
     setOpen(false);
     // The main column is inert while the drawer is open; focus after the state change lands.
     requestAnimationFrame(() => menuRef.current?.focus());
-  }, []);
+  }, [setOpen]);
 
   useEffect(() => {
     if (!open) return;

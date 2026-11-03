@@ -1,9 +1,10 @@
 "use client";
 
-import { ArrowRight, CheckCircle2, CircleSlash, Lightbulb, OctagonX, Quote, Sparkles, Square, XCircle } from "lucide-react";
+import { ArrowRight, BookOpen, Check, CheckCircle2, CircleSlash, FileText, Leaf, OctagonX, Sparkles, Square, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
+import { api, ClientApiError } from "@/lib/client/api";
 import type { ToolEvent } from "@/lib/agents/context";
 import type { AgentRunDto } from "@/lib/db/agent-runs";
 
@@ -59,46 +60,78 @@ function AnswerView({ run }: { run: AgentRunDto }) {
   if (run.status === "failed") return <Notice tone="danger" title={ERROR_TEXT[run.errorCode ?? ""] ?? "The copilot failed. Nothing was changed."} />;
   if (!run.answer) return null;
   const cite = (id: string) => run.citations.find((c) => c.sourceId === id);
+  const grounded = run.answer.facts.length > 0;
   return (
-    <div className="chat-bubble" style={{ maxWidth: "100%", display: "grid", gap: 12 }}>
-      {run.answer.facts.length ? (
-        <section aria-label="From your course material and data">
-          <div className="label" style={{ display: "flex", gap: 6, alignItems: "center" }}><Quote className="ic" aria-hidden="true" style={{ width: 13, height: 13 }} /> Verified from your material</div>
-          <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>
+    <div className="answer">
+      <span className="answer-avatar" aria-hidden="true"><Leaf className="ic" /></span>
+      <div className="answer-body">
+        <div className="answer-eyebrow">CatchUp AI · {grounded ? "Source-grounded answer" : "Suggestions only"}</div>
+        {grounded ? (
+          <section aria-label="From your course material and data">
+            <h3 className="answer-title">Verified from your material</h3>
             {run.answer.facts.map((f, i) => (
-              <li key={i} style={{ marginBottom: 4 }}>
+              <p key={i}>
                 {f.statement}{" "}
                 {f.sourceIds.map((id) => {
                   const c = cite(id);
                   return c ? (
-                    <a key={id} className="chip" style={{ padding: "2px 7px", textDecoration: "none" }} href={`/api/documents/${c.documentId}/source?page=${c.page}`} target="_blank" rel="noopener noreferrer">
-                      {c.filename} · p. {c.page}
+                    <a key={id} className="cite-chip" href={`/api/documents/${c.documentId}/source?page=${c.page}`} target="_blank" rel="noopener noreferrer">
+                      <FileText className="ic" aria-hidden="true" /> {c.filename} · p. {c.page}
                     </a>
                   ) : null;
                 })}
-              </li>
+              </p>
             ))}
-          </ul>
-        </section>
-      ) : null}
-      {run.answer.suggestions.length ? (
-        <section aria-label="Suggestions">
-          <div className="label" style={{ display: "flex", gap: 6, alignItems: "center" }}><Lightbulb className="ic" aria-hidden="true" style={{ width: 13, height: 13 }} /> Suggestions (advice, not facts)</div>
-          <ul style={{ margin: "6px 0 0", paddingLeft: 18 }}>{run.answer.suggestions.map((s, i) => <li key={i}>{s}</li>)}</ul>
-        </section>
-      ) : null}
-      {run.answer.clarifyingQuestion ? <p><strong>Question:</strong> {run.answer.clarifyingQuestion}</p> : null}
-      {run.proposal ? (
-        <div className="notice info" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span>
-            <strong>Draft {run.proposal.scenario} plan · {run.proposal.feasible ? "fits your time" : "doesn't fit"}</strong>
-            Not saved. {run.proposal.status === "pending" ? "Review it before anything is scheduled." : `Status: ${run.proposal.status}.`}
-          </span>
-          {run.proposal.status === "pending" ? (
-            <Link className="btn small primary" href={`/recovery?proposal=${run.proposal.id}`}>Review in lab <ArrowRight className="ic" aria-hidden="true" /></Link>
-          ) : null}
-        </div>
-      ) : null}
+          </section>
+        ) : null}
+        {run.answer.suggestions.length ? (
+          <section aria-label="Suggestions">
+            <h3 className="answer-title">Suggestions</h3>
+            <ul className="answer-checks">{run.answer.suggestions.map((s, i) => <li key={i}><Check className="ic" aria-hidden="true" /> {s}</li>)}</ul>
+            <p className="answer-note">Suggestions are advice, not facts from your material.</p>
+          </section>
+        ) : null}
+        {run.answer.clarifyingQuestion ? <p><strong>Question:</strong> {run.answer.clarifyingQuestion}</p> : null}
+        {run.proposal ? (
+          <p className="answer-draft">
+            <Sparkles className="ic" aria-hidden="true" />
+            <span>
+              I drafted a {run.proposal.scenario} schedule that {run.proposal.feasible ? "fits your availability" : "doesn't fully fit"}. It is not saved.
+              {run.proposal.status === "pending" ? " See “Awaiting your decision”." : ` Status: ${run.proposal.status}.`}
+            </span>
+          </p>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function Decision({ run, onDecided }: { run: AgentRunDto; onDecided: (status: string) => void }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const proposal = run.proposal!;
+  async function reject() {
+    setBusy(true);
+    setError(null);
+    try {
+      await api(`/api/proposals/${proposal.id}/reject`, { method: "POST" });
+      onDecided("rejected");
+    } catch (e) {
+      setError(e instanceof ClientApiError ? e.message : "Couldn't reject the draft.");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="card decision-card">
+      <div className="label">Awaiting your decision</div>
+      <h3>Draft plan · {proposal.feasible ? "fits your time" : "doesn't fit"}</h3>
+      <p>{proposal.scenario[0].toUpperCase() + proposal.scenario.slice(1)} route drafted by the copilot. Nothing has been saved to your schedule.</p>
+      {error ? <p className="field-error">{error}</p> : null}
+      <div className="decision-actions">
+        <Link className="btn primary small" href={`/recovery?proposal=${proposal.id}`}><ArrowRight className="ic" aria-hidden="true" /> Review in lab</Link>
+        <button type="button" className="btn small" onClick={reject} disabled={busy}><X className="ic" aria-hidden="true" /> Reject</button>
+      </div>
     </div>
   );
 }
@@ -191,12 +224,17 @@ export default function Copilot({
   }, []);
 
   const shown = runs.find((r) => r.id === selectedRun);
+  const pending = [...runs].reverse().find((r) => r.proposal?.status === "pending") ?? null;
 
   return (
     <div className="assistant-layout">
       <div className="card chat-panel">
         <div className="chat-header">
-          <div className="assistant-name"><div className="ai-logo"><Sparkles className="ic" aria-hidden="true" /></div>CatchUp Copilot</div>
+          <div className="assistant-name">
+            <BookOpen className="ic" aria-hidden="true" />
+            <span>{courses.find((c) => c.id === courseId)?.title ?? "All courses"}</span>
+            <Chip tone="good">{courseId ? "Active course" : "Every course"}</Chip>
+          </div>
           {runtime.kind === "scripted" ? <Chip tone="warn">Scripted test model · not AI</Chip> : runtime.configured ? <Chip tone="good">{runtime.model}</Chip> : <Chip tone="warn">Not configured</Chip>}
         </div>
         <div className="chat-scroll" ref={scroller} aria-live="polite" aria-busy={running}>
@@ -228,7 +266,7 @@ export default function Copilot({
                 {courses.map((c) => <option key={c.id} value={c.id}>{c.title}</option>)}
               </select>
               <label className="visually-hidden" htmlFor="chat-input">Message CatchUp Copilot</label>
-              <input id="chat-input" placeholder="Tell me what feels difficult right now…" autoComplete="off" maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)} disabled={running} />
+              <input id="chat-input" placeholder="Ask a follow-up about your coursework…" autoComplete="off" maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)} disabled={running} />
               {running ? (
                 <button type="button" aria-label="Stop" onClick={() => abort.current?.abort()}><Square className="ic" aria-hidden="true" /></button>
               ) : (
@@ -241,16 +279,20 @@ export default function Copilot({
       </div>
       <div className="agent-side">
         <div className="card tool-timeline">
-          <div className="split-head"><h3>Agent activity</h3><Chip>{running ? "Live" : "From server logs"}</Chip></div>
+          <div className="split-head"><h3>Agent activity</h3><Chip tone={running ? "warn" : "good"}>{running ? "Live" : shown ? (shown.status === "failed" ? "Failed" : "Complete") : "Idle"}</Chip></div>
           <Timeline events={live ? live.events : (shown?.events ?? [])} running={running} />
           {!live && shown?.status === "failed" ? <p className="field-error" style={{ marginTop: 8 }}><OctagonX className="ic" aria-hidden="true" style={{ display: "inline", width: 12 }} /> Run failed: {shown.errorCode}</p> : null}
         </div>
-        <div className="card card-inner">
-          <div className="label">Proposed next step</div>
-          <h3 style={{ fontSize: 20, margin: "11px 0" }}>Your path back, clearly mapped.</h3>
-          <p style={{ fontSize: 11, lineHeight: 1.8, color: "var(--muted)" }}>The recovery lab compares scenarios and never writes changes without your approval.</p>
-          <Link className="btn primary small" style={{ marginTop: 18 }} href="/recovery">Open recovery lab <ArrowRight className="ic" aria-hidden="true" /></Link>
-        </div>
+        {pending ? (
+          <Decision key={pending.id} run={pending} onDecided={(status) => setRuns((list) => list.map((r) => (r.id === pending.id && r.proposal ? { ...r, proposal: { ...r.proposal, status } } : r)))} />
+        ) : (
+          <div className="card decision-card">
+            <div className="label">Proposed next step</div>
+            <h3>Your path back, clearly mapped.</h3>
+            <p>The recovery lab compares routes and never writes changes without your approval.</p>
+            <div className="decision-actions"><Link className="btn primary small" href="/recovery">Open recovery lab <ArrowRight className="ic" aria-hidden="true" /></Link></div>
+          </div>
+        )}
       </div>
     </div>
   );

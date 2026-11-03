@@ -499,3 +499,45 @@ html[data-theme="dark"] .photo-hero-art { background-image: image-set(url("/natu
 .ec.keep { background: var(--surface3); color: var(--muted); }
 .route-items-head { margin: 4px 0 6px; font-size: 13px; color: var(--muted); font-weight: 800; }
 @media (max-width: 520px) { .exact-changes li { grid-template-columns: 24px 1fr; } .exact-changes li > span:last-child { grid-column: 2; } }
+
+/* ---------- AI copilot (reference 06) ---------- */
+.assistant-name { display: flex; align-items: center; gap: 10px; font-weight: 800; color: var(--heading); font-size: 15px; min-width: 0; }
+.assistant-name > span:not(.chip) { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.answer { display: grid; grid-template-columns: 42px minmax(0, 1fr); gap: 14px; align-items: start; }
+.answer-avatar { width: 42px; height: 42px; border-radius: 14px; display: grid; place-items: center; background: var(--surface3); color: var(--accent); }
+.answer-body { display: grid; gap: 10px; min-width: 0; font-size: 15px; line-height: 1.65; color: var(--muted); }
+.answer-body p { margin: 0; }
+.answer-eyebrow { font-size: 10.5px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+.answer-title { font-family: var(--font-serif), Georgia, serif; font-size: 22px; font-weight: 600; letter-spacing: -0.02em; color: var(--heading); margin: 2px 0 4px; }
+.cite-chip { display: inline-flex; align-items: center; gap: 6px; margin: 6px 0 0; padding: 6px 12px; border-radius: 10px; border: 1px solid color-mix(in srgb, var(--accent), transparent 70%); background: color-mix(in srgb, var(--accent), transparent 92%); color: var(--accent); font-size: 13px; font-weight: 700; text-decoration: none; }
+.cite-chip .ic { width: 14px; height: 14px; }
+.answer-checks { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.answer-checks li { display: flex; gap: 10px; align-items: flex-start; color: var(--text); }
+.answer-checks .ic { width: 17px; height: 17px; color: var(--good); flex: none; margin-top: 3px; }
+.answer-note { font-size: 12.5px; color: var(--faint); }
+.answer-draft { display: flex; gap: 10px; align-items: flex-start; padding: 12px 14px; border-radius: 14px; border: 1px solid var(--stroke); background: var(--surface2); font-size: 13.5px; color: var(--accent); }
+.answer-draft .ic { width: 16px; height: 16px; flex: none; margin-top: 3px; }
+.answer-draft a { color: inherit; font-weight: 800; }
+.decision-card { padding: 22px; display: grid; gap: 10px; background: linear-gradient(170deg, var(--surface), color-mix(in srgb, var(--good), var(--surface) 93%)); }
+.decision-card h3 { font-family: var(--font-serif), Georgia, serif; font-size: 23px; font-weight: 600; letter-spacing: -0.02em; color: var(--heading); margin: 0; }
+.decision-card p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--muted); }
+.decision-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
+
+/* ---------- Focus sanctuary (reference 07) ---------- */
+.focus-stage { min-height: min(680px, calc(100vh - 220px)); padding: 48px 16px 88px; background: var(--hero-fade); }
+.focus-stage > .photo-hero-art { background-position: 60% 50%; }
+.focus-stage > .photo-hero-art::after { background: color-mix(in srgb, var(--hero-fade), transparent 82%); }
+.focus-card { width: min(100%, 460px); padding: 30px 28px 28px; border-radius: 36px; gap: 12px; background: color-mix(in srgb, var(--surface), transparent 14%); }
+.focus-leaf { width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; background: var(--surface3); color: var(--accent); }
+.focus-leaf .ic { width: 24px; height: 24px; }
+.focus-dial { position: relative; width: min(100%, 270px); aspect-ratio: 1; display: grid; place-content: center; justify-items: center; gap: 4px; }
+.focus-dial svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.dial-track { fill: none; stroke: color-mix(in srgb, var(--chart-1), transparent 80%); stroke-width: 5; }
+.dial-fill { fill: none; stroke: var(--chart-1); stroke-width: 5; stroke-linecap: round; transition: stroke-dasharray 0.25s linear; }
+.focus-dial .focus-time { position: relative; font-size: clamp(56px, 8vw, 76px); }
+.focus-mode { position: relative; font-family: var(--font-serif), Georgia, serif; font-size: 22px; font-weight: 600; color: var(--heading); }
+.focus-pills { position: absolute; left: 20px; right: 20px; bottom: 18px; z-index: 1; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+.focus-pill { display: inline-flex; align-items: center; gap: 8px; padding: 9px 16px; border-radius: 999px; background: var(--glass); border: 1px solid var(--stroke-strong); color: var(--heading); font-size: 13.5px; font-weight: 700; backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); }
+.focus-pill .ic { width: 16px; height: 16px; }
+button.focus-pill[aria-pressed="true"] { border-color: var(--accent); color: var(--accent); }
+@media (max-width: 720px) { .focus-stage { padding: 28px 12px 110px; } .focus-pills { justify-content: center; } }

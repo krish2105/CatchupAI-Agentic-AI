@@ -1,6 +1,6 @@
 "use client";
 
-import { Pause, Play, Square } from "lucide-react";
+import { Leaf, Pause, Play, Square } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Notice } from "@/components/ui/primitives";
@@ -89,8 +89,16 @@ export default function FocusTimer({ blocks }: { blocks: Block[] }) {
   const active = phase === "running" || phase === "paused";
   return (
     <div className="glass focus-card">
-      <div className="focus-time" role="timer" aria-live="off" aria-label={`${Math.ceil(remaining / 60_000)} minutes remaining`}>{mm}:{ss}</div>
-      <div className="focus-sub">{phase === "running" ? "Deep focus" : phase === "paused" ? "Paused" : "Ready when you are"}</div>
+      <span className="focus-leaf" aria-hidden="true"><Leaf className="ic" /></span>
+      <div className="focus-sub">A moment to make progress</div>
+      <div className="focus-dial">
+        <svg viewBox="0 0 120 120" aria-hidden="true">
+          <circle cx="60" cy="60" r="54" className="dial-track" />
+          <circle cx="60" cy="60" r="54" className="dial-fill" pathLength={100} strokeDasharray={`${(remaining / totalMs) * 100} 100`} />
+        </svg>
+        <div className="focus-time" role="timer" aria-live="off" aria-label={`${Math.ceil(remaining / 60_000)} minutes remaining`}>{mm}:{ss}</div>
+        <div className="focus-mode">{phase === "running" ? "Deep focus" : phase === "paused" ? "Paused" : "Ready when you are"}</div>
+      </div>
       <p className="visually-hidden" aria-live="polite">{phase === "running" ? `Focus session started for ${minutes} minutes.` : phase === "paused" ? "Paused." : ""}</p>
       {!active ? (
         <div className="focus-setup">

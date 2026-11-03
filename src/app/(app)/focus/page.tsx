@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import Landscape from "@/components/nature/landscape";
+import { Clock3 } from "lucide-react";
+import AmbientSound from "@/components/features/focus/ambient-sound";
 import FocusTimer from "@/components/features/focus/focus-timer";
 import PageHeading from "@/components/ui/page-heading";
 import { StatCard } from "@/components/ui/primitives";
@@ -30,14 +31,16 @@ export default async function FocusPage() {
     <>
       <PageHeading
         eyebrow="Quiet time, real progress"
-        title="Your focus"
-        accent="sanctuary."
-        accentColor="aqua"
+        title="Focus sanctuary"
         description="Pick a study block, start the timer and step away from everything else. Each session is saved to your history and can complete the block it belongs to."
       />
       <section className="focus-stage" aria-label="Focus timer">
-        <Landscape />
+        <div className="photo-hero-art" aria-hidden="true" />
         <FocusTimer blocks={blocks} />
+        <div className="focus-pills">
+          <span className="focus-pill"><Clock3 className="ic" aria-hidden="true" /> Today: {today.length} session{today.length === 1 ? "" : "s"} · {formatMinutes(today.reduce((s, x) => s + x.focusedMinutes, 0))} focused</span>
+          <AmbientSound />
+        </div>
       </section>
       <div className="stat-row">
         <StatCard label="Today" value={today.length ? formatMinutes(today.reduce((s, x) => s + x.focusedMinutes, 0)) : null} caption={`${today.length} session${today.length === 1 ? "" : "s"} saved`} />
