@@ -18,6 +18,8 @@ export type UniverseNode = {
   href: string;
   /** Earliest upcoming incomplete assignment deadline (ISO) — orders the deadline path. */
   nextDueAt?: string | null;
+  /** Courses this one builds on, as confirmed by the student (learning trail). */
+  requires?: string[];
   topics: UniverseTopic[];
 };
 

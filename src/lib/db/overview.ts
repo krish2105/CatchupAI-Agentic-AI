@@ -4,14 +4,16 @@ import type { ServerSupabase } from "@/lib/supabase/server";
 import { buildUniverseGraph, type DocumentSummary, type TaskSummary } from "@/lib/universe/graph";
 import { listAssignments } from "./assignments";
 import { listCourses } from "./courses";
+import { listPrerequisites } from "./prerequisites";
 
 /** Everything the dashboard and universe need, read once under the student's RLS scope. */
 export async function getOverview(supabase: ServerSupabase) {
-  const [courses, assignments, tasksRes, docsRes] = await Promise.all([
+  const [courses, assignments, tasksRes, docsRes, prerequisites] = await Promise.all([
     listCourses(supabase),
     listAssignments(supabase),
     supabase.from("study_tasks").select("course_id, status").eq("active", true),
     supabase.from("documents").select("id, course_id, filename, status"),
+    listPrerequisites(supabase),
   ]);
   if (tasksRes.error) throw fromDbError(tasksRes.error);
   if (docsRes.error) throw fromDbError(docsRes.error);
@@ -23,5 +25,7 @@ export async function getOverview(supabase: ServerSupabase) {
     const due = new Date(a.dueAt).getTime();
     return a.status !== "completed" && due >= now && due <= horizon;
   }).length;
-  return { now, courses, assignments, tasks, documents, upcomingCount, graph: buildUniverseGraph(courses, assignments, tasks, documents, now) };
+  const built = buildUniverseGraph(courses, assignments, tasks, documents, now);
+  const graph = { nodes: built.nodes.map((n) => ({ ...n, requires: prerequisites.filter((e) => e.courseId === n.id).map((e) => e.requiresId) })) };
+  return { now, courses, assignments, tasks, documents, upcomingCount, prerequisites, graph };
 }

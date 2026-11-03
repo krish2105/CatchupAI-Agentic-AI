@@ -6,6 +6,7 @@ import { useState } from "react";
 import { usePreferences } from "@/lib/preferences/store";
 import SceneHost from "./scene-host";
 import { STATUS_LABEL, type UniverseGraph } from "./types";
+import { studyOrder } from "@/lib/universe/prerequisites";
 
 export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
   const [selectedId, setSelectedId] = useState<string | null>(graph.nodes[0]?.id ?? null);
@@ -13,6 +14,11 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
   const [view, setView] = useState<"3d" | "list">("3d");
   const { reducedMotion } = usePreferences();
   const selected = graph.nodes.find((n) => n.id === selectedId) ?? null;
+  const title = (id: string) => graph.nodes.find((n) => n.id === id)?.label ?? "Course";
+  const edges = graph.nodes.flatMap((n) => (n.requires ?? []).map((r) => ({ courseId: n.id, requiresId: r })));
+  const order = edges.length ? studyOrder(graph.nodes.map((n) => n.id), edges) : [];
+  const buildsOn = selected?.requires ?? [];
+  const leadsTo = selected ? graph.nodes.filter((n) => n.requires?.includes(selected.id)).map((n) => n.id) : [];
 
   return (
     <>
@@ -42,6 +48,7 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
                     <span className="universe-row-body">
                       <strong>{node.label}</strong>
                       <span>{node.progress === null ? STATUS_LABEL[node.status] : `${node.progress}% of plan blocks done`} · {node.topics.length} landmark{node.topics.length === 1 ? "" : "s"}</span>
+                      {node.requires?.length ? <span>Builds on {node.requires.map(title).join(", ")}</span> : null}
                       <span className="inspector-meter" aria-hidden="true"><span style={{ width: `${node.progress ?? 0}%` }} /></span>
                     </span>
                   </button>
@@ -56,6 +63,7 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
             <span className="legend"><i className="green" /> Completed</span>
             <span className="legend"><i className="muted-dot" /> No plan yet</span>
             <span className="legend"><i className="path-dash" /> Path: next-deadline order</span>
+            {edges.length ? <span className="legend"><i className="path-solid" /> Builds on (your links)</span> : null}
           </div>
         </div>
         <div className="card inspector">
@@ -73,6 +81,13 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
                   <><strong style={{ color: "var(--text)" }}>{selected.progress}%</strong> of approved tasks completed</>
                 )}
               </p>
+              {buildsOn.length || leadsTo.length ? (
+                <div className="trail-links">
+                  <div className="label" style={{ marginTop: 18 }}>Learning trail</div>
+                  {buildsOn.length ? <p>Builds on <strong>{buildsOn.map(title).join(", ")}</strong></p> : null}
+                  {leadsTo.length ? <p>Leads to <strong>{leadsTo.map(title).join(", ")}</strong></p> : null}
+                </div>
+              ) : null}
               {selected.topics.length ? (
                 <>
                   <div className="label" style={{ marginTop: 20 }}>Landmarks on this island</div>
@@ -102,6 +117,9 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
               <Link className="btn primary small" style={{ marginTop: 18 }} href="/courses">Create a course</Link>
             </div>
           )}
+          {order.length > 1 ? (
+            <p className="trail-order" aria-label="Suggested study order"><span className="label">Suggested order</span> {order.map(title).join(" → ")}</p>
+          ) : null}
           {graph.nodes.length ? (
             <div className="topic-list" role="list" aria-label="Learning worlds">
               {graph.nodes.map((node) => (

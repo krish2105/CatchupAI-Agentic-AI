@@ -18,6 +18,7 @@ const TABLES = [
   ["assignmentChecklists", "assignment_checklist_items", "id, assignment_id, kind, text, weight, document_id, page, done, created_at"],
   ["weeklyReflections", "weekly_reflections", "week_start, went_well, was_hard, next_focus, created_at, updated_at"],
   ["calendarFeed", "calendar_feeds", "created_at"],
+  ["coursePrerequisites", "course_prerequisites", "course_id, requires_course_id, created_at"],
   ["teachBackAttempts", "teach_back_attempts", "id, course_id, topic, explanation, coverage_percent, concepts, created_at"],
 ] as const;
 

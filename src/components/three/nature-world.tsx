@@ -128,3 +128,20 @@ export function DeadlinePath({ points, color }: { points: THREE.Vector3[]; color
   }, [points, color]);
   return line ? <primitive object={line} /> : null;
 }
+
+/** Student-confirmed prerequisite links: a solid arc from the foundation island to the course built on it. */
+export function PrereqPaths({ pairs, color }: { pairs: [THREE.Vector3, THREE.Vector3][]; color: string }) {
+  const lines = useMemo(
+    () =>
+      pairs.map(([from, to]) => {
+        const a = from.clone().add(new THREE.Vector3(0, 0.12, 0));
+        const b = to.clone().add(new THREE.Vector3(0, 0.12, 0));
+        const mid = a.clone().add(b).multiplyScalar(0.5);
+        mid.y += 0.7;
+        const geometry = new THREE.BufferGeometry().setFromPoints(new THREE.QuadraticBezierCurve3(a, mid, b).getPoints(32));
+        return new THREE.Line(geometry, new THREE.LineBasicMaterial({ color, transparent: true, opacity: 0.9 }));
+      }),
+    [pairs, color],
+  );
+  return <>{lines.map((l, i) => <primitive key={i} object={l} />)}</>;
+}

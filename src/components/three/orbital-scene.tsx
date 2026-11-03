@@ -4,7 +4,7 @@ import { STATUS_LABEL } from "./types";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
-import { DeadlinePath, GreatTree, Island, WORLD } from "./nature-world";
+import { DeadlinePath, GreatTree, Island, PrereqPaths, WORLD } from "./nature-world";
 import { PALETTES } from "./palette";
 import type { SceneController } from "./controller";
 import type { UniverseGraph } from "./types";
@@ -101,6 +101,11 @@ function Universe({ graph, theme, selectedId, onSelect, autoRotate, showLabels, 
     [graph.nodes, positions],
   );
 
+  const prereqPairs = useMemo(() => {
+    const index = new Map(graph.nodes.map((n, i) => [n.id, i]));
+    return graph.nodes.flatMap((n, i) => (n.requires ?? []).filter((r) => index.has(r)).map((r) => [positions[index.get(r)!], positions[i]] as [THREE.Vector3, THREE.Vector3]));
+  }, [graph.nodes, positions]);
+
   return (
     <>
       <hemisphereLight args={[theme === "dark" ? "#cfe8dc" : "#fff6dc", theme === "dark" ? "#24382e" : "#7f9a86", theme === "dark" ? 2.2 : 2.1]} />
@@ -108,6 +113,7 @@ function Universe({ graph, theme, selectedId, onSelect, autoRotate, showLabels, 
       <group ref={group} rotation={[0.32, 0, 0]} scale={fit}>
         <GreatTree p={world} />
         <DeadlinePath points={pathPoints} color={world.path} />
+        <PrereqPaths pairs={prereqPairs} color={theme === "dark" ? "#86d3cd" : "#21746f"} />
         {graph.nodes.map((node, i) => {
           const isSelected = node.id === selectedId;
           return (

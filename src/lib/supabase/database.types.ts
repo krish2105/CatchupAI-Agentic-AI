@@ -290,6 +290,42 @@ export type Database = {
         }
         Relationships: []
       }
+      course_prerequisites: {
+        Row: {
+          course_id: string
+          created_at: string
+          owner_id: string
+          requires_course_id: string
+        }
+        Insert: {
+          course_id: string
+          created_at?: string
+          owner_id?: string
+          requires_course_id: string
+        }
+        Update: {
+          course_id?: string
+          created_at?: string
+          owner_id?: string
+          requires_course_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "course_prerequisites_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "course_prerequisites_requires_course_id_owner_id_fkey"
+            columns: ["requires_course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       courses: {
         Row: {
           created_at: string

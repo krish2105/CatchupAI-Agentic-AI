@@ -5,11 +5,13 @@ import CourseDialog from "@/components/features/courses/course-dialog";
 import DeleteCourse from "@/components/features/courses/delete-course";
 import DocumentsPanel from "@/components/features/courses/documents-panel";
 import EvidenceSearch from "@/components/features/courses/evidence-search";
+import PrerequisitesCard from "@/components/features/courses/prerequisites-card";
 import PageHeading from "@/components/ui/page-heading";
 import { requirePageUser } from "@/lib/auth/session";
 import { listAssignments } from "@/lib/db/assignments";
 import { listChecklists } from "@/lib/db/checklist";
-import { getCourse } from "@/lib/db/courses";
+import { getCourse, listCourses } from "@/lib/db/courses";
+import { listPrerequisites } from "@/lib/db/prerequisites";
 import { listDocuments } from "@/lib/db/documents";
 import { getProfile } from "@/lib/db/profiles";
 import { ApiError } from "@/lib/http/errors";
@@ -28,7 +30,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
   });
   const [assignments, profile, documents] = await Promise.all([listAssignments(supabase, { courseId: id }), getProfile(supabase, user.id), listDocuments(supabase, id)]);
   const now = await renderTime();
-  const checklists = await listChecklists(supabase, assignments.map((a) => a.id));
+  const [checklists, allCourses, prerequisites] = await Promise.all([listChecklists(supabase, assignments.map((a) => a.id)), listCourses(supabase), listPrerequisites(supabase)]);
   const briefs = documents.filter((d) => d.status === "ready").map((d) => ({ id: d.id, filename: d.filename }));
 
   return (
@@ -43,6 +45,7 @@ export default async function CoursePage({ params }: { params: Promise<{ id: str
         <AssignmentsPanel courseId={course.id} assignments={assignments} timezone={profile.timezone} now={now} checklists={checklists} briefs={briefs} />
         <DocumentsPanel courseId={course.id} documents={documents} />
       </div>
+      <PrerequisitesCard courseId={course.id} courses={allCourses.map((c) => ({ id: c.id, title: c.title }))} requires={prerequisites.filter((p) => p.courseId === course.id).map((p) => p.requiresId)} />
       <EvidenceSearch courseId={course.id} enabled={documents.some((d) => d.status === "ready")} />
     </>
   );

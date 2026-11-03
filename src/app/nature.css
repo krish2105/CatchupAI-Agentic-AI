@@ -728,3 +728,18 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .week-history ul { margin: 8px 0 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; color: var(--muted); }
 @media (max-width: 860px) { .week-columns { grid-template-columns: 1fr; } }
 @media (max-width: 520px) { .week-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* ---------- Learning trail (prerequisites) ---------- */
+.prereq-card { margin-top: 18px; display: grid; gap: 10px; }
+.prereq-card h3 { display: flex; gap: 8px; align-items: center; }
+.prereq-card h3 .ic { width: 17px; height: 17px; color: var(--accent); }
+.prereq-card > p { margin: 0; font-size: 13.5px; line-height: 1.55; }
+.prereq-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; }
+.prereq-list li { display: inline-flex; align-items: center; gap: 6px; padding: 4px 4px 4px 12px; border-radius: 999px; border: 1px solid var(--stroke-strong); background: var(--surface2); font-size: 13.5px; font-weight: 700; color: var(--heading); }
+.prereq-list .icon-btn { width: 26px; height: 26px; border-radius: 50%; }
+.prereq-add { display: flex; gap: 8px; flex-wrap: wrap; }
+.prereq-add .select { width: auto; flex: 1 1 220px; }
+.trail-links p { margin: 6px 0 0; font-size: 13.5px; }
+.trail-order { margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: var(--text); }
+.trail-order .label { display: block; margin-bottom: 2px; }
+.legend i.path-solid { width: 18px; height: 0; border-radius: 0; border-top: 2px solid var(--aqua); background: none; }

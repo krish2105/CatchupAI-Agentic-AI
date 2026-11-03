@@ -360,3 +360,25 @@ test("weekly review recommends from real numbers and saves the student's reflect
     await s.cleanup();
   }
 });
+
+test("learning trail: a confirmed prerequisite shows in the universe with a study order", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    const intro = (await (await s.page.request.post("/api/courses", { data: { title: "Intro to Programming" } })).json()).course.id;
+    const stats = (await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json()).course.id;
+    await s.page.goto(`/courses/${stats}`);
+    await s.page.getByLabel("Course this builds on").selectOption({ label: "Intro to Programming" });
+    await s.page.getByRole("button", { name: "Add link" }).click();
+    await expect(s.page.getByRole("list", { name: "Courses this builds on" })).toContainText("Intro to Programming");
+    // A loop is refused.
+    const loop = await s.page.request.post(`/api/courses/${intro}/prerequisites`, { data: { requiresCourseId: stats } });
+    expect(loop.status()).toBe(409);
+
+    await s.page.goto("/universe");
+    await s.page.getByRole("group", { name: "Universe view" }).getByRole("button", { name: "List" }).click();
+    await expect(s.page.getByRole("list", { name: "Courses and topics" })).toContainText("Builds on Intro to Programming");
+    await expect(s.page.getByLabel("Suggested study order")).toContainText("Intro to Programming → Applied Statistics");
+  } finally {
+    await s.cleanup();
+  }
+});
