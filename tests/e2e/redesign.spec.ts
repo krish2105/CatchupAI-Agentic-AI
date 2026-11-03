@@ -3,9 +3,13 @@ import { freshStudent } from "./admin";
 
 test("command palette navigates and runs actions from the keyboard", async ({ page }) => {
   await page.goto("/dashboard");
-  await page.keyboard.press("ControlOrMeta+k");
   const palette = page.getByRole("dialog", { name: "Command palette" });
-  await expect(palette).toBeVisible();
+  // The shortcut listener attaches on hydration, which can land just after "load" on slow CI machines.
+  // Press again only while the palette is still closed (the shortcut toggles it).
+  await expect(async () => {
+    if (!(await palette.isVisible())) await page.keyboard.press("ControlOrMeta+k");
+    await expect(palette).toBeVisible({ timeout: 2000 });
+  }).toPass({ timeout: 15_000 });
   await page.getByRole("combobox", { name: "Search pages, courses and actions" }).fill("recovery lab");
   await expect(palette.getByRole("option").first()).toHaveAttribute("aria-selected", "true");
   await page.keyboard.press("Enter");

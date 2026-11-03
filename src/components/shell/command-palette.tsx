@@ -79,7 +79,8 @@ export default function CommandPalette() {
       ref={dialog}
       className="modal command-palette"
       aria-label="Command palette"
-      onClose={() => { setOpen(false); setQuery(""); setActive(0); }}
+      // The close event is dispatched asynchronously; ignore a stale one that arrives after a quick reopen.
+      onClose={() => { if (dialog.current?.open) return; setOpen(false); setQuery(""); setActive(0); }}
       onClick={(e) => { if (e.target === dialog.current) setOpen(false); }}
     >
       <div className="command-input">
