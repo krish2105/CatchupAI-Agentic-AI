@@ -272,6 +272,24 @@ export type Database = {
           },
         ]
       }
+      calendar_feeds: {
+        Row: {
+          created_at: string
+          owner_id: string
+          token_hash: string
+        }
+        Insert: {
+          created_at?: string
+          owner_id: string
+          token_hash: string
+        }
+        Update: {
+          created_at?: string
+          owner_id?: string
+          token_hash?: string
+        }
+        Relationships: []
+      }
       courses: {
         Row: {
           created_at: string

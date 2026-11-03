@@ -287,3 +287,38 @@ test("rubric decoder turns a brief into an editable, page-linked checklist the s
     await s.cleanup();
   }
 });
+
+test("calendar export: .ics download and a private feed link that can be revoked", async ({ browser, playwright }) => {
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Essay; part 1, draft", dueAt: new Date(Date.now() + 3 * 86400_000).toISOString(), estimatedMinutes: 60 } });
+    const draft = await (await s.page.request.post("/api/proposals", { data: { scenario: "essential" } })).json();
+    await s.page.request.post(`/api/proposals/${draft.proposal.id}/approve`, { headers: { "idempotency-key": "calendar-e2e-0001" } });
+
+    const ics = await s.page.request.get("/api/calendar/ics");
+    expect(ics.headers()["content-type"]).toContain("text/calendar");
+    const body = await ics.text();
+    expect(body).toContain("BEGIN:VEVENT");
+    expect(body).toContain("SUMMARY:Due: Essay\; part 1\\, draft");
+
+    await s.page.goto("/planner");
+    await s.page.getByRole("button", { name: "Create private link" }).click();
+    const link = await s.page.getByLabel(/Your private link/).inputValue();
+    expect(link).toMatch(/\/api\/calendar\/feed\/[A-Za-z0-9_-]{43}$/);
+
+    // A calendar app has no session: the link alone works.
+    const anonymous = await playwright.request.newContext();
+    const feed = await anonymous.get(link);
+    expect(feed.status()).toBe(200);
+    expect(await feed.text()).toContain("Due: Essay");
+
+    await s.page.getByRole("button", { name: "Revoke link" }).click();
+    await expect(s.page.getByRole("button", { name: "Create private link" })).toBeVisible();
+    expect((await anonymous.get(link)).status()).toBe(404);
+    expect((await anonymous.get(link.replace(/[A-Za-z0-9_-]{43}$/, "x".repeat(43)))).status()).toBe(404);
+    await anonymous.dispose();
+  } finally {
+    await s.cleanup();
+  }
+});

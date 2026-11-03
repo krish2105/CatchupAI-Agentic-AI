@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { CalendarDays } from "lucide-react";
+import CalendarCard from "@/components/features/planner/calendar-card";
 import PlannerView from "@/components/features/planner/planner-view";
 import PageHeading from "@/components/ui/page-heading";
 import { ButtonLink, EmptyCard, Notice } from "@/components/ui/primitives";
@@ -15,7 +16,7 @@ export const metadata: Metadata = { title: "Study schedule" };
 
 export default async function PlannerPage({ searchParams }: { searchParams: Promise<{ approved?: string; week?: string }> }) {
   const { supabase, user } = await requirePageUser("/planner");
-  const [plan, profile, courses, params, now, assignments] = await Promise.all([getActivePlan(supabase), getProfile(supabase, user.id), listCourses(supabase), searchParams, renderTime(), listAssignments(supabase)]);
+  const [plan, profile, courses, params, now, assignments, feed] = await Promise.all([getActivePlan(supabase), getProfile(supabase, user.id), listCourses(supabase), searchParams, renderTime(), listAssignments(supabase), supabase.from("calendar_feeds").select("created_at").maybeSingle()]);
   const weekOffset = Math.max(-52, Math.min(52, Number.parseInt(params.week ?? "0", 10) || 0));
   const today = new TZDate(now, profile.timezone);
   const monday = new TZDate(today.getFullYear(), today.getMonth(), today.getDate() - ((today.getDay() + 6) % 7) + weekOffset * 7, 0, 0, 0, profile.timezone);
@@ -27,13 +28,12 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
     <>
       <PageHeading
         eyebrow="Your time / your terms"
-        title="A calmer"
-        accent="kind of calendar."
-       
+        title="A calmer kind of calendar."
         description="Approved recovery tasks become your study schedule, shown in your own time zone. Tick blocks off as you complete them."
         actions={<ButtonLink href="/recovery" variant="primary" small>Compare plans</ButtonLink>}
       />
       {params.approved && plan ? <div style={{ marginBottom: 16 }}><Notice tone="info" title="Plan approved and saved.">Your schedule below is stored in your account.</Notice></div> : null}
+      {plan ? <CalendarCard hasFeed={Boolean(feed.data)} feedCreatedAt={feed.data?.created_at ?? null} /> : null}
       {plan ? (
         <PlannerView plan={plan} timezone={profile.timezone} courseNames={Object.fromEntries(courses.map((c) => [c.id, c.title]))} now={now} weekStart={new Date(monday.getTime()).toISOString()} weekOffset={weekOffset} deadlines={deadlines} />
       ) : (

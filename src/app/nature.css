@@ -659,3 +659,17 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .checklist li.done .ck-text { text-decoration: line-through; color: var(--muted); }
 @media (max-width: 520px) { .checklist li label { grid-template-columns: auto minmax(0, 1fr); } .checklist li label .ck-text { grid-column: 2; } }
 .checklist .cite-chip { flex: none; margin: 0; padding: 2px 8px; font-size: 11.5px; }
+
+/* ---------- Calendar export ---------- */
+.calendar-card { display: flex; gap: 16px; align-items: flex-start; padding: 20px 22px; margin-bottom: 18px; }
+.calendar-icon { width: 46px; height: 46px; flex: none; border-radius: 14px; display: grid; place-items: center; background: var(--surface3); color: var(--accent); }
+.calendar-body { display: grid; gap: 10px; flex: 1; min-width: 0; }
+.calendar-body h2 { margin: 0; font-size: 17px; font-weight: 800; color: var(--heading); }
+.calendar-body > p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
+.calendar-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.calendar-link { display: grid; gap: 6px; padding: 12px; border-radius: 14px; border: 1px solid var(--stroke); background: var(--surface2); }
+.calendar-link label { font-size: 12.5px; font-weight: 700; color: var(--heading); }
+.calendar-link > div { display: flex; gap: 8px; }
+.calendar-link input { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.calendar-link .muted, .calendar-note { font-size: 12.5px; margin: 0; }
+@media (max-width: 520px) { .calendar-card { flex-direction: column; } .calendar-link > div { flex-direction: column; } }
