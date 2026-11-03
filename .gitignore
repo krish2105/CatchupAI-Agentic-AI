@@ -13,3 +13,4 @@ test-results/
 /playwright/.auth/
 supabase/.temp/
 supabase/.branches/
+supabase/signing_keys.json

@@ -19,6 +19,11 @@ export function fromDbError(error: PgLikeError, notFoundMessage = "Not found."):
   switch (error.code) {
     case "PGRST116":
       return new ApiError(404, "not_found", notFoundMessage);
+    // The database rejected the access token (expired, malformed, or signed by a rotated key).
+    case "PGRST301":
+    case "PGRST302":
+    case "PGRST303":
+      return new ApiError(401, "session_expired", "Your session has expired. Sign in again.");
     case "23505":
       return new ApiError(409, "conflict", "That already exists.");
     case "23P01":

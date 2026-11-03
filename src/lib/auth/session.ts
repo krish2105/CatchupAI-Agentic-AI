@@ -21,6 +21,19 @@ export async function requirePageUser(next = "/dashboard") {
   return { supabase, user };
 }
 
+/**
+ * For page data: if the database rejects the session token (expired or signed by a rotated key),
+ * renew it via /auth/refresh instead of showing an error page.
+ */
+export async function withSessionRecovery<T>(work: Promise<T>): Promise<T> {
+  try {
+    return await work;
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "session_expired") redirect("/auth/refresh");
+    throw error;
+  }
+}
+
 /** For Route Handlers: throws a 401 ApiError when signed out. */
 export async function requireApiUser() {
   const supabase = await createClient();
