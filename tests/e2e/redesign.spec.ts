@@ -46,3 +46,53 @@ test("mission control briefing reflects real data and missed class rescue runs t
     await s.cleanup();
   }
 });
+
+test("focus sanctuary saves a session and the API can complete a block", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Worksheet", dueAt: new Date(Date.now() + 3 * 86400_000).toISOString(), estimatedMinutes: 60 } });
+    const draft = await (await s.page.request.post("/api/proposals", { data: { scenario: "essential" } })).json();
+    await s.page.request.post(`/api/proposals/${draft.proposal.id}/approve`, { headers: { "idempotency-key": "focus-e2e-1234" } });
+
+    await s.page.goto("/focus");
+    await s.page.waitForLoadState("networkidle");
+    await expect(s.page.getByRole("timer")).toHaveText("25:00");
+    await s.page.getByLabel("Study block").selectOption({ index: 1 });
+    await s.page.getByRole("button", { name: "Start focus" }).click();
+    await expect(s.page.getByRole("timer")).not.toHaveText("25:00");
+    await s.page.getByRole("button", { name: "Pause" }).click();
+    await s.page.getByRole("button", { name: "End and save" }).click();
+    await expect(s.page.getByText(/Saved \d+ focused minute/)).toBeVisible();
+    const { data: sessions } = await s.db.from("focus_sessions").select("completed").eq("owner_id", s.userId);
+    expect(sessions).toEqual([{ completed: false }]);
+
+    const { plan } = await (await s.page.request.get("/api/study-tasks")).json();
+    const res = await s.page.request.post("/api/focus-sessions", {
+      data: { taskId: plan.tasks[0].id, plannedMinutes: 25, focusedMinutes: 25, startedAt: new Date(Date.now() - 26 * 60_000).toISOString(), completed: true, markTaskDone: true },
+    });
+    expect(res.status()).toBe(201);
+    const after = await (await s.page.request.get("/api/study-tasks")).json();
+    expect(after.plan.tasks[0].status).toBe("completed");
+    const fake = await s.page.request.post("/api/focus-sessions", { data: { taskId: null, plannedMinutes: 25, focusedMinutes: 25, startedAt: new Date().toISOString(), completed: true } });
+    expect(fake.status()).toBe(400);
+  } finally {
+    await s.cleanup();
+  }
+});
+
+test("recovery lab shows route timelines and the exact changes before approval", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Worksheet", dueAt: new Date(Date.now() + 3 * 86400_000).toISOString(), estimatedMinutes: 60 } });
+    await s.page.goto("/recovery");
+    await expect(s.page.getByRole("img", { name: /^Next 7 days\./ }).first()).toBeVisible();
+    await s.page.getByRole("button", { name: /Review and approve/ }).click();
+    const changes = s.page.getByLabel("Exact changes before approval");
+    await expect(changes).toContainText("Adds 1 study block (1h)");
+    await expect(changes).toContainText("No current plan to replace");
+  } finally {
+    await s.cleanup();
+  }
+});

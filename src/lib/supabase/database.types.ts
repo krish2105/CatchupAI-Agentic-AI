@@ -364,6 +364,50 @@ export type Database = {
           },
         ]
       }
+      focus_sessions: {
+        Row: {
+          completed: boolean
+          created_at: string
+          ended_at: string
+          focused_minutes: number
+          id: string
+          owner_id: string
+          planned_minutes: number
+          started_at: string
+          task_id: string | null
+        }
+        Insert: {
+          completed?: boolean
+          created_at?: string
+          ended_at?: string
+          focused_minutes: number
+          id?: string
+          owner_id?: string
+          planned_minutes: number
+          started_at: string
+          task_id?: string | null
+        }
+        Update: {
+          completed?: boolean
+          created_at?: string
+          ended_at?: string
+          focused_minutes?: number
+          id?: string
+          owner_id?: string
+          planned_minutes?: number
+          started_at?: string
+          task_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "focus_sessions_task_id_owner_id_fkey"
+            columns: ["task_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "study_tasks"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string

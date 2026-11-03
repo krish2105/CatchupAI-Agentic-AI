@@ -14,11 +14,13 @@ export default function ApprovalDialog({
   proposal,
   timezone,
   courseNames,
+  currentPlan = null,
   onClose,
 }: {
   proposal: ProposalDto | null;
   timezone: string;
   courseNames: Record<string, string>;
+  currentPlan?: { todo: number; todoMinutes: number; completed: number } | null;
   onClose: () => void;
 }) {
   const router = useRouter();
@@ -59,10 +61,20 @@ export default function ApprovalDialog({
     <Dialog open onClose={onClose} labelledBy="approval-title">
       <div className="eyebrow">Human approval gate</div>
       <h2 id="approval-title" style={{ marginTop: 13 }}>Approve “{proposal.payload.title.split(" · ")[0]}”?</h2>
-      <p>
-        {tasks.length} study block{tasks.length === 1 ? "" : "s"} · {formatMinutes(summary.scheduledMinutes)} of {formatMinutes(summary.availableMinutes)} available ·
-        {" "}times shown in {timezone}. Nothing is saved until you approve. Approving replaces your current plan&apos;s unfinished tasks.
-      </p>
+      <p>Times shown in {timezone}. Nothing is saved until you approve.</p>
+      <div className="change-list" aria-label="Exact changes before approval">
+        <div className="label">Exact changes before approval</div>
+        <ul>
+          <li className="add">Adds {tasks.length} study block{tasks.length === 1 ? "" : "s"} ({formatMinutes(summary.scheduledMinutes)}) across {new Set(tasks.map((t) => new Intl.DateTimeFormat("en-CA", { timeZone: timezone }).format(new Date(t.startsAt)))).size} day(s)</li>
+          {currentPlan && currentPlan.todo > 0 ? (
+            <li className="remove">Cancels {currentPlan.todo} unfinished block{currentPlan.todo === 1 ? "" : "s"} ({formatMinutes(currentPlan.todoMinutes)}) from your current plan</li>
+          ) : (
+            <li className="keep">No current plan to replace</li>
+          )}
+          {currentPlan && currentPlan.completed > 0 ? <li className="keep">Keeps {currentPlan.completed} completed block{currentPlan.completed === 1 ? "" : "s"} in your history</li> : null}
+          <li className="keep">Leaves your courses, assignments and documents unchanged</li>
+        </ul>
+      </div>
       {!proposal.feasible ? <Notice tone="danger" title="This route doesn't fit your time and can't be approved." /> : null}
       <ol style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 280, overflow: "auto" }} aria-label="Proposed tasks">
         {tasks.map((t) => (

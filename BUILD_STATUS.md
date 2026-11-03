@@ -31,7 +31,9 @@
 | Insights (M6) | Done — latest quiz, blocks/minutes completed, active plan, 14-day minutes chart (validated palette, tooltip, table view), topic results, per-course progress; all from persisted rows | E2E |
 | Hardening (M7) | Done — security headers, `no-store` API caching, no-WebGL/200%-zoom/keyboard-only tests, secret scan, README + `QA_REPORT.md` | E2E 41/41 |
 | Nature Flow 3.0 redesign — R1/R2 | Done: alpine-morning / moonlit-forest tokens (AA-checked), Fraunces + Manrope type, brand mark, theme-aware SVG landscape, Mission Control briefing from real data, one-click Missed Class Rescue, ⌘K command palette, universe label fix | E2E 43/43 ×2 |
-| Nature Flow 3.0 redesign — R3–R7 | In progress: Recovery Lab / Copilot restyle, Vault, Schedule, Practice, Insights, Focus Sanctuary, 3D course islands | — |
+| Nature Flow 3.0 — R3 Recovery Lab | Done: 7-day route timelines from engine output (bars + due markers, accessible summary), "exact changes before approval" (+ adds / − cancels / = keeps) | E2E |
+| Nature Flow 3.0 — R4 Focus Sanctuary | Done: wall-clock timer (25/50 min), sessions saved to `focus_sessions` (RLS, composite owner FK, duration integrity checks), optional block completion, dashboard "Focus sprint" | integration 3 + E2E |
+| Nature Flow 3.0 — R5–R7 | Pending: Vault/Schedule/Practice/Insights polish, focus time in Insights, 3D course islands with topic landmarks, syllabus import | — |
 | Deployment / submission | **Not performed** | needs your approval + Supabase cloud project + Vercel |
 
 ## M0 audit findings
@@ -140,4 +142,6 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | R1/R2 | Token contrast script (all text/accent tokens ≥ 4.5:1 on every surface, both themes); dataviz validator for chart greens (light #1E8A66, dark #22A47B) | PASS | — |
 | 2026-11-03 | R1/R2 | `npx playwright test` | first run 1 FAIL (selector collision with new search pill) → fixed; then rescue tool count (4: course-scoped search) and upload hydration waits; then a parallel-run flake traced to the shared-session sign-out test → isolated with its own student | — |
 | 2026-11-03 | R1/R2 | `typecheck`, `lint`, `npm test` 47/47, `test:integration` 60/60, `test:e2e` 43/43 (two consecutive runs; adds command palette + mission control briefing + one-click rescue) | PASS | — |
+| 2026-11-03 | R3/R4 | `supabase migration up` (`20261103000005_focus_sessions.sql`) | PASS | — |
+| 2026-11-03 | R3/R4 | `typecheck`, `lint`, `npm test` 47/47, `test:integration` 63/63 (adds focus: completion + block done, duration/start-time integrity, cross-tenant block link 404, owner spoof 42501, read isolation), `test:e2e` 45/45 (adds focus timer save + API block completion + invalid session 400; route timelines + exact-changes list) | PASS | — |
 

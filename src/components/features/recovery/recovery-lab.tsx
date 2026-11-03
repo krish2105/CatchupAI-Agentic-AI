@@ -9,6 +9,7 @@ import type { ScenarioKey } from "@/lib/planner/engine";
 import type { ComputedPlan, ProposalDto } from "@/lib/planner/service";
 import { formatDateTime, formatMinutes } from "@/lib/time";
 import ApprovalDialog from "./approval-dialog";
+import RouteTimeline from "./route-timeline";
 
 const BAR = { essential: "var(--aqua)", balanced: "var(--violet)", full: "var(--coral)" } as const;
 
@@ -17,11 +18,14 @@ export default function RecoveryLab({
   initialPlan,
   savedWeekly,
   courseNames,
+  currentPlan = null,
 }: {
   initialProposal?: ProposalDto | null;
   initialPlan: ComputedPlan;
   savedWeekly: number[];
   courseNames: Record<string, string>;
+  /** Unfinished/completed blocks of the plan an approval would replace. */
+  currentPlan?: { todo: number; todoMinutes: number; completed: number } | null;
 }) {
   const router = useRouter();
   const savedTotal = savedWeekly.reduce((s, m) => s + m, 0);
@@ -147,6 +151,7 @@ export default function RecoveryLab({
             <div className="scenario-number">{s.coveragePercent}% <small>of the work fits</small></div>
             <div className="scenario-bar" aria-hidden="true"><span style={{ width: `${s.coveragePercent}%`, background: BAR[s.key] }} /></div>
             <div className="scenario-meta">{formatMinutes(s.scheduledMinutes)} scheduled of {formatMinutes(s.requiredMinutes)} needed · {s.items.length} item{s.items.length === 1 ? "" : "s"}</div>
+            <RouteTimeline tasks={s.tasks} items={s.items} timezone={plan.timezone} start={plan.horizon.start} />
           </button>
         ))}
       </div>
@@ -199,7 +204,7 @@ export default function RecoveryLab({
           <div className="mini-activity"><div className="activity-dot rose" /><div><strong>Never hide shortfalls</strong><p>Unrealistic plans are flagged and can&apos;t be approved.</p></div></div>
         </div>
       </div>
-      {proposal ? <ApprovalDialog key={proposal.id} proposal={proposal} timezone={plan.timezone} courseNames={courseNames} onClose={() => setProposal(null)} /> : null}
+      {proposal ? <ApprovalDialog key={proposal.id} proposal={proposal} timezone={plan.timezone} courseNames={courseNames} currentPlan={currentPlan} onClose={() => setProposal(null)} /> : null}
     </>
   );
 }

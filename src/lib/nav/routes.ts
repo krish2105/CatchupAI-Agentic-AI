@@ -4,6 +4,7 @@ import {
   ClipboardCheck,
   FlaskConical,
   House,
+  Leaf,
   type LucideIcon,
   Orbit,
   Settings,
@@ -30,6 +31,7 @@ export const APP_ROUTES: AppRoute[] = [
   { href: "/planner", label: "Study schedule", crumb: "Study schedule", icon: CalendarDays, group: "workspace" },
   { href: "/quizzes", label: "Practice arena", crumb: "Practice arena", icon: ClipboardCheck, group: "explore" },
   { href: "/insights", label: "Your momentum", crumb: "Your momentum", icon: TrendingUp, group: "explore" },
+  { href: "/focus", label: "Focus sanctuary", crumb: "Focus sanctuary", icon: Leaf, group: "explore" },
   { href: "/settings", label: "Preferences", crumb: "Preferences", icon: Settings, group: "explore" },
 ];
 

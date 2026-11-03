@@ -207,3 +207,31 @@ html[data-motion="reduce"] .landscape .mist { animation: none; }
 .command-item .enter { margin-left: auto; }
 .command-empty { padding: 18px; color: var(--muted); font-size: 13px; }
 @media (max-width: 1000px) { .search-pill { min-width: 0; } .search-pill span, .search-pill kbd { display: none; } }
+
+/* ---------- Recovery lab: route timeline + change list ---------- */
+.route-timeline { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-top: 14px; position: relative; z-index: 1; }
+.rt-day { display: grid; justify-items: center; gap: 4px; }
+.rt-track { height: 46px; width: 100%; max-width: 22px; background: var(--surface3); border-radius: 6px; display: flex; align-items: flex-end; overflow: hidden; }
+.rt-bar { display: block; width: 100%; background: var(--chart-1); border-radius: 6px 6px 0 0; min-height: 0; }
+.rt-label { font-size: 10px; color: var(--muted); font-weight: 700; }
+.rt-due { display: flex; gap: 2px; min-height: 8px; }
+.rt-due i { width: 7px; height: 7px; border-radius: 50%; }
+.rt-due i.ok { background: var(--good); }
+.rt-due i.short { background: var(--warn); }
+.change-list { border: 1px solid var(--stroke); border-radius: 16px; padding: 12px 14px; margin: 4px 0 14px; background: var(--surface2); }
+.change-list ul { list-style: none; margin: 8px 0 0; padding: 0; display: grid; gap: 6px; font-size: 12.5px; }
+.change-list li { display: flex; gap: 8px; align-items: baseline; }
+.change-list li::before { font-weight: 800; width: 12px; display: inline-block; }
+.change-list li.add::before { content: "+"; color: var(--good); }
+.change-list li.remove::before { content: "−"; color: var(--danger); }
+.change-list li.keep::before { content: "="; color: var(--muted); }
+
+/* ---------- Focus sanctuary ---------- */
+.focus-stage { position: relative; min-height: 460px; border-radius: 28px; overflow: hidden; border: 1px solid var(--stroke); display: grid; place-items: center; padding: 32px 16px; margin-bottom: 18px; }
+.focus-stage > .landscape { position: absolute; inset: 0; }
+.focus-card { position: relative; z-index: 1; width: min(100%, 420px); padding: 28px; display: grid; justify-items: center; gap: 14px; text-align: center; }
+.focus-time { font-family: var(--font-serif), Georgia, serif; font-size: clamp(56px, 9vw, 84px); font-weight: 500; letter-spacing: -0.03em; font-variant-numeric: tabular-nums; line-height: 1; }
+.focus-sub { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); font-weight: 800; }
+.focus-setup { display: grid; gap: 12px; justify-items: center; width: 100%; text-align: left; }
+.focus-task { font-size: 14px; color: var(--muted); margin: 0; }
+.focus-controls { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; }

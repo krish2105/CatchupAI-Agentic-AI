@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { Activity, ArrowRight, CalendarClock, CheckCircle2, Circle, Clock3, FlaskConical, Layers, LifeBuoy, Target } from "lucide-react";
+import { Activity, ArrowRight, CalendarClock, CheckCircle2, Circle, Clock3, FlaskConical, Layers, Leaf, LifeBuoy, Target } from "lucide-react";
 import Landscape from "@/components/nature/landscape";
 import { ButtonLink, Chip, EmptyCard, ProgressArc, StatCard } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -66,6 +66,7 @@ export default async function DashboardPage() {
           <div className="hero-ctas">
             <ButtonLink href="/assistant?rescue=1" variant="primary"><LifeBuoy className="ic" aria-hidden="true" /> Missed class rescue</ButtonLink>
             <ButtonLink href="/recovery" variant="ghost"><FlaskConical className="ic" aria-hidden="true" /> Plan recovery</ButtonLink>
+            <ButtonLink href="/focus" variant="ghost"><Leaf className="ic" aria-hidden="true" /> Focus sprint</ButtonLink>
           </div>
         </div>
         <div className="hero-visual" style={{ display: "flex", alignItems: "center", justifyContent: "flex-end", padding: "28px" }}>

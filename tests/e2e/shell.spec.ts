@@ -6,7 +6,7 @@ import { APP_PATHS, seedPrefs } from "./helpers";
 test.describe("app shell", () => {
   test("sidebar navigates to all nine screens and marks the current page", async ({ page }) => {
     await page.goto("/dashboard");
-    const labels = ["Mission control", "Learning universe", "AI copilot", "Recovery lab", "Knowledge vault", "Study schedule", "Practice arena", "Your momentum", "Preferences"];
+    const labels = ["Mission control", "Learning universe", "AI copilot", "Recovery lab", "Knowledge vault", "Study schedule", "Practice arena", "Your momentum", "Focus sanctuary", "Preferences"];
     for (const [i, label] of labels.entries()) {
       await page.getByRole("navigation").getByRole("link", { name: label }).click();
       await expect(page).toHaveURL(new RegExp(`${APP_PATHS[i]}$`));

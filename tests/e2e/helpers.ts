@@ -1,6 +1,6 @@
 import type { Page } from "@playwright/test";
 
-export const APP_PATHS = ["/dashboard", "/universe", "/assistant", "/recovery", "/courses", "/planner", "/quizzes", "/insights", "/settings"] as const;
+export const APP_PATHS = ["/dashboard", "/universe", "/assistant", "/recovery", "/courses", "/planner", "/quizzes", "/insights", "/focus", "/settings"] as const;
 
 export type Prefs = { theme?: "light" | "dark" | "system"; motion?: "system" | "reduce" | "full"; threeD?: boolean };
 
