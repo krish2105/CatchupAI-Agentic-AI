@@ -12,10 +12,9 @@ export default async function UniversePage() {
   return (
     <>
       <PageHeading
-        eyebrow="The living knowledge map"
-        title="Explore your"
-        accent="learning universe."
-        description="Drag or use the arrow keys to rotate. Every world is one of your courses; its colour reflects your approved plan progress. Choose one to inspect it."
+        eyebrow="Interactive knowledge ecosystem"
+        title="Learning universe"
+        description="Follow the paths connecting what you know to what comes next. Every island is one of your courses, coloured by your approved plan progress."
       />
       <UniverseExplorer graph={graph} />
     </>

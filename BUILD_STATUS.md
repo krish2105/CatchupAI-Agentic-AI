@@ -41,6 +41,8 @@
 | 30-case evaluation | Done: `npm run eval` → `evals/REPORT.md` — **25 pass · 0 fail · 5 skipped** (tool selection needs a real LLM) | eval run |
 | Deployment preparation | Done: docs/DEPLOYMENT.md, vercel.json cron, `.env.example`, `npm run preflight` (local PASS; `--production` correctly fails 6 checks until configured) | preflight run |
 | Submission pack | Done: demo script, user-testing protocol, LinkedIn draft, M8 checklist (submission/) | — |
+| Session recovery | Done: a token the database rejects (expired / rotated signing key) renews via /auth/refresh instead of an error page; local signing key pinned | unit 4 + integration 1 |
+| Nature Flow 3.0 visual pass | Done: photographic WebP panoramas (light/dark), Fraunces display type, Mission Control, Recovery Lab cards + exact changes, Copilot answer + decision card, Focus panorama + opt-in sound, Universe 3D/List + label cards, notifications bell, phone bottom nav | E2E 49 + manual screenshots 1440/390, light/dark |
 | Deployment / submission | **Not performed** — blocked on your accounts (Supabase/Vercel logins, OpenAI key, Resend, Turnstile) | docs/DEPLOYMENT.md |
 
 ## M0 audit findings
@@ -160,4 +162,6 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M8 prep | `npm run eval` first run: 24 pass, **1 fail (R2 abstained)** → measured ranks, added coverage evidence → 25 pass, 0 fail, 5 skipped | PASS | OpenAI key for T1–T5 |
 | 2026-11-03 | M8 prep | `npm run preflight` (local PASS; `--production` 6 required checks fail as expected) | PASS | production env |
 | 2026-11-03 | M8 prep | `typecheck`, `lint`, `npm test` 56/56, `test:integration` 66/66, `test:e2e` 49/49 | PASS | — |
+| 2026-11-03 | Fix | "This view couldn't load": cause = local signing key rotated on restart while the app's JWKS cache still accepted the old token (PostgREST 401). Added PGRST301-303 → session_expired, /auth/refresh recovery, pinned key | PASS (reproduced and recovered in browser) | — |
+| 2026-11-03 | Nature Flow 3.0 | `typecheck`, `lint`, `npm test` 60/60, `test:integration` 67/67, `test:e2e` 49/49 (first run 48/49: duplicate accessible name "Exact changes before approval" → renamed lab list) | PASS | — |
 

@@ -173,7 +173,7 @@ export default function RecoveryLab({
       <div className="lab-footer">
         <div className="card task-list">
           <div className="split-head"><h3>Exact changes before approval</h3><Chip>Draft · not saved</Chip></div>
-          <ul className="exact-changes" aria-label="Exact changes before approval">
+          <ul className="exact-changes" aria-label="Changes this route would make">
             <li><span className="ec add" aria-hidden="true">+</span><strong>{scenario.tasks.length} study block{scenario.tasks.length === 1 ? "" : "s"}</strong><span>will be added ({formatMinutes(scenario.scheduledMinutes)})</span></li>
             <li><span className="ec remove" aria-hidden="true">−</span><strong>{currentPlan?.todo ?? 0} unfinished block{currentPlan?.todo === 1 ? "" : "s"}</strong><span>{currentPlan?.todo ? "of your current plan will be replaced" : "will be removed"}</span></li>
             <li><span className="ec keep" aria-hidden="true"><Check className="ic" /></span><strong>{currentPlan?.completed ?? 0} completed block{currentPlan?.completed === 1 ? "" : "s"}</strong><span>stay in your history</span></li>

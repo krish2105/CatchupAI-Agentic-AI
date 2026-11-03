@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowRight, ClipboardCheck, FileText, Pause, Play, Sparkles, Target } from "lucide-react";
+import { ArrowRight, ClipboardCheck, FileText, List, Pause, Play, Sparkles, Target, TreePine } from "lucide-react";
 import { useState } from "react";
 import { usePreferences } from "@/lib/preferences/store";
 import SceneHost from "./scene-host";
@@ -10,13 +10,18 @@ import { STATUS_LABEL, type UniverseGraph } from "./types";
 export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
   const [selectedId, setSelectedId] = useState<string | null>(graph.nodes[0]?.id ?? null);
   const [paused, setPaused] = useState(false);
+  const [view, setView] = useState<"3d" | "list">("3d");
   const { reducedMotion } = usePreferences();
   const selected = graph.nodes.find((n) => n.id === selectedId) ?? null;
 
   return (
     <>
-      <div style={{ display: "flex", justifyContent: "flex-end", marginTop: -8, marginBottom: 14 }}>
-        {!reducedMotion ? (
+      <div className="universe-toolbar">
+        <div className="segmented" role="group" aria-label="Universe view">
+          <button type="button" aria-pressed={view === "3d"} onClick={() => setView("3d")}><TreePine className="ic" aria-hidden="true" /> 3D forest</button>
+          <button type="button" aria-pressed={view === "list"} onClick={() => setView("list")}><List className="ic" aria-hidden="true" /> List</button>
+        </div>
+        {!reducedMotion && view === "3d" ? (
           <button type="button" className="btn small" aria-pressed={paused} onClick={() => setPaused((p) => !p)}>
             {paused ? <Play className="ic" aria-hidden="true" /> : <Pause className="ic" aria-hidden="true" />}
             {paused ? "Resume orbit" : "Pause orbit"}
@@ -25,8 +30,26 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
       </div>
       <div className="panel-grid">
         <div className="atlas-main">
-          <div className="atlas-overline">YOUR LEARNING ISLANDS · ONE PER COURSE</div>
-          <SceneHost graph={graph} label="3D map of your courses" selectedId={selectedId} onSelect={setSelectedId} paused={paused} />
+          <div className="atlas-overline">{view === "3d" ? "DRAG TO ORBIT · ARROW KEYS ROTATE" : "YOUR LEARNING ISLANDS · LIST VIEW"}</div>
+          {view === "3d" ? (
+            <SceneHost graph={graph} label="3D map of your courses" selectedId={selectedId} onSelect={setSelectedId} paused={paused} />
+          ) : (
+            <ul className="universe-list" aria-label="Courses and topics">
+              {graph.nodes.map((node) => (
+                <li key={node.id}>
+                  <button type="button" className={`universe-row${node.id === selectedId ? " active" : ""}`} aria-pressed={node.id === selectedId} onClick={() => setSelectedId(node.id)}>
+                    <span className={`topic-dot ${node.status}`} aria-hidden="true" />
+                    <span className="universe-row-body">
+                      <strong>{node.label}</strong>
+                      <span>{node.progress === null ? STATUS_LABEL[node.status] : `${node.progress}% of plan blocks done`} · {node.topics.length} landmark{node.topics.length === 1 ? "" : "s"}</span>
+                      <span className="inspector-meter" aria-hidden="true"><span style={{ width: `${node.progress ?? 0}%` }} /></span>
+                    </span>
+                  </button>
+                </li>
+              ))}
+              {graph.nodes.length === 0 ? <li className="nf-empty">No courses yet.</li> : null}
+            </ul>
+          )}
           <div className="atlas-legend" aria-hidden="true">
             <span className="legend"><i /> On track</span>
             <span className="legend"><i className="pink" /> Needs work</span>
@@ -38,7 +61,7 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
         <div className="card inspector">
           {selected ? (
             <div aria-live="polite">
-              <div className="label">Selected learning world</div>
+              <div className="label">Selected island</div>
               <h3>{selected.label}</h3>
               <p>{selected.summary}</p>
               <div className="label" style={{ marginTop: 23 }}>Plan progress</div>
@@ -66,9 +89,9 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
                 </>
               ) : null}
               <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 18 }}>
-                <Link className="btn primary small" href={selected.href}>Open course <ArrowRight className="ic" aria-hidden="true" /></Link>
-                <Link className="btn small" href="/quizzes"><ClipboardCheck className="ic" aria-hidden="true" /> Practise</Link>
-                <Link className="btn small" href="/assistant"><Sparkles className="ic" aria-hidden="true" /> Ask copilot</Link>
+                <Link className="btn primary" href="/quizzes"><ClipboardCheck className="ic" aria-hidden="true" /> Practice this course</Link>
+                <Link className="btn" href="/assistant"><Sparkles className="ic" aria-hidden="true" /> Ask copilot</Link>
+                <Link className="btn ghost small" href={selected.href}>Open course <ArrowRight className="ic" aria-hidden="true" /></Link>
               </div>
             </div>
           ) : (

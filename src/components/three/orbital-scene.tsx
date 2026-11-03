@@ -1,5 +1,6 @@
 "use client";
 
+import { STATUS_LABEL } from "./types";
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
@@ -155,7 +156,7 @@ export default function OrbitalScene({ frameloop, ...props }: SceneProps) {
         <div aria-hidden="true" style={{ position: "absolute", inset: 0, pointerEvents: "none", overflow: "hidden" }}>
           {props.graph.nodes.map((node, i) => (
             <div key={node.id} ref={(el) => { labels.current[i] = el; }} style={{ position: "absolute", left: 0, top: 0, opacity: 0 }}>
-              <div className="scene-label">{node.label}</div>
+              <div className="scene-label"><strong><span className={`topic-dot ${node.status}`} />{node.label}</strong><small>{node.progress === null ? STATUS_LABEL[node.status] : `${node.progress}% of plan`} · Course island</small></div>
             </div>
           ))}
         </div>
