@@ -435,11 +435,41 @@ export type Database = {
           },
         ]
       }
+      quiz_keys: {
+        Row: {
+          created_at: string
+          keys: Json
+          owner_id: string
+          quiz_id: string
+        }
+        Insert: {
+          created_at?: string
+          keys: Json
+          owner_id: string
+          quiz_id: string
+        }
+        Update: {
+          created_at?: string
+          keys?: Json
+          owner_id?: string
+          quiz_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_keys_quiz_id_owner_id_fkey"
+            columns: ["quiz_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "quizzes"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       quizzes: {
         Row: {
           course_id: string
           created_at: string
           id: string
+          method: string
           owner_id: string
           questions: Json
           run_id: string | null
@@ -450,6 +480,7 @@ export type Database = {
           course_id: string
           created_at?: string
           id?: string
+          method?: string
           owner_id: string
           questions: Json
           run_id?: string | null
@@ -460,6 +491,7 @@ export type Database = {
           course_id?: string
           created_at?: string
           id?: string
+          method?: string
           owner_id?: string
           questions?: Json
           run_id?: string | null

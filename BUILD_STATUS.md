@@ -26,7 +26,9 @@
 | LearningRecoveryAgent (M5) | Done — OpenAI Agents SDK 0.21 `Runner`, 5 typed tools (`get_study_preferences`, `list_assignments`, `search_course_material`, `get_learning_progress`, `draft_recovery_plan`), trusted context from verified session, ownership check in every tool, search/draft budgets, maxTurns 8, 90 s timeout, structured answer (facts with source ids vs suggestions), unsupported facts removed, failed runs expire drafts | integration 9 + E2E 2 with a scripted model |
 | Real tool timeline + persisted trace | Done — events recorded inside tool wrappers, streamed over SSE, stored in `agent_runs` (privacy-safe args) | E2E reload check |
 | **Live OpenAI agent runs** | **Unverified — no `OPENAI_API_KEY`/`OPENAI_MODEL` provided.** Code path `openAiRuntime()` exists; no live call has been made | needs your key |
-| Universe data / insights / quiz | Not started | M6 |
+| Learning universe data | Done — nodes = the student's courses; satellites = their assignments/documents; status/progress from overdue work and active-plan completion only | unit + E2E |
+| Knowledge checks (P1, M6) | Done — deterministic cloze questions from the student's indexed sentences, each with document/page evidence; answer keys in server-only `quiz_keys`; server grading; attempts persisted; weak terms surfaced. **Not LLM-generated** (no key) | unit 4 + integration 5 + E2E |
+| Insights (M6) | Done — latest quiz, blocks/minutes completed, active plan, 14-day minutes chart (validated palette, tooltip, table view), topic results, per-course progress; all from persisted rows | E2E |
 | Deployment / submission | Not performed | needs user approval + cloud accounts |
 
 ## M0 audit findings
@@ -119,4 +121,9 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M5 | `npm test` | PASS 43/43 (adds runtime gating: scripted model never with non-local Supabase or without flag; OpenAI needs key+model; answer verification) | — |
 | 2026-11-03 | M5 | `npx playwright test` (now against `next build && next start -p 3100`, `CATCHUP_TEST_MODEL=scripted`) | PASS 35/35 (adds copilot: upload → ask → 4 live tool events → p.2 citation → reload persists → review in lab → approve → planner evidence link; abstain without evidence; forged course 404; invalid body 400) | — |
 | 2026-11-03 | M5 | Browser pane (dev, no key): /assistant shows "AI runtime not configured", composer hidden | PASS | OpenAI key |
+| 2026-11-03 | M6 | `supabase migration up` (`20261103000004_quiz_keys.sql`) | PASS | — |
+| 2026-11-03 | M6 | `npm test` | PASS 47/47 (adds cloze: grounded questions/answers on the cited page, determinism per seed, no-material, grading). Quality reviewed by printing a generated quiz; heading-fragment and wrapped-line issues fixed | — |
+| 2026-11-03 | M6 | `npm run test:integration` | PASS 60/60 (adds quiz: no answer keys in student-readable rows, `quiz_keys` 42501 for students, server grading + attempt, incomplete answers 400, cross-tenant 404s, attempt insert 42501, insufficient material 409) | — |
+| 2026-11-03 | M6 | `npx playwright test` | PASS 36/36 (adds upload → generate → answer 5 → sourced results → previous checks → insights score/topic/chart) | — |
+| 2026-11-03 | M6 | dataviz palette validator | dark `#8a7cf0` and light `#385fba` pass lightness/chroma/3:1 (lime accent failed lightness band, not used for bars) | — |
 

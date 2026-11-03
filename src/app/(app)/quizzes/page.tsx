@@ -1,11 +1,17 @@
 import type { Metadata } from "next";
-import { ClipboardCheck } from "lucide-react";
+import PracticeArena from "@/components/features/quiz/practice-arena";
 import PageHeading from "@/components/ui/page-heading";
-import { ButtonLink, EmptyCard } from "@/components/ui/primitives";
+import { requirePageUser } from "@/lib/auth/session";
+import { listCourses } from "@/lib/db/courses";
+import { listDocuments } from "@/lib/db/documents";
+import { listQuizzes } from "@/lib/quiz/service";
 
 export const metadata: Metadata = { title: "Practice arena" };
 
-export default function QuizzesPage() {
+export default async function QuizzesPage() {
+  const { supabase } = await requirePageUser("/quizzes");
+  const [courses, documents, quizzes] = await Promise.all([listCourses(supabase), listDocuments(supabase), listQuizzes(supabase)]);
+  const ready = new Set(documents.filter((d) => d.status === "ready").map((d) => d.courseId));
   return (
     <>
       <PageHeading
@@ -13,11 +19,9 @@ export default function QuizzesPage() {
         title="Practice makes"
         accent="progress visible."
         accentColor="coral"
-        description="Short knowledge checks generated only from passages in your uploaded material, with the source page shown after each answer."
+        description="Short knowledge checks built only from passages in your uploaded material, with the source page shown after each answer. Graded on the server; every attempt is saved."
       />
-      <EmptyCard icon={ClipboardCheck} title="No knowledge checks yet" action={<ButtonLink href="/courses" small>Upload course material</ButtonLink>}>
-        Quizzes need at least one processed document so every question can point to real evidence.
-      </EmptyCard>
+      <PracticeArena courses={courses.map((c) => ({ id: c.id, title: c.title, ready: ready.has(c.id) }))} quizzes={quizzes} />
     </>
   );
 }

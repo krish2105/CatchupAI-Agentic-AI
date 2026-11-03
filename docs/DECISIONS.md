@@ -66,3 +66,8 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-035** Tests replace only the LLM with a `ScriptedModel` speaking the SDK protocol. Browser E2E can use it only when `CATCHUP_TEST_MODEL=scripted` AND Supabase is local; the UI labels it "Scripted test model · not AI". Never available in deployments.
 - **ADR-036** E2E now runs against a production build on :3100, so every E2E run also verifies `next build`.
 
+## 2026-11-03: Build session M6
+- **ADR-037** Knowledge checks use a deterministic cloze generator over the student's own indexed sentences (key concept = recurring course term; distractors = other course terms; seeded shuffle). Grounded, testable and available without an AI key. LLM-generated questions are a later option once a key is configured.
+- **ADR-038** Answer keys live in `quiz_keys` (RLS on, no student grants); the browser only ever receives prompts/options/evidence. Grading and attempt writes happen server-side.
+- **ADR-039** Insights only aggregate persisted rows (completed task timestamps set by DB trigger, graded attempts). Chart colours validated with the dataviz checker; single series → no legend; hover tooltip and a table view for accessibility.
+
