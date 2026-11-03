@@ -53,7 +53,7 @@ export default function MemoryPanel({ initial }: { initial: MemoryDto[] }) {
   const suggested = memories.filter((m) => m.status === "suggested");
   const confirmed = memories.filter((m) => m.status === "confirmed");
   return (
-    <section className="card memory-panel section-space" aria-labelledby="memory-title">
+    <section className="card card-inner memory-panel section-space" aria-labelledby="memory-title">
       <div className="split-head">
         <h3 id="memory-title"><Brain className="ic" aria-hidden="true" /> What the copilot remembers</h3>
         <span className="muted">{confirmed.length}/40</span>
