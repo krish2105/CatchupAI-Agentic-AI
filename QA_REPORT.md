@@ -8,9 +8,9 @@
 | --- | --- |
 | `npm run typecheck` | PASS (exit 0) |
 | `npm run lint` | PASS (exit 0) |
-| `npm test` (Vitest unit) | **73 / 73 passed** (14 files) |
-| `npm run test:integration` (real local Supabase) | **78 / 78 passed** (12 files) |
-| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **55 / 55 passed** (includes production build) |
+| `npm test` (Vitest unit) | **82 / 82 passed** (18 files) |
+| `npm run test:integration` (real local Supabase) | **82 / 82 passed** (14 files) |
+| `npm run test:e2e` (Playwright vs `next build && next start -p 3100`) | **60 / 60 passed** (includes production build) |
 | `npm run eval` (30-case evaluation, see `evals/REPORT.md`) | **25 passed · 0 failed · 5 skipped** (tool-selection cases need a real LLM; not simulated) |
 | Secret scan (tracked files + `.next/static`) against the real local secret values and key patterns | 0 hits |
 

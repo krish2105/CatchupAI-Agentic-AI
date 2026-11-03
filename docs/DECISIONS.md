@@ -92,3 +92,8 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-051** Rubric Decoder is deterministic and read-only until the student saves: sentences of an indexed brief are classified (weighted criterion > dated deadline > deliverable > requirement) with their page. Checklist rows are student-owned (RLS + composite keys to their own assignment and document); only `done` and `text` are updatable, so weights and kinds keep their source meaning.
 - **ADR-052** Security baseline: nonce-based CSP from `src/proxy.ts` (all pages render per request), Origin check on writes on top of SameSite=Lax, HSTS. Demo accounts get separate, smaller budgets for costly operations; `consume_rate_limit` accepts only allowlisted buckets with fixed windows. CI runs unit + build + prod audit + bundle key scan, then integration/E2E/eval on a local Supabase.
 
+## 2026-11-04: Feature batch
+- **ADR-053** Calendar feeds use a 256-bit random token in the URL (calendar apps can't sign in); only its SHA-256 is stored, the link is shown once, revocation is immediate, and the feed query always filters by the resolved owner.
+- **ADR-054** Trust drawer reads only server records (proposal, run events, citations) and states limits explicitly; it never summarises with AI.
+- **ADR-055** Weekly next steps and the learning-trail study order are deterministic; prerequisites exist only when the student adds them (no inferred links), and loops are refused server-side.
+

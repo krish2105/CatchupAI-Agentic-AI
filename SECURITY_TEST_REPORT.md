@@ -6,9 +6,9 @@
 | Command | Result |
 | --- | --- |
 | `npm run typecheck` / `npm run lint` | PASS |
-| `npm test` (unit) | 73 / 73 |
-| `npm run test:integration` (real local Supabase) | 78 / 78 |
-| `npm run test:e2e` (production build) | 55 / 55 (first run 54/55: command-palette test timed out once under load; passed 3/3 alone and in the full re-run) |
+| `npm test` (unit) | 82 / 82 |
+| `npm run test:integration` (real local Supabase) | 82 / 82 |
+| `npm run test:e2e` (production build) | 60 / 60 |
 | `npm run eval` | 25 pass · 0 fail · 5 skipped (need a real LLM) |
 | `npm audit --omit=dev --audit-level=high` | 0 vulnerabilities |
 | Bundle scan for key material (`sb_secret_…`, `sk-…`) in `.next/static` | clean |
@@ -30,7 +30,9 @@
 | CSRF (cross-site Origin) | `security.spec.ts` | PASS |
 | CSP present, nonce-only scripts, no violations | `security.spec.ts` (12 pages) | PASS |
 | Rejected/rotated session token | `session.test.ts`, `http-errors.test.ts` | PASS |
-| Secrets in client bundle | CI bundle scan | PASS (local) |
+| Secrets in client bundle | CI bundle scan | PASS |
+| Calendar feed tokens (revoked/unknown → 404, owner-scoped) | E2E calendar test | PASS |
+| Cross-account prerequisite/reflection writes | `prerequisites.test.ts`, `reflections.test.ts` | PASS |
 
 ## Coverage gaps
 - No live-LLM jailbreak or tool-selection testing (no API key).

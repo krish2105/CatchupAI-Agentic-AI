@@ -39,3 +39,18 @@ test("health check reveals nothing beyond liveness; HSTS is set", async ({ reque
   expect(await res.json()).toEqual({ status: "ok" });
   expect((await request.get("/")).headers()["strict-transport-security"]).toContain("max-age=");
 });
+
+test("installable app manifest and icons are served", async ({ request }) => {
+  const manifest = await request.get("/manifest.webmanifest");
+  expect(manifest.status()).toBe(200);
+  const json = await manifest.json();
+  expect(json).toMatchObject({ name: "CatchUp AI", start_url: "/dashboard", display: "standalone" });
+  for (const icon of ["/icon-192.png", "/icon-512.png", "/apple-touch-icon.png"]) expect((await request.get(icon)).status()).toBe(200);
+});
+
+test("preferences show usage against fair-use limits", async ({ page }) => {
+  await page.goto("/settings");
+  const usage = page.getByRole("list", { name: "Usage against limits" });
+  await expect(usage).toContainText("AI copilot runs");
+  await expect(usage).toContainText("/ 30");
+});

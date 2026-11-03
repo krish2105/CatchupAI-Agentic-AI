@@ -49,6 +49,12 @@
 | Teach-It-Back | Done: explanation checked deterministically against key concepts of the retrieved passages (body sentences only), each cited to its page; abstains without evidence; server-owned attempts (RLS select/delete only); missing concepts → targeted retest | unit 4 + integration 4 + E2E 1 |
 | Rubric Decoder | Done: indexed brief → deterministic candidates (weighted criteria, deadline, deliverables, requirements, each with page); weight-total check; student edits/drops then saves; checklist under the assignment with page links and tick-off progress; RLS + column grants (done/text only) | unit 5 + integration 3 + E2E 1 |
 | Security hardening pass | Done: audit (SECURITY_AUDIT.md) — 0 Critical, 1 High + 3 Medium + 6 Low; all fixed except L-5 (dev-only advisories, accepted). Nonce CSP, Origin check, HSTS, demo budgets, rate-limit allowlist, CI workflow | unit 1 + integration 4 + E2E 3 new |
+| Calendar export | Done: RFC 5545 .ics download + private revocable feed (only token hash stored) | unit 3 + E2E 1 |
+| Guided judge tour | Done: 9 stops on real screens for demo accounts, resumable | E2E (demo test) |
+| Evidence and trust drawer | Done: decision history, evidence pages, tools that ran, limits; in approval dialog, copilot card, active plan | E2E (copilot test) |
+| Weekly review + reflection | Done: week stats, deterministic next steps, saved reflection per week (RLS) | unit 4 + integration 2 + E2E 1 |
+| Learning trail (prerequisites) | Done: student-confirmed links, loops refused, 3D arcs, study order | unit 2 + integration 2 + E2E 1 |
+| PWA, usage card, landing refresh, CI action bump | Done: manifest + icons, usage vs limits in Preferences, panorama landing with features + security strip | E2E 2 |
 | Deployment / submission | **Not performed** — blocked on your accounts (Supabase/Vercel logins, OpenAI key, Resend, Turnstile) | docs/DEPLOYMENT.md |
 
 ## M0 audit findings
@@ -181,3 +187,7 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-04 | Security | `supabase migration up` (`20261104000009_rate_limit_allowlist.sql`); old rate-limit test moved to an allowlisted bucket (arbitrary buckets now rejected by design) | PASS | — |
 | 2026-11-04 | Security | `typecheck`, `lint`, `npm test` 73/73, `test:integration` 78/78, `test:e2e` 55/55 (one transient palette timeout on the first run; 3/3 alone and full re-run green), `npm run eval` 25/0/5, `npm audit --omit=dev --audit-level=high` 0, bundle key scan clean | PASS | first GitHub CI run |
 | 2026-11-04 | CI | First GitHub Actions run 41703194162: checks/build job PASS, integration + E2E + eval job PASS on a fresh Supabase stack | PASS | — |
+| 2026-11-04 | Feature batch | Migrations 0010 (calendar_feeds), 0011 (weekly_reflections; upsert needed UPDATE on week_start, fixed before any deploy), 0012 (course_prerequisites) | PASS | — |
+| 2026-11-04 | Feature batch | Dev server served stale SSR (hydration mismatch on the new demo banner button) → restarted; production build unaffected | PASS | — |
+| 2026-11-04 | Feature batch | `typecheck`, `lint`, `npm test` 82/82, `test:integration` 82/82, `test:e2e` 60/60, `npm run eval` 25/0/5, prod audit 0, bundle key scan clean | PASS | — |
+

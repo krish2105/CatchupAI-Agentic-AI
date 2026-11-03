@@ -3,6 +3,9 @@ import { LogOut } from "lucide-react";
 import AppearanceCard from "@/components/features/settings/appearance-card";
 import ProfileForm from "@/components/features/profile/profile-form";
 import PrivacyCard from "@/components/features/settings/privacy-card";
+import UsageCard from "@/components/features/settings/usage-card";
+import { getUsage } from "@/lib/db/usage";
+import { renderTime } from "@/lib/server/clock";
 import PageHeading from "@/components/ui/page-heading";
 import { Chip } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -13,14 +16,13 @@ export const metadata: Metadata = { title: "Preferences" };
 
 export default async function SettingsPage() {
   const { supabase, user } = await requirePageUser("/settings");
-  const [ai, profile] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id)]);
+  const now = await renderTime();
+  const [ai, profile, usage] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id), getUsage(supabase, user.isAnonymous, now)]);
   return (
     <>
       <PageHeading
         eyebrow="Personalize the experience"
-        title="Make this space"
-        accent="yours."
-       
+        title="Make this space yours."
         description="Every view adapts to your theme and motion preferences. Immersive when you want it, calm when you don't."
       />
       <div className="settings-grid">
@@ -42,6 +44,7 @@ export default async function SettingsPage() {
           </div>
         </div>
       </div>
+      <div className="section-space"><UsageCard rows={usage} isAnonymous={user.isAnonymous} /></div>
       <div className="settings-grid section-space">
         <PrivacyCard />
         <div className="card setting-card">

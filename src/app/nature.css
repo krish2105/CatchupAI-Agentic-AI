@@ -743,3 +743,33 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .trail-order { margin: 14px 0 0; font-size: 13px; line-height: 1.6; color: var(--text); }
 .trail-order .label { display: block; margin-bottom: 2px; }
 .legend i.path-solid { width: 18px; height: 0; border-radius: 0; border-top: 2px solid var(--aqua); background: none; }
+
+/* ---------- Landing refresh ---------- */
+.lp .photo-hero { margin-bottom: 18px; }
+.lp-features { margin-top: 28px; }
+.lp-features h2 { font-family: var(--font-serif), Georgia, serif; font-size: clamp(26px, 3vw, 34px); font-weight: 600; letter-spacing: -0.02em; color: var(--heading); margin: 0 0 14px; }
+.lp-features ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+.lp-features li { position: relative; padding: 20px; display: grid; gap: 8px; align-content: start; }
+.lp-features li .nf-stat-icon { position: static; }
+.lp-features h3 { margin: 4px 0 0; font-size: 16px; color: var(--heading); }
+.lp-features p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
+.lp-trust { display: flex; gap: 12px; align-items: flex-start; margin: 22px 0 8px; padding: 16px 18px; border-radius: 18px; border: 1px solid var(--stroke); background: var(--surface2); }
+.lp-trust .ic { width: 22px; height: 22px; color: var(--accent); flex: none; margin-top: 2px; }
+.lp-trust p { margin: 0; font-size: 14px; line-height: 1.6; color: var(--text); }
+.lp-trust a { color: var(--accent); font-weight: 700; }
+@media (max-width: 1000px) { .lp-features ul { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .lp-features ul { grid-template-columns: 1fr; } }
+
+/* ---------- Usage and limits ---------- */
+.usage-card h3 { display: flex; gap: 8px; align-items: center; }
+.usage-card h3 .ic { width: 17px; height: 17px; color: var(--accent); }
+.usage-card > p { margin: 0 0 10px; font-size: 13.5px; }
+.usage-card ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.usage-card li { display: grid; grid-template-columns: 180px minmax(0, 1fr) auto; gap: 12px; align-items: center; font-size: 13.5px; }
+.usage-label { color: var(--heading); font-weight: 700; }
+.usage-bar { height: 8px; border-radius: 999px; background: var(--surface3); overflow: hidden; }
+.usage-bar span { display: block; height: 100%; border-radius: inherit; background: var(--chart-1); }
+.usage-bar span.high { background: var(--gold); }
+.usage-num { font-variant-numeric: tabular-nums; color: var(--text); white-space: nowrap; }
+.usage-num small { color: var(--muted); margin-left: 4px; }
+@media (max-width: 620px) { .usage-card li { grid-template-columns: 1fr auto; } .usage-bar { grid-column: 1 / -1; grid-row: 2; } }

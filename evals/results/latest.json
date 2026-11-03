@@ -1,6 +1,6 @@
 {
   "meta": {
-    "ranAt": "2026-11-03T19:22:52.286Z",
+    "ranAt": "2026-11-03T20:09:20.870Z",
     "retrievalMode": "lexical only (no OPENAI_API_KEY)",
     "agentModel": "not configured — tool-selection cases skipped",
     "totals": {
@@ -54,7 +54,7 @@
       "name": "\"What does a residual mean?\" → module4.pdf p. 2",
       "status": "pass",
       "detail": "top citation module4.pdf p.2",
-      "ms": 3
+      "ms": 4
     },
     {
       "id": "R2",
@@ -70,7 +70,7 @@
       "name": "\"does correlation prove causation\" → module4.pdf p. 3",
       "status": "pass",
       "detail": "top citation module4.pdf p.3",
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "R4",
@@ -78,7 +78,7 @@
       "name": "\"risks of extrapolating outside the observed range\" → module4.pdf p. 3",
       "status": "pass",
       "detail": "top citation module4.pdf p.3",
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "R5",
@@ -86,7 +86,7 @@
       "name": "\"practice task with hours studied and quiz score\" → module4.pdf p. 4",
       "status": "pass",
       "detail": "top citation module4.pdf p.4",
-      "ms": 2
+      "ms": 3
     },
     {
       "id": "R6",
@@ -102,7 +102,7 @@
       "name": "\"photosynthesis chlorophyll mitochondria\" → abstain",
       "status": "pass",
       "detail": "abstained (no supporting evidence)",
-      "ms": 2
+      "ms": 4
     },
     {
       "id": "R8",
@@ -222,7 +222,7 @@
       "name": "approve creates a plan with the proposed blocks",
       "status": "pass",
       "detail": "3 blocks saved",
-      "ms": 15
+      "ms": 18
     },
     {
       "id": "A2",
@@ -230,7 +230,7 @@
       "name": "10 concurrent approvals create exactly one plan",
       "status": "pass",
       "detail": "1 plan, 9 idempotent replays",
-      "ms": 18
+      "ms": 20
     },
     {
       "id": "A3",
@@ -246,7 +246,7 @@
       "name": "stale proposal (inputs changed) is refused",
       "status": "pass",
       "detail": "409 stale",
-      "ms": 40
+      "ms": 35
     },
     {
       "id": "A5",
@@ -254,7 +254,7 @@
       "name": "infeasible proposal is refused",
       "status": "pass",
       "detail": "409 infeasible (short 2890 min)",
-      "ms": 17
+      "ms": 11
     },
     {
       "id": "X1",

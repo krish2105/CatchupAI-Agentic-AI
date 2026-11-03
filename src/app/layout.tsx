@@ -10,6 +10,8 @@ const fraunces = Fraunces({ subsets: ["latin"], variable: "--font-fraunces", dis
 export const metadata: Metadata = {
   title: { default: "CatchUp AI", template: "%s · CatchUp AI" },
   description: "Evidence-grounded, feasibility-aware, approval-gated learning recovery.",
+  icons: { icon: [{ url: "/icon.svg", type: "image/svg+xml" }, { url: "/icon-192.png", sizes: "192x192" }], apple: "/apple-touch-icon.png" },
+  appleWebApp: { capable: true, title: "CatchUp AI", statusBarStyle: "default" },
 };
 
 export const viewport: Viewport = {
