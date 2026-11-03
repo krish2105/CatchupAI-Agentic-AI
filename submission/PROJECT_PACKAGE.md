@@ -42,7 +42,7 @@ flowchart LR
 ## 4. Evaluation summary (real counts)
 | Suite | Result |
 | --- | --- |
-| Unit / integration / E2E (production build) | 100 / 99 / 65 passed |
+| Unit / integration / E2E (production build) | 103 / 99 / 65 passed |
 | Agent eval (38 cases) | 30 passed · 0 failed · **8 skipped (live model not configured)** |
 | RAG eval (18 questions, synthetic) | Recall@3 90.9%, abstention 4/4, cross-user 0 leaks, deleted docs 0 results; 2 documented misses |
 | Claim checker (24 labelled claims) | precision 0.938, recall 1.0 |
