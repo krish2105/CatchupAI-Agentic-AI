@@ -9,9 +9,8 @@ export default function ThemeButton() {
   const next = resolvedTheme === "dark" ? "light" : "dark";
   const Icon = resolvedTheme === "dark" ? Sun : Moon;
   return (
-    <button type="button" className="theme-btn" onClick={() => setPreferences({ theme: next })} aria-label={`Switch to ${next} theme`}>
+    <button type="button" className="icon-btn theme-icon-btn" onClick={() => setPreferences({ theme: next })} aria-label={`Switch to ${next} theme`} title={`Switch to ${next} theme`}>
       <Icon className="ic" aria-hidden="true" />
-      <span>{resolvedTheme === "dark" ? "Light mode" : "Dark mode"}</span>
     </button>
   );
 }

@@ -2,13 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, Search, X } from "lucide-react";
+import { CalendarDays, House, Menu, MoreHorizontal, Orbit, Search, Sparkles, X } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { APP_ROUTES, routeForPath } from "@/lib/nav/routes";
 import PineRidge from "@/components/nature/pine-ridge";
 import Brand from "./brand";
 import CommandPalette from "./command-palette";
+import NotificationBell from "./notification-bell";
 import ThemeButton from "./theme-button";
+import type { Notice } from "@/lib/db/notifications";
 
 export type ShellUser = { displayName: string; email: string; isAnonymous?: boolean };
 export type ShellMilestone = { completed: number; total: number } | null;
@@ -44,13 +46,22 @@ function MilestoneBrief({ milestone }: { milestone: ShellMilestone }) {
   );
 }
 
+const BOTTOM_NAV = [
+  { href: "/dashboard", label: "Home", icon: House },
+  { href: "/universe", label: "Universe", icon: Orbit },
+  { href: "/assistant", label: "Copilot", icon: Sparkles },
+  { href: "/planner", label: "Plan", icon: CalendarDays },
+];
+
 export default function AppShell({
   user,
   milestone,
+  notices = [],
   children,
 }: {
   user: ShellUser | null;
   milestone: ShellMilestone;
+  notices?: Notice[];
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
@@ -162,6 +173,7 @@ export default function AppShell({
             <button type="button" className="search-pill" onClick={() => window.dispatchEvent(new Event("catchup:command-palette"))} aria-label="Search or run a command (Control or Command K)">
               <Search className="ic" aria-hidden="true" /> <span>Search or run a command</span> <kbd>⌘K</kbd>
             </button>
+            <NotificationBell notices={notices} />
             <ThemeButton />
             {user ? (
               <Link href="/settings" className="top-avatar" aria-label={`Account settings for ${user.displayName || user.email}`}>
@@ -184,6 +196,21 @@ export default function AppShell({
             {children}
           </div>
         </main>
+        <nav className="bottom-nav" aria-label="Quick navigation">
+          {BOTTOM_NAV.map((item) => {
+            const active = route?.href === item.href;
+            return (
+              <Link key={item.href} href={item.href} aria-current={active ? "page" : undefined} className={active ? "active" : undefined}>
+                <item.icon className="ic" aria-hidden="true" />
+                <span>{item.label}</span>
+              </Link>
+            );
+          })}
+          <button type="button" onClick={() => setOpen(true)} aria-controls="sidebar" aria-expanded={open}>
+            <MoreHorizontal className="ic" aria-hidden="true" />
+            <span>More</span>
+          </button>
+        </nav>
       </div>
     </div>
   );

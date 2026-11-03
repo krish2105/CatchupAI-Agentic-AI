@@ -26,10 +26,9 @@ export default async function RecoveryPage({ searchParams }: { searchParams: Pro
   return (
     <>
       <PageHeading
-        eyebrow="Recovery intelligence engine"
-        title="There is more than"
-        accent="one way forward."
-        description="Three recovery routes calculated deterministically from your deadlines, estimates and availability. Infeasible routes are flagged and cannot be approved."
+        eyebrow="Realistic study planning"
+        title="There is more than one way forward."
+        description="Compare the time, trade-offs, and consequences before committing. Routes are calculated from your real deadlines and availability; ones that don't fit can't be approved."
         actions={<ButtonLink href="/assistant" small><Sparkles className="ic" aria-hidden="true" /> Ask copilot</ButtonLink>}
       />
       {hasWork ? (

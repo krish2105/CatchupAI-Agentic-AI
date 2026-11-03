@@ -12,7 +12,7 @@ export default function RouteTimeline({ tasks, items, timezone, start }: { tasks
     const k = key(at);
     return {
       k,
-      label: new Intl.DateTimeFormat("en-GB", { timeZone: timezone, weekday: "narrow" }).format(new Date(at)),
+      label: new Intl.DateTimeFormat("en-GB", { timeZone: timezone, weekday: "short" }).format(new Date(at)),
       full: new Intl.DateTimeFormat("en-GB", { timeZone: timezone, weekday: "long", day: "numeric", month: "short" }).format(new Date(at)),
       minutes: tasks.filter((t) => key(t.startsAt) === k).reduce((s, t) => s + t.minutes, 0),
       due: items.filter((it) => it.deadline && key(it.deadline) === k),
@@ -25,7 +25,7 @@ export default function RouteTimeline({ tasks, items, timezone, start }: { tasks
       {days.map((d) => (
         <div key={d.k} className="rt-day" title={`${d.full} · ${formatMinutes(d.minutes)}`}>
           <div className="rt-track">
-            <span className="rt-bar" style={{ height: `${(d.minutes / max) * 100}%` }} />
+            <span className={`rt-bar${d.due.some((x) => x.status === "unscheduled") ? " short" : d.due.some((x) => x.status !== "scheduled") ? " tight" : ""}`} style={{ height: `${(d.minutes / max) * 100}%` }} />
           </div>
           <span className="rt-label">{d.label}</span>
           <span className="rt-due">

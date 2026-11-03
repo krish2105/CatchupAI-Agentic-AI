@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ArrowRight, CheckCircle2, CircleDashed, CircleSlash, Save } from "lucide-react";
+import { AlertTriangle, ArrowRight, CalendarDays, Check, CheckCircle2, CircleDashed, CircleSlash, Leaf, Save, Target } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
@@ -11,7 +11,7 @@ import { formatDateTime, formatMinutes } from "@/lib/time";
 import ApprovalDialog from "./approval-dialog";
 import RouteTimeline from "./route-timeline";
 
-const BAR = { essential: "var(--aqua)", balanced: "var(--violet)", full: "var(--coral)" } as const;
+const ICON = { essential: Leaf, balanced: CalendarDays, full: Target } as const;
 
 export default function RecoveryLab({
   initialProposal = null,
@@ -151,23 +151,34 @@ export default function RecoveryLab({
             aria-pressed={s.key === selected}
             onClick={() => setSelected(s.key)}
           >
-            <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-              {s.requiredMinutes === 0 ? <Chip>Nothing to plan</Chip> : s.feasible ? <Chip tone="good">Fits your time</Chip> : <Chip tone="warn">Short by {formatMinutes(s.shortfallMinutes)}</Chip>}
-              {s.key === recommended ? <Chip>Recommended</Chip> : null}
+            <span className="scenario-head">
+              <span className={`scenario-icon ${s.key}`} aria-hidden="true">{(() => { const Icon = ICON[s.key]; return <Icon className="ic" />; })()}</span>
+              {s.key === recommended ? <Chip tone="good">Recommended</Chip> : null}
             </span>
-            <div className="scenario-title">{s.title}</div>
-            <div className="scenario-sub">{s.description}</div>
-            <div className="scenario-number">{s.coveragePercent}% <small>of the work fits</small></div>
-            <div className="scenario-bar" aria-hidden="true"><span style={{ width: `${s.coveragePercent}%`, background: BAR[s.key] }} /></div>
-            <div className="scenario-meta">{formatMinutes(s.scheduledMinutes)} scheduled of {formatMinutes(s.requiredMinutes)} needed · {s.items.length} item{s.items.length === 1 ? "" : "s"}{s.tasks.length ? ` · ≈${formatMinutes(perStudyDay(s.tasks))} per study day` : ""}</div>
+            <span className="scenario-title">{s.title}</span>
+            <span className={`scenario-status ${s.requiredMinutes === 0 ? "" : s.feasible ? "ok" : "short"}`}>
+              {s.requiredMinutes === 0 ? "Nothing to plan" : s.feasible ? "Fits your time" : `Short by ${formatMinutes(s.shortfallMinutes)}`}
+            </span>
+            <span className={`scenario-number ${s.feasible ? "ok" : s.coveragePercent >= 60 ? "tight" : "short"}`}>{s.coveragePercent}%</span>
+            <span className="scenario-meta">
+              {s.feasible ? `${formatMinutes(s.scheduledMinutes)} of ${formatMinutes(s.requiredMinutes)}` : `${formatMinutes(s.requiredMinutes)} required`} · {s.items.length} item{s.items.length === 1 ? "" : "s"}
+              {s.tasks.length ? ` · ≈${formatMinutes(perStudyDay(s.tasks))} per study day` : ""}
+            </span>
             <RouteTimeline tasks={s.tasks} items={s.items} timezone={plan.timezone} start={plan.horizon.start} />
+            <span className="scenario-sub">{s.description}</span>
           </button>
         ))}
       </div>
 
       <div className="lab-footer">
         <div className="card task-list">
-          <div className="split-head"><h3>{scenario.title}</h3><Chip>Draft · not saved</Chip></div>
+          <div className="split-head"><h3>Exact changes before approval</h3><Chip>Draft · not saved</Chip></div>
+          <ul className="exact-changes" aria-label="Exact changes before approval">
+            <li><span className="ec add" aria-hidden="true">+</span><strong>{scenario.tasks.length} study block{scenario.tasks.length === 1 ? "" : "s"}</strong><span>will be added ({formatMinutes(scenario.scheduledMinutes)})</span></li>
+            <li><span className="ec remove" aria-hidden="true">−</span><strong>{currentPlan?.todo ?? 0} unfinished block{currentPlan?.todo === 1 ? "" : "s"}</strong><span>{currentPlan?.todo ? "of your current plan will be replaced" : "will be removed"}</span></li>
+            <li><span className="ec keep" aria-hidden="true"><Check className="ic" /></span><strong>{currentPlan?.completed ?? 0} completed block{currentPlan?.completed === 1 ? "" : "s"}</strong><span>stay in your history</span></li>
+          </ul>
+          <h4 className="route-items-head">{scenario.title}: what gets scheduled</h4>
           {scenario.items.length === 0 ? (
             <p className="muted" style={{ fontSize: 12 }}>Add upcoming assignments in the knowledge vault to plan a route.</p>
           ) : (
@@ -196,7 +207,7 @@ export default function RecoveryLab({
           {error ? <div style={{ marginTop: 12 }}><Notice tone="danger" title={error} /></div> : null}
           <div className="gallery-meta">
             <span className="muted" style={{ fontSize: 11 }}>
-              {whatIf ? "Save the what-if availability to approve with it." : scenario.feasible ? "Feasible with your saved availability." : "Infeasible routes can't be approved."}
+              {whatIf ? "Save the what-if availability to approve with it." : scenario.feasible ? "Nothing is saved until you approve." : "Infeasible routes can't be approved."}
             </span>
             <button type="button" className="btn primary" onClick={review} disabled={!scenario.feasible || whatIf || loading || drafting}>
               {drafting ? <span className="spinner" aria-hidden="true" /> : null} Review and approve <ArrowRight className="ic" aria-hidden="true" />
