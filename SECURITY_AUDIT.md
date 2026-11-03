@@ -36,4 +36,4 @@ Fixed earlier in this build (recorded in BUILD_STATUS): rejected/rotated session
 - `style-src 'unsafe-inline'` (inline style attributes throughout the UI); scripts remain nonce-only.
 - Signed source links are bearer URLs for 120 s.
 - No global (cross-user) spend cap in the app: rely on the OpenAI project's monthly limit.
-- Anonymous sign-in remains enabled for the demo; Turnstile is required in production (`npm run preflight -- --production`).
+- Anonymous sign-in remains enabled for the demo, now behind Turnstile CAPTCHA (enabled in production 2026-11-04) plus the smaller demo budgets.

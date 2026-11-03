@@ -55,7 +55,7 @@
 | Weekly review + reflection | Done: week stats, deterministic next steps, saved reflection per week (RLS) | unit 4 + integration 2 + E2E 1 |
 | Learning trail (prerequisites) | Done: student-confirmed links, loops refused, 3D arcs, study order | unit 2 + integration 2 + E2E 1 |
 | PWA, usage card, landing refresh, CI action bump | Done: manifest + icons, usage vs limits in Preferences, panorama landing with features + security strip | E2E 2 |
-| Deployment | **Live** at https://catchupai-chi.vercel.app (Vercel `catchupai`, Supabase `keczcmggohfmgyjsdevk`, Seoul). 12 migrations pushed; auth URLs + anonymous sign-ins set; demo verified live. Pending (needs your accounts): custom SMTP (Resend), Turnstile CAPTCHA, OpenAI key | live smoke test |
+| Deployment | **Live** at https://catchupai-chi.vercel.app (Vercel `catchupai`, Supabase `keczcmggohfmgyjsdevk`, Seoul). 12 migrations pushed; auth URLs + anonymous sign-ins set; demo verified live. Custom SMTP (Gmail) + 6-digit code template + Turnstile CAPTCHA enabled. Pending: OpenAI key | live smoke test |
 | Submission | Not performed (Nas.io / LinkedIn are yours to submit) | — |
 
 ## M0 audit findings
@@ -194,4 +194,6 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-04 | Deploy | `supabase link` + `supabase db push` (12 migrations) to keczcmggohfmgyjsdevk; auth config via Management API (site URL, redirects, anonymous sign-ins, 6-digit OTP, 15 min); custom email templates refused on free tier without SMTP → `/auth/confirm` now accepts the default PKCE `?code=` link | PASS | SMTP for templates |
 | 2026-11-04 | Deploy | Vercel production env set via CLI (values piped, never printed). First live demo failed: `projects api-keys` returns the secret key masked unless `--reveal` → re-set with the revealed key, redeployed | PASS | — |
 | 2026-11-04 | Deploy | Live smoke test: `/api/health` ok, nonce CSP header present, Try the demo → seeded dashboard + guided tour, Knowledge vault 1/1 indexed, Recovery Lab routes computed | PASS | Turnstile, SMTP, OpenAI |
+| 2026-11-04 | Deploy | `scripts/configure-production-auth.py` (keys typed hidden by the owner): Turnstile site key on Vercel (config) + redeploy; Supabase SMTP smtp.gmail.com, sender set, email rate limit 30/h, 6-digit template, CAPTCHA turnstile. Verified via Management API (secrets present, not read back) | PASS | — |
+| 2026-11-04 | Deploy | Live: Turnstile script loads under the nonce CSP, a test-key render returns a token, both login widgets render; demo/sign-in buttons stay disabled until a token exists. Human completion of the challenge not performed by the agent | PASS (partial) | owner to click through once |
 

@@ -2,14 +2,14 @@
 
 _Re-assessed 2026-11-04 after the feature batch (calendar export, guided tour, trust drawer, weekly review, learning trail, PWA) and the security pass. Scores judge what is verifiable today, not what the code could do._
 
-## Where it stands: **90 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90, live deployment)
+## Where it stands: **91 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91: live, with email and bot protection)
 
 | Lens | Score | What earns points | What costs points |
 | --- | --- | --- | --- |
 | **CEO** (problem, story, market) | 79 | Missed-lecture recovery is a gap competitors leave open; guided demo tells the story in 3 minutes; calendar sync makes plans real | No users, pricing or outcome evidence |
-| **CTO** (architecture, security) | 91 | RLS + composite keys everywhere, idempotent approval RPC, nonce CSP, Origin checks, rate-limit allowlist, CI on every push (unit → integration → E2E → eval) | No error monitoring; not yet proven on hosted infrastructure |
+| **CTO** (architecture, security) | 92 | RLS + composite keys everywhere, idempotent approval RPC, nonce CSP, Origin checks, rate-limit allowlist, CI on every push (unit → integration → E2E → eval) | No error monitoring; not yet proven on hosted infrastructure |
 | **Senior PM** (scope, UX) | 90 | Ten reference-matched screens, light/forest-night themes, mobile bottom nav, every P0 and P1 feature shipped and tested | Volunteer usability evidence missing |
-| **COO** (operability) | 76 | Live on Vercel + Supabase (Seoul), CI, preflight, deployment guide, demo cleanup cron, usage/limit visibility, health check | Custom SMTP and Turnstile not configured yet; no alerting |
+| **COO** (operability) | 84 | Live on Vercel + Supabase (Seoul) with custom SMTP, 6-digit code emails, Turnstile CAPTCHA, CI, demo cleanup cron, usage/limit visibility, health check | No error alerting; Gmail SMTP caps ~500 mails/day |
 | **AI engineer** | 75 | Typed tools, structured output, budgets, scripted-model tests | **No live model run yet** (latency, cost, quality unmeasured) |
 | **Agentic AI engineer** | 85 | Scoped tools, persisted traces, propose → human approve, replanner, trust drawer showing exactly which tools ran | Tool-selection eval cases need a real LLM |
 | **RAG specialist** | 74 | Hybrid retrieval with RRF, page citations, abstention, eval-driven recall fix, citations in teach-back/rubric/trust drawer | Embeddings unused without a key; no claim-to-citation faithfulness metric |
@@ -35,12 +35,12 @@ _Re-assessed 2026-11-04 after the feature batch (calendar export, guided tour, t
 
 | # | Work | Gain | Who |
 | --- | --- | --- | --- |
-| 1 | ~~Go live~~ (done: https://catchupai-chi.vercel.app) · finish with Resend SMTP + Turnstile | +4 earned, +1 left | You create the accounts |
+| 1 | ~~Go live, SMTP, Turnstile~~ (done: https://catchupai-chi.vercel.app) | +5 earned | — |
 | 2 | **Live agent**: OpenAI key → live runs, embeddings, eval T1–T5, latency/cost recorded | +4 | You add the key |
 | 3 | **Evidence**: 3–5 volunteer tests, 3–4 minute demo video, LinkedIn post | +3 | You (scripts ready) |
 | 4 | Error monitoring (e.g. Sentry free tier) | +1 | You create the account; I wire it |
 
-90 + 9 = **99 possible**; **95 needs the OpenAI key (#2) and the demo video + volunteer tests (#3)**.
+91 + 8 = **99 possible**; **95 needs the OpenAI key (#2) and the demo video + volunteer tests (#3)**.
 
 ## Research notes
 - Agentic-AI hackathon rubrics reward a **working, deployable demo**, technical depth, usefulness and presentation ([NANDA Hack](https://nandahack.media.mit.edu/), [GOSIM Paris](https://luma.com/6wdrnx9j), [FAU](https://www.fau.edu/engineering/pdf/agentic-ai-hackathon.pdf), [AngelHack](https://angelhack.com/blog/ai-agent-hackathon/)).
