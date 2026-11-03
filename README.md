@@ -1,8 +1,27 @@
-# CatchUp AI · Orbital Atelier
+<div align="center">
 
-**Evidence-grounded, feasibility-aware, approval-gated learning recovery.** A student who has fallen behind uploads their course PDFs and deadlines. CatchUp AI compares three honest recovery routes against the time they actually have, cites the exact pages behind its advice, and saves a plan only after the student approves it.
+# CatchUp AI
+
+### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
+
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-148%20passing-2ea44f)
+
+</div>
+
+A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI** checks whether the work can actually fit before each deadline, compares three honest recovery routes, cites the exact pages behind its advice, and saves a plan **only after the student approves it**.
 
 > Built for the Decoding Data Science "Building Agentic AI Applications" challenge (Nov 2026). All demo data is synthetic.
+
+![Mission control](docs/screenshots/dashboard-light.png)
+
+## Why it is different
+
+| Typical "AI study buddy" | CatchUp AI |
+| --- | --- |
+| Chatbot guesses a timetable | A deterministic planner computes availability per local day and reports any **shortfall in minutes** |
+| Answers from general knowledge | Answers cite **your uploaded pages**, or say "I couldn't verify that" |
+| AI writes to your data | The agent only **drafts**; approval is a separate locked, idempotent transaction |
+| "The agent did things" | A **real tool timeline**, recorded inside each tool and persisted per run |
 
 ## What works today (verified locally)
 
@@ -21,7 +40,37 @@
 
 See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` for the test evidence.
 
+## Screenshots
+
+| Recovery lab: three honest routes | Approval gate: nothing saved until you approve |
+| --- | --- |
+| ![Recovery lab](docs/screenshots/recovery-lab-dark.png) | ![Approval gate](docs/screenshots/approval-gate-light.png) |
+| **AI copilot: real tool timeline and page citations** | **Study schedule from the approved plan** |
+| ![Copilot](docs/screenshots/copilot-light.png) | ![Planner](docs/screenshots/planner-dark.png) |
+| **Knowledge vault: page-cited evidence search** | **3D learning universe from your courses** |
+| ![Knowledge vault](docs/screenshots/knowledge-vault-dark.png) | ![Universe](docs/screenshots/universe-dark.png) |
+
+<img src="docs/screenshots/mobile-dashboard-light.png" alt="Mobile dashboard" width="260" />
+
+*Screenshots come from the real app running on local Supabase. The copilot screenshot was produced with the deterministic test model (labelled "Scripted test model · not AI" in the UI) because no OpenAI key was configured; tools, retrieval, citations and the approval flow are the real implementation.*
+
 ## Architecture
+
+```mermaid
+flowchart LR
+  U[Student browser<br/>Next.js App Router · R3F 3D + DOM fallback] -->|cookie session · SSE| API[Route Handlers<br/>Zod · rate limits · structured errors]
+  API --> RAG[Document pipeline<br/>PDF validation → page chunks → hybrid search]
+  API --> PLAN[Deterministic planner<br/>EDF · 3 scenarios · shortfall]
+  API --> AGENT[LearningRecoveryAgent<br/>5 permission-checked tools]
+  AGENT --> RAG
+  AGENT --> PLAN
+  AGENT -->|draft only| PROP[(Pending proposal)]
+  U -->|explicit approval| APPROVE[approve_proposal RPC<br/>row lock · idempotent]
+  APPROVE --> DB[(Supabase Postgres + RLS<br/>private Storage · pgvector)]
+  RAG --> DB
+  PLAN --> DB
+  AGENT -. model + embeddings .-> OAI[OpenAI]
+```
 
 ```text
 Browser (Next.js App Router · React 19 · R3F v9 scene + DOM fallback)
