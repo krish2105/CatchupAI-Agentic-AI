@@ -8,6 +8,8 @@ import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import type { RevisionItem, TopicProgress } from "@/lib/quiz/revision";
 import type { PublicQuestion, QuizResult, QuizSummary } from "@/lib/quiz/service";
+import type { TeachAttempt } from "@/lib/teach/service";
+import TeachBack from "./teach-back";
 
 type ActiveQuiz = { id: string; title: string; topic: string; questions: PublicQuestion[] };
 const LETTERS = ["A", "B", "C", "D"];
@@ -113,11 +115,13 @@ export default function PracticeArena({
   quizzes,
   revision,
   progress,
+  teachHistory = [],
 }: {
   courses: { id: string; title: string; ready: boolean }[];
   quizzes: QuizSummary[];
   revision: RevisionItem[];
   progress: TopicProgress[];
+  teachHistory?: TeachAttempt[];
 }) {
   const router = useRouter();
   const usable = courses.filter((c) => c.ready);
@@ -228,6 +232,7 @@ export default function PracticeArena({
         )}
       </section>
     </div>
+    <TeachBack courses={usable} history={teachHistory} busy={busy} onPractice={retest} />
     <div className="two-column">
       <div className="card card-inner">
         <div className="split-head"><h3>New knowledge check</h3><Chip>From your notes</Chip></div>

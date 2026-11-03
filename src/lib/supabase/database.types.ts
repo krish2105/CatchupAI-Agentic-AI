@@ -696,6 +696,47 @@ export type Database = {
           },
         ]
       }
+      teach_back_attempts: {
+        Row: {
+          concepts: Json
+          course_id: string
+          coverage_percent: number
+          created_at: string
+          explanation: string
+          id: string
+          owner_id: string
+          topic: string
+        }
+        Insert: {
+          concepts: Json
+          course_id: string
+          coverage_percent: number
+          created_at?: string
+          explanation: string
+          id?: string
+          owner_id: string
+          topic: string
+        }
+        Update: {
+          concepts?: Json
+          course_id?: string
+          coverage_percent?: number
+          created_at?: string
+          explanation?: string
+          id?: string
+          owner_id?: string
+          topic?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teach_back_attempts_course_id_owner_id_fkey"
+            columns: ["course_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never

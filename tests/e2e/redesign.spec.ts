@@ -220,3 +220,33 @@ test("smart replanner counts completed blocks and offers a replan after a missed
     await s.cleanup();
   }
 });
+
+test("teach-it-back checks an explanation against cited pages and starts a targeted retest", async ({ browser }) => {
+  test.setTimeout(90_000);
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
+    await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
+    await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
+    await expect(s.page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
+
+    await s.page.goto("/quizzes");
+    await s.page.waitForLoadState("networkidle");
+    await s.page.getByLabel("Topic to explain").fill("residuals");
+    await s.page.getByLabel("Your explanation").fill("A residual is the observed value minus the predicted value. Large residuals mean the model fits that point poorly, and least squares makes the squared residuals as small as possible overall.");
+    await s.page.getByRole("button", { name: "Check my explanation" }).click();
+
+    const feedback = s.page.getByLabel("Teach-back feedback");
+    await expect(feedback).toContainText(/% of key concepts/);
+    const concepts = feedback.getByRole("list", { name: "Key concepts from your notes" });
+    await expect(concepts.getByRole("link", { name: /module_4\.pdf · p\. \d/ }).first()).toBeVisible();
+    await expect(s.page.getByRole("list", { name: "Recent explanations" })).toContainText("residuals");
+
+    // This short explanation leaves concepts out, so a targeted retest on exactly those is offered.
+    await feedback.getByRole("button", { name: /Practise \d missing/ }).click();
+    await expect(s.page.getByText(/Review:/).first()).toBeVisible({ timeout: 15_000 });
+  } finally {
+    await s.cleanup();
+  }
+});

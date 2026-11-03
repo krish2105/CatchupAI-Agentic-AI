@@ -86,3 +86,7 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-047** One-click demo = Supabase anonymous sign-in + server seed through the visitor's own RLS client (admin only inside ingestion). Protected by Turnstile when configured (Supabase verifies the token for all sign-in methods), deleted after 24 h by a CRON_SECRET-protected job.
 - **ADR-048** Evaluation runs the real system (local Supabase + deterministic engine). Cases needing an LLM are reported as skipped, never simulated. Retrieval evidence now includes query-term coverage after the eval exposed rank-only false abstentions.
 
+## 2026-11-04: Replanning and Teach-It-Back
+- **ADR-049** Replans subtract completed study-block minutes per assignment (from any plan, including superseded ones) so approved replans never reschedule finished work; missed blocks are surfaced, never auto-moved.
+- **ADR-050** Teach-It-Back is deterministic: key concepts are recurring terms in the body sentences of evidence-filtered passages; feedback names covered/missing concepts with page citations and abstains without evidence. Attempts are server-written (students can read/delete only) so coverage can't be forged. An LLM may later phrase feedback but never decides coverage.
+

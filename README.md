@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-180%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-189%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-25%2F30%20pass%2C%205%20pending%20LLM-2ea44f)
 
 </div>
 
@@ -38,6 +38,8 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
 | Spaced revision (1/3/7/14 days from missed concepts), adaptive retests, baseline vs latest per topic | ✅ |
+| Teach-It-Back: explain a topic, get concept-by-concept feedback cited to your own pages, retest what you missed | ✅ |
+| Smart replanner: completed work counted, missed sessions rescheduled from now, approval required | ✅ |
 | One-click judge demo (anonymous account + synthetic data, Turnstile-ready, 24 h cleanup) | ✅ |
 | 30-case evaluation (`npm run eval` → `evals/REPORT.md`) | ✅ 25 pass · 0 fail · 5 tool-selection cases pending a real LLM |
 | Light / dark / system themes, reduced motion, 3D on/off, no-WebGL fallback, keyboard + screen-reader paths | ✅ |

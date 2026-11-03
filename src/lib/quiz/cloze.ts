@@ -21,7 +21,7 @@ const STOPWORDS = new Set(
 );
 
 /** Sentences from body text: heading lines ("·" separators, "PAGE n") are removed, wrapped lines re-joined. */
-function sentences(text: string): string[] {
+export function sentences(text: string): string[] {
   return text
     .split(/\n+/)
     .filter((line) => !/·|\bPAGE \d/i.test(line))
@@ -32,7 +32,7 @@ function sentences(text: string): string[] {
     .filter((s) => s.length >= 50 && s.length <= 260 && /^[A-Z]/.test(s) && /[.!?]$/.test(s));
 }
 
-function terms(text: string): string[] {
+export function terms(text: string): string[] {
   return (text.match(/\b[A-Za-z][A-Za-z_-]{4,}\b/g) ?? []).map((t) => t.toLowerCase()).filter((t) => !STOPWORDS.has(t));
 }
 

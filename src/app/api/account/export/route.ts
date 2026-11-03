@@ -15,6 +15,7 @@ const TABLES = [
   ["quizzes", "quizzes", "id, course_id, title, topic, questions, created_at"],
   ["quizAttempts", "quiz_attempts", "id, quiz_id, answers, results, score_percent, created_at"],
   ["focusSessions", "focus_sessions", "id, task_id, planned_minutes, focused_minutes, started_at, ended_at, completed"],
+  ["teachBackAttempts", "teach_back_attempts", "id, course_id, topic, explanation, coverage_percent, concepts, created_at"],
 ] as const;
 
 /** Data portability: everything stored about the signed-in student, read under their own RLS scope. */

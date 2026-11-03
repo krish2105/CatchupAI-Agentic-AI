@@ -2,7 +2,7 @@
 
 _Re-assessed 2026-11-03 after Nature Flow 3.0, the smart replanner and focus session recovery. Scores judge what is verifiable today, not what the code could do._
 
-## Where it stands: **76 / 100** (was 72)
+## Where it stands: **78 / 100** (was 72, then 76)
 
 | Lens | Score | What earns points | What costs points |
 | --- | --- | --- | --- |
@@ -13,7 +13,7 @@ _Re-assessed 2026-11-03 after Nature Flow 3.0, the smart replanner and focus ses
 | **AI engineer** | 74 | Typed tools, structured output, scripted-model tests, budgets | **No live model run yet** |
 | **Agentic AI engineer** | 80 | Five scoped tools, persisted traces, propose → human approve; replans never apply without approval | Tool-selection eval cases still need a real LLM |
 | **RAG specialist** | 72 | Hybrid lexical + vector with RRF, page citations, abstention, eval-driven recall fix | Embeddings unused without a key; no claim-to-citation check |
-| **Learning scientist** | 78 | Spaced revision (1/3/7/14), adaptive retests, baseline vs latest, focus tracking | No explain-it-back (generation effect); no reflection loop |
+| **Learning scientist** | 84 | Spaced revision, adaptive retests, baseline vs latest, focus tracking, Teach-It-Back (self-explanation with cited feedback) | No reflection loop yet |
 | **Competition judge** | 70 | Real working software with security tests and honest README | No live URL, no demo video, no user feedback |
 
 ## Feature audit (enhancement brief)
@@ -21,7 +21,7 @@ _Re-assessed 2026-11-03 after Nature Flow 3.0, the smart replanner and focus ses
 | # | Feature | Status | Notes |
 | --- | --- | --- | --- |
 | P0-1 | Smart Recovery Replanner | **Done (tested)** | Completed block minutes are subtracted; missed blocks surface on Mission Control and the bell; replan goes through the same approval |
-| P0-2 | Teach-It-Back | Missing | Achievable: compare the student's explanation with the key terms of retrieved passages (deterministic), cite pages, then an adaptive retest on missed concepts. LLM only phrases feedback |
+| P0-2 | Teach-It-Back | **Done (tested)** | Deterministic concept check against retrieved passages, page citations, abstention without evidence, server-owned attempts, targeted retest |
 | P0-3 | Assignment Rubric Decoder | Partial | Syllabus import already extracts dates; criteria/weights/word-count extraction with confirmation is the extension |
 | P0-4 | Interactive What-If Planning | **Done** | Recovery Lab slider recomputes server-side with the deterministic engine; save-this-availability |
 | P1-5 | Evidence and Trust Drawer | Partial | Citations, tool events and proposal status exist; needs one drawer with approval history |
@@ -37,13 +37,13 @@ _Re-assessed 2026-11-03 after Nature Flow 3.0, the smart replanner and focus ses
 | --- | --- | --- | --- |
 | 1 | **Go live**: Supabase cloud + Vercel, smoke test, URL in README | +7 | You log in; I do the rest |
 | 2 | **Live agent**: OpenAI key → live copilot runs, embeddings, eval T1–T5, latency/cost per run | +5 | You add the key |
-| 3 | **Teach-It-Back** with cited feedback and a targeted retest | +3 | Me |
+| 3 | ~~Teach-It-Back~~ (done) | +2 earned | — |
 | 4 | **Rubric Decoder** (criteria → editable, source-linked checklist) | +2 | Me |
 | 5 | **Ops**: CSP header, GitHub Actions CI, privacy page | +2 | Me |
 | 6 | **Trust drawer** + calendar (.ics) export | +2 | Me |
 | 7 | **Evidence**: 3–5 volunteer tests, 3–4 minute demo video, LinkedIn post | +3 | You (scripts ready) |
 
-76 + 24 = **100 possible**; **95+ requires #1, #2 and #7**, which depend on your accounts and real people.
+78 + 22 = **100 possible**; **95+ requires #1, #2 and #7**, which depend on your accounts and real people.
 
 ## Research notes
 - Agentic-AI hackathon rubrics reward a **working, deployable demo**, technical depth, usefulness and presentation; some score fabricated tool calls ([NANDA Hack](https://nandahack.media.mit.edu/), [GOSIM Paris](https://luma.com/6wdrnx9j), [FAU](https://www.fau.edu/engineering/pdf/agentic-ai-hackathon.pdf), [AngelHack](https://angelhack.com/blog/ai-agent-hackathon/)).

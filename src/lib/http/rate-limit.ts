@@ -7,6 +7,7 @@ export const LIMITS = {
   upload: { bucket: "upload", limit: 20, windowSeconds: 3600 },
   agent: { bucket: "agent", limit: 30, windowSeconds: 86400 },
   quiz: { bucket: "quiz", limit: 20, windowSeconds: 86400 },
+  teach: { bucket: "teach", limit: 40, windowSeconds: 86400 },
 } as const;
 
 /** Per-student fixed-window limit stored in Postgres (works across serverless instances). */
