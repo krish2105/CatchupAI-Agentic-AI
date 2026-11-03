@@ -23,7 +23,9 @@
 | Deterministic planner (M4) | Done — `src/lib/planner/engine.ts`: tz/DST-safe daily windows, EDF scheduling, ≤90-min blocks + 10-min breaks, 3 nested scenarios, shortfall + capacity-before-deadline, overdue work reported not scheduled | 19 engine unit tests incl. 200 randomized invariant runs |
 | Recovery lab + approval gate | Done — server-computed scenarios, what-if slider (must save before approving), server-created pending proposals (6 h TTL), `approve_proposal` RPC (row lock, idempotent, stale/expired/infeasible refused, deadline check, supersedes old plan), reject | integration (12) + E2E (5) |
 | Study schedule + dashboard outlook | Done — active plan by local day, completion persists, dashboard coverage/trajectory/today's focus from real data | E2E |
-| Agent + tools | Not started | M5 |
+| LearningRecoveryAgent (M5) | Done — OpenAI Agents SDK 0.21 `Runner`, 5 typed tools (`get_study_preferences`, `list_assignments`, `search_course_material`, `get_learning_progress`, `draft_recovery_plan`), trusted context from verified session, ownership check in every tool, search/draft budgets, maxTurns 8, 90 s timeout, structured answer (facts with source ids vs suggestions), unsupported facts removed, failed runs expire drafts | integration 9 + E2E 2 with a scripted model |
+| Real tool timeline + persisted trace | Done — events recorded inside tool wrappers, streamed over SSE, stored in `agent_runs` (privacy-safe args) | E2E reload check |
+| **Live OpenAI agent runs** | **Unverified — no `OPENAI_API_KEY`/`OPENAI_MODEL` provided.** Code path `openAiRuntime()` exists; no live call has been made | needs your key |
 | Universe data / insights / quiz | Not started | M6 |
 | Deployment / submission | Not performed | needs user approval + cloud accounts |
 
@@ -113,4 +115,8 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M4 | `npm run test:integration` | PASS 46/46 (adds: pending server-created proposals, single pending, idempotent approve, 10 concurrent approvals → 1 plan, supersede/cancel, reject → no tasks, expired, stale after edit, infeasible, cross-tenant approve/reject/read, anon RPC denied, task completion vs edit/cancel/other tenant) | — |
 | 2026-11-03 | M4 | `npx playwright test` | 1 FAIL (slider stayed in what-if after save due to per-day rounding) → fixed → PASS 33/33 (adds: lab → approve via double click → 1 plan, reload, complete task persists, dashboard milestone; reject saves nothing; overload shortfall + disabled approve + what-if/save; API 409 infeasible; missing idempotency key 400; cross-tenant proposal 404) | — |
 | 2026-11-03 | M4 | `typecheck` (1 test-helper null check fixed), `lint`, `build` | PASS | — |
+| 2026-11-03 | M5 | `npm run test:integration` | 1 FAIL (agent study item outranked by heuristic review in essential route) → fixed ordering → PASS 55/55 (adds 9 agent tests: five non-committing tools; real tool chain with page-2 citation, unsupported fact removed, untrusted wrapper, pending draft linked to run, no tasks, persisted trace/tokens; forged other-tenant course denied with no leak; uncited draft denied; injection inert; model failure → failed run + expired draft; maxTurns stop; search budget; run privacy) | — |
+| 2026-11-03 | M5 | `npm test` | PASS 43/43 (adds runtime gating: scripted model never with non-local Supabase or without flag; OpenAI needs key+model; answer verification) | — |
+| 2026-11-03 | M5 | `npx playwright test` (now against `next build && next start -p 3100`, `CATCHUP_TEST_MODEL=scripted`) | PASS 35/35 (adds copilot: upload → ask → 4 live tool events → p.2 citation → reload persists → review in lab → approve → planner evidence link; abstain without evidence; forged course 404; invalid body 400) | — |
+| 2026-11-03 | M5 | Browser pane (dev, no key): /assistant shows "AI runtime not configured", composer hidden | PASS | OpenAI key |
 

@@ -13,10 +13,12 @@ import ApprovalDialog from "./approval-dialog";
 const BAR = { essential: "var(--aqua)", balanced: "var(--violet)", full: "var(--coral)" } as const;
 
 export default function RecoveryLab({
+  initialProposal = null,
   initialPlan,
   savedWeekly,
   courseNames,
 }: {
+  initialProposal?: ProposalDto | null;
   initialPlan: ComputedPlan;
   savedWeekly: number[];
   courseNames: Record<string, string>;
@@ -28,7 +30,7 @@ export default function RecoveryLab({
   const [selected, setSelected] = useState<ScenarioKey>(() => initialPlan.scenarios.find((s) => s.feasible)?.key ?? "essential");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [proposal, setProposal] = useState<ProposalDto | null>(null);
+  const [proposal, setProposal] = useState<ProposalDto | null>(initialProposal);
   const [drafting, setDrafting] = useState(false);
   const request = useRef(0);
   const firstRun = useRef(true);

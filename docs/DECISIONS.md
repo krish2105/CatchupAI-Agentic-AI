@@ -58,3 +58,11 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-029** Proposals are server-created from saved data only (what-ifs must be saved first), expire after 6 h, and only one is pending at a time. Approval is a SECURITY DEFINER RPC: row lock, idempotent result, DB-side staleness check (assignment/profile `updated_at` after proposal creation), infeasible refused, assignment deadlines re-checked; constraints enforce ownership and no overlap. Approving supersedes the previous active plan (unfinished tasks cancelled).
 - **ADR-030** Overdue required work is never silently scheduled; it is surfaced with guidance.
 
+## 2026-11-03: Build session M5
+- **ADR-031** One `LearningRecoveryAgent` (Agents SDK `Runner`, custom tracing disabled). Tools receive a server-built `AgentContext` (verified user id, user-scoped client, admin client only inside the draft path); the model never supplies identity.
+- **ADR-032** The timeline comes from events recorded inside our tool wrappers (status completed/denied/failed, duration, privacy-safe args), streamed via SSE and persisted in `agent_runs`; it cannot show a call that did not execute.
+- **ADR-033** Answers use a structured output separating `facts` (each course-material fact must cite source ids retrieved in this run) from `suggestions`; facts citing unknown ids are removed and counted. Retrieved text is passed inside `<source>` tags labelled untrusted.
+- **ADR-034** `draft_recovery_plan` delegates all numbers to the deterministic planner and creates a pending proposal; agent study items need retrieved evidence and rank ahead of generic review items. A failed run expires its draft.
+- **ADR-035** Tests replace only the LLM with a `ScriptedModel` speaking the SDK protocol. Browser E2E can use it only when `CATCHUP_TEST_MODEL=scripted` AND Supabase is local; the UI labels it "Scripted test model · not AI". Never available in deployments.
+- **ADR-036** E2E now runs against a production build on :3100, so every E2E run also verifies `next build`.
+

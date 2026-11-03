@@ -3,7 +3,9 @@ import { config } from "dotenv";
 
 config({ path: ".env.local", quiet: true });
 
-const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3000";
+// E2E runs against a PRODUCTION build on :3100 (separate from `npm run dev` on :3000). The scripted
+// test model is enabled only for this local server; see src/lib/agents/runtime.ts.
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://localhost:3100";
 
 export default defineConfig({
   testDir: "tests/e2e",
@@ -22,9 +24,10 @@ export default defineConfig({
     },
   ],
   webServer: {
-    command: "npm run dev",
+    command: "npm run build && npx next start -p 3100",
+    env: { CATCHUP_TEST_MODEL: "scripted" },
     url: `${baseURL}/api/health`,
-    reuseExistingServer: true,
-    timeout: 120_000,
+    reuseExistingServer: !process.env.CI,
+    timeout: 300_000,
   },
 });

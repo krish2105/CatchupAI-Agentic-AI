@@ -28,7 +28,7 @@ export default async function SettingsPage() {
           <div className="split-head"><h3>About this workspace</h3></div>
           <div className="setting-line">
             <div><strong>AI runtime</strong><p>The copilot and quiz generator need a configured OpenAI model on the server.</p></div>
-            {ai.configured ? <Chip tone="good">{ai.model}</Chip> : <Chip tone="warn">Not configured</Chip>}
+            {ai.kind === "scripted" ? <Chip tone="warn">Scripted test model</Chip> : ai.configured ? <Chip tone="good">{ai.model}</Chip> : <Chip tone="warn">Not configured</Chip>}
           </div>
           <div className="setting-line">
             <div><strong>Your data</strong><p>Courses, documents and plans are private to your account and protected by row-level security.</p></div>

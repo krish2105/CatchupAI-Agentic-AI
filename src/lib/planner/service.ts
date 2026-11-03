@@ -117,7 +117,9 @@ export async function computePlan(
   opts: { now: number; weeklyTotal?: number; extraItems?: WorkItem[] },
 ): Promise<ComputedPlan> {
   const [profile, assignments] = await Promise.all([getProfile(supabase, userId), listAssignments(supabase)]);
-  const items = [...(await buildCandidateItems(supabase, assignments, opts.now)), ...(opts.extraItems ?? [])];
+  const candidates = await buildCandidateItems(supabase, assignments, opts.now);
+  // Copilot-proposed (cited) study items rank ahead of the planner's generic review sessions.
+  const items = [...candidates.filter((i) => i.tier === "required"), ...(opts.extraItems ?? []), ...candidates.filter((i) => i.tier !== "required")];
   const savedTotal = profile.weeklyMinutes.reduce((s, m) => s + m, 0);
   const whatIf = opts.weeklyTotal !== undefined && opts.weeklyTotal !== savedTotal;
   const weeklyMinutes = whatIf ? scaleWeekly(profile.weeklyMinutes, opts.weeklyTotal!) : profile.weeklyMinutes;
