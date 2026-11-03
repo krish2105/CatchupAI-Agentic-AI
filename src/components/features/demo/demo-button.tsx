@@ -14,13 +14,14 @@ import { browserClient } from "@/lib/supabase/client";
  */
 export default function DemoButton({ className = "btn", label = "Try the demo" }: { className?: string; label?: string }) {
   const router = useRouter();
-  const [token, setToken] = useState<string | null>(null);
+  // With bot protection on, the check appears only after the visitor asks for the demo (one check per page).
+  const [checking, setChecking] = useState(false);
   const [stage, setStage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-
-  async function start() {
+  async function start(token: string | null) {
     setError(null);
+    setChecking(false);
     try {
       setStage("Creating your demo space…");
       const { error: signInError } = await browserClient().auth.signInAnonymously(token ? { options: { captchaToken: token } } : undefined);
@@ -37,10 +38,10 @@ export default function DemoButton({ className = "btn", label = "Try the demo" }
 
   return (
     <div style={{ display: "grid", gap: 10, justifyItems: "start" }}>
-      <Turnstile onToken={setToken} />
-      <button type="button" className={className} onClick={start} disabled={stage !== null || Boolean(TURNSTILE_SITE_KEY && !token)}>
-        {stage ? <span className="spinner" aria-hidden="true" /> : <Compass className="ic" aria-hidden="true" />} {stage ?? label}
+      <button type="button" className={className} onClick={() => (TURNSTILE_SITE_KEY ? setChecking(true) : void start(null))} disabled={stage !== null || checking}>
+        {stage ? <span className="spinner" aria-hidden="true" /> : <Compass className="ic" aria-hidden="true" />} {stage ?? (checking ? "Verifying you're human…" : label)}
       </button>
+      {checking ? <Turnstile onToken={(t) => { if (t) void start(t); }} /> : null}
       {error ? <Notice tone="danger" title={error} /> : null}
     </div>
   );

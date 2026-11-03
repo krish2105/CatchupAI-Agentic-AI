@@ -17,9 +17,14 @@ export const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? 
  */
 export default function Turnstile({ onToken }: { onToken: (token: string | null) => void }) {
   const el = useRef<HTMLDivElement>(null);
+  // Keep the latest callback without re-rendering the widget when the parent re-renders.
+  const callback = useRef(onToken);
+  useEffect(() => {
+    callback.current = onToken;
+  });
   useEffect(() => {
     if (!TURNSTILE_SITE_KEY) return;
-    const render = () => window.turnstile && el.current && window.turnstile.render(el.current, { sitekey: TURNSTILE_SITE_KEY, callback: onToken, "expired-callback": () => onToken(null) });
+    const render = () => window.turnstile && el.current && !el.current.childElementCount && window.turnstile.render(el.current, { sitekey: TURNSTILE_SITE_KEY, callback: (t) => callback.current(t), "expired-callback": () => callback.current(null) });
     if (window.turnstile) return void render();
     const existing = document.querySelector<HTMLScriptElement>('script[data-turnstile]');
     if (existing) return void existing.addEventListener("load", render);
@@ -29,6 +34,6 @@ export default function Turnstile({ onToken }: { onToken: (token: string | null)
     script.dataset.turnstile = "true";
     script.onload = render;
     document.head.appendChild(script);
-  }, [onToken]);
+  }, []);
   return TURNSTILE_SITE_KEY ? <div ref={el} /> : null;
 }
