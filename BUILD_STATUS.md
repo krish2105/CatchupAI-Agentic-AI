@@ -29,7 +29,8 @@
 | Learning universe data | Done — nodes = the student's courses; satellites = their assignments/documents; status/progress from overdue work and active-plan completion only | unit + E2E |
 | Knowledge checks (P1, M6) | Done — deterministic cloze questions from the student's indexed sentences, each with document/page evidence; answer keys in server-only `quiz_keys`; server grading; attempts persisted; weak terms surfaced. **Not LLM-generated** (no key) | unit 4 + integration 5 + E2E |
 | Insights (M6) | Done — latest quiz, blocks/minutes completed, active plan, 14-day minutes chart (validated palette, tooltip, table view), topic results, per-course progress; all from persisted rows | E2E |
-| Deployment / submission | Not performed | needs user approval + cloud accounts |
+| Hardening (M7) | Done — security headers, `no-store` API caching, no-WebGL/200%-zoom/keyboard-only tests, secret scan, README + `QA_REPORT.md` | E2E 41/41 |
+| Deployment / submission | **Not performed** | needs your approval + Supabase cloud project + Vercel |
 
 ## M0 audit findings
 - `^0.x` ranges froze stale versions (`@openai/agents ^0.3`, `@supabase/ssr ^0.6`, `three ^0.175`); `openai ^6` conflicted with Agents SDK 0.21 (`openai ^7.2`). All updated and pinned.
@@ -126,4 +127,12 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | M6 | `npm run test:integration` | PASS 60/60 (adds quiz: no answer keys in student-readable rows, `quiz_keys` 42501 for students, server grading + attempt, incomplete answers 400, cross-tenant 404s, attempt insert 42501, insufficient material 409) | — |
 | 2026-11-03 | M6 | `npx playwright test` | PASS 36/36 (adds upload → generate → answer 5 → sourced results → previous checks → insights score/topic/chart) | — |
 | 2026-11-03 | M6 | dataviz palette validator | dark `#8a7cf0` and light `#385fba` pass lightness/chroma/3:1 (lime accent failed lightness band, not used for bars) | — |
+| 2026-11-03 | M7 | Security headers + hardening E2E (headers, health leaks nothing, no-WebGL, 200% zoom, keyboard-only approval with reduced motion + 3D off) | PASS 6/6 | — |
+| 2026-11-03 | M7 | Secret scan: tracked files + `.next/static` vs real local secret values and key patterns | 0 hits | — |
+| 2026-11-03 | M7 | Final: `typecheck`, `lint`, `npm test` 47/47, `test:integration` 60/60, `test:e2e` 41/41 (production build) | PASS | — |
+
+## Next steps (need you)
+1. **OpenAI:** add `OPENAI_API_KEY` + `OPENAI_MODEL` to `.env.local`, then run the copilot once and re-check the evidence thresholds (`EVIDENCE_THRESHOLD` in `src/lib/rag/retrieve.ts`) with real embeddings. Record the result here.
+2. **Deploy (approval required):** create a Supabase cloud project (`supabase link` + `supabase db push`), a Vercel project with the env vars (server-only `SUPABASE_SECRET_KEY`), set Auth site URL/redirects and SMTP, then smoke-test the live URL on desktop and mobile.
+3. **Submission:** confirm the Nas.io Day 8 form fields, deadline and time zone; record a 2–4 min demo from the real app (see docs/09_DEMO_SCRIPT.md).
 

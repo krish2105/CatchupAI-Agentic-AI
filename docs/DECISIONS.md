@@ -71,3 +71,6 @@ Add dated decisions here when the coding assistant changes architecture or requi
 - **ADR-038** Answer keys live in `quiz_keys` (RLS on, no student grants); the browser only ever receives prompts/options/evidence. Grading and attempt writes happen server-side.
 - **ADR-039** Insights only aggregate persisted rows (completed task timestamps set by DB trigger, graded attempts). Chart colours validated with the dataviz checker; single series → no legend; hover tooltip and a table view for accessibility.
 
+## 2026-11-03: Build session M7
+- **ADR-040** Baseline security headers (nosniff, frame DENY, referrer policy, permissions policy, COOP) and `Cache-Control: private, no-store` on all API routes. A CSP is deferred because of the inline pre-paint theme script (would need a nonce); tracked as a known limitation.
+
