@@ -8,6 +8,9 @@ sensitive Vercel variable and the site is redeployed. Optionally it is also save
 .env.local so the live evaluation can run locally. The key is never printed.
 """
 import getpass
+import re
+import socket
+import time
 import json
 import subprocess
 import sys
@@ -15,7 +18,8 @@ import urllib.error
 import urllib.request
 
 BASE = "https://generativelanguage.googleapis.com/v1beta/openai"
-PREFERRED = ["gemini-flash-latest", "gemini-3-flash", "gemini-2.5-flash", "gemini-2.0-flash"]
+PREFERRED = ["gemini-3.8-flash", "gemini-flash-latest", "gemini-3-flash", "gemini-2.5-flash", "gemini-2.0-flash"]
+TRANSIENT = (429, 500, 502, 503, 504)
 SKIP = ("lite", "image", "tts", "live", "audio", "embedding", "thinking", "exp", "vision", "learnlm", "gemma", "robotics", "computer-use")
 
 
@@ -79,15 +83,40 @@ def main():
     except urllib.error.HTTPError as e:
         sys.exit(f"Google rejected the key ({e.code}): {google_error(e)}")
     print(f"  ✓ key works · {len(models)} Flash model(s) visible")
-    model = None
-    for name in models[:6]:
-        try:
-            used_tool = tool_call_works(key, name)
-            model = name
-            print(f"  ✓ {name} answers" + (" and calls tools" if used_tool else " (but didn't call the tool in this test)"))
+    model, fallback = None, None
+    queue, tried = list(models), 0
+    while queue and tried < 7:
+        name = queue.pop(0)
+        tried += 1
+        for attempt in range(3):
+            try:
+                used_tool = tool_call_works(key, name)
+                model = name
+                print(f"  ✓ {name} answers" + (" and calls tools" if used_tool else " (but didn't call the tool in this test)"))
+                break
+            except urllib.error.HTTPError as e:
+                message = google_error(e)
+                suggested = re.search(r"use models/([\w.-]+)", message)
+                if suggested and suggested.group(1) not in queue and suggested.group(1) != name:
+                    queue.insert(0, suggested.group(1))
+                if e.code in TRANSIENT:
+                    fallback = fallback or name
+                    if attempt < 2:
+                        print(f"  · {name}: busy ({e.code}), retrying in {5 * (attempt + 1)} s")
+                        time.sleep(5 * (attempt + 1))
+                        continue
+                print(f"  · {name}: not usable ({e.code}) {message[:160]}")
+                break
+            except (TimeoutError, socket.timeout, urllib.error.URLError) as e:
+                fallback = fallback or name
+                print(f"  · {name}: no answer in time ({type(e).__name__})")
+                break
+        if model:
             break
-        except urllib.error.HTTPError as e:
-            print(f"  · {name}: not usable ({e.code}) {google_error(e)}")
+    if not model and fallback:
+        answer = input(f"\nThe key is valid but Google is overloaded right now. Save it with {fallback} anyway? The app retries busy responses. [Y/n]: ").strip().lower()
+        if answer in ("", "y", "yes"):
+            model = fallback
     if not model:
         sys.exit("None of the Flash models accepted a request from this key. Check the key's project in AI Studio and try again.")
     embedding = None
@@ -98,7 +127,7 @@ def main():
                 embedding = name
                 print(f"  ✓ embeddings: {name} ({len(vec)} values)")
                 break
-        except (urllib.error.HTTPError, KeyError, IndexError) as e:
+        except (urllib.error.HTTPError, urllib.error.URLError, TimeoutError, KeyError, IndexError) as e:
             print(f"  · embeddings {name}: not usable {google_error(e) if isinstance(e, urllib.error.HTTPError) else ''}")
     if not embedding:
         print("  ! no embedding model worked; search stays keyword-only")

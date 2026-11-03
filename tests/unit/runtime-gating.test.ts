@@ -37,7 +37,7 @@ describe("AI runtime selection", () => {
     vi.stubEnv("OPENAI_API_KEY", "");
     vi.stubEnv("GEMINI_API_KEY", "test-not-real");
     vi.stubEnv("GEMINI_MODEL", "");
-    expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-2.5-flash" });
+    expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-3.8-flash" });
     vi.stubEnv("GEMINI_MODEL", "gemini-custom");
     expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-custom" });
     vi.stubEnv("OPENAI_API_KEY", "sk-test-not-real");
