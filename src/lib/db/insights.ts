@@ -9,6 +9,8 @@ export type Insights = {
   tasksCompleted: number;
   minutesCompleted: number;
   activePlan: { done: number; total: number } | null;
+  focusMinutes14d: number;
+  focusSessions14d: number;
   days: DayBucket[];
   topicScores: { topic: string; latest: number; attempts: number }[];
   courseProgress: { courseId: string; title: string; done: number; total: number }[];
@@ -16,11 +18,13 @@ export type Insights = {
 
 /** Every number is derived from persisted rows (completed tasks, graded attempts). Nothing is estimated. */
 export async function getInsights(supabase: ServerSupabase, timezone: string, now: number): Promise<Insights> {
-  const [tasksRes, attemptsRes, coursesRes] = await Promise.all([
+  const [tasksRes, attemptsRes, coursesRes, focusRes] = await Promise.all([
     supabase.from("study_tasks").select("course_id, status, active, duration_minutes, completed_at"),
     supabase.from("quiz_attempts").select("score_percent, created_at, quizzes(topic)").order("created_at", { ascending: false }).limit(50),
     supabase.from("courses").select("id, title"),
+    supabase.from("focus_sessions").select("focused_minutes").gte("started_at", new Date(now - 14 * 86400_000).toISOString()),
   ]);
+  if (focusRes.error) throw fromDbError(focusRes.error);
   if (tasksRes.error) throw fromDbError(tasksRes.error);
   if (attemptsRes.error) throw fromDbError(attemptsRes.error);
   if (coursesRes.error) throw fromDbError(coursesRes.error);
@@ -50,6 +54,8 @@ export async function getInsights(supabase: ServerSupabase, timezone: string, no
     tasksCompleted: completed.length,
     minutesCompleted: completed.reduce((s, t) => s + (t.duration_minutes ?? 0), 0),
     activePlan: active.length ? { done: active.filter((t) => t.status === "completed").length, total: active.length } : null,
+    focusMinutes14d: focusRes.data.reduce((s, f) => s + f.focused_minutes, 0),
+    focusSessions14d: focusRes.data.length,
     days,
     topicScores: [...topics.entries()].map(([topic, v]) => ({ topic, ...v })).slice(0, 6),
     courseProgress: coursesRes.data

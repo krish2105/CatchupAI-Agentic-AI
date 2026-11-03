@@ -34,7 +34,8 @@
 | Nature Flow 3.0 — R3 Recovery Lab | Done: 7-day route timelines from engine output (bars + due markers, accessible summary), "exact changes before approval" (+ adds / − cancels / = keeps) | E2E |
 | Nature Flow 3.0 — R4 Focus Sanctuary | Done: wall-clock timer (25/50 min), sessions saved to `focus_sessions` (RLS, composite owner FK, duration integrity checks), optional block completion, dashboard "Focus sprint" | integration 3 + E2E |
 | Nature Flow 3.0 — reference alignment (S1–S4) | Done: bold sans headings, mint nav pill + pine-ridge sidebar, richer landscape, Mission Control briefing card + hero stats + suggested next steps + 7-day progress line; routes renamed Deadline first / Balanced / Full recovery with an explained "Recommended" rule and per-day load; Study Schedule week grid (time-zone positioned blocks, deadlines, week navigation, checkbox toggles) + list view; Knowledge Vault landscape course cards + recent documents; **Smart Syllabus Import** (deterministic extraction, editable review, nothing saved before confirm) | unit 52, E2E 46 |
-| Nature Flow 3.0 — remaining | Pending: Preferences theme cards, Insights restyle + focus time, 3D island universe | — |
+| Nature Flow 3.0 — S5 Preferences + privacy | Done: theme cards (Alpine morning / Moonlit forest / System), accessibility notes, **data export (JSON)** and **account deletion** (typed confirmation, files + cascade); Insights shows focus time | E2E |
+| Nature Flow 3.0 — S6 Learning universe | Done: low-poly floating islands (one per course; lushness = real plan progress, autumn tint = overdue required work), pines = documents, stones = assignments, central great tree, dashed path in next-deadline order (explicitly not prerequisites), labels above islands, inspector lists landmarks with actions; DOM fallback unchanged | browser review + E2E fallback |
 | Deployment / submission | **Not performed** | needs your approval + Supabase cloud project + Vercel |
 
 ## M0 audit findings
@@ -148,4 +149,6 @@ Original starter author recorded that JSON files parsed, TS/TSX syntax checks we
 | 2026-11-03 | S1–S4 | Syllabus extractor tests on clean text AND on the real fixture PDF (found wrapped-line and trailing-dot defects, fixed) | PASS | — |
 | 2026-11-03 | S1–S4 | Browser review: briefing card hidden behind landscape art (stacking) and 3+1 next-step wrap — fixed | PASS | — |
 | 2026-11-03 | S1–S4 | `typecheck`, `lint`, `npm test` 52/52, `test:integration` 63/63, `test:e2e` 46/46 | PASS | — |
+| 2026-11-03 | S5/S6 | Browser review: dark islands too dark, week grid wasted hours, sidebar footer over ridge art, row spacing — all fixed; README screenshots recaptured from the redesigned app | PASS | — |
+| 2026-11-03 | S5/S6 | `typecheck`, `lint`, `npm test` 52/52, `test:integration` 63/63, `test:e2e` 47/47 (adds privacy export/delete) | PASS | — |
 

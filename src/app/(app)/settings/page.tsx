@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { LogOut } from "lucide-react";
 import AppearanceCard from "@/components/features/settings/appearance-card";
 import ProfileForm from "@/components/features/profile/profile-form";
+import PrivacyCard from "@/components/features/settings/privacy-card";
 import PageHeading from "@/components/ui/page-heading";
 import { Chip } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -39,6 +40,14 @@ export default async function SettingsPage() {
               <button type="submit" className="btn small"><LogOut className="ic" aria-hidden="true" /> Sign out</button>
             </form>
           </div>
+        </div>
+      </div>
+      <div className="settings-grid section-space">
+        <PrivacyCard />
+        <div className="card setting-card">
+          <div className="split-head"><h3>Accessibility</h3></div>
+          <div className="setting-line"><div><strong>Keyboard</strong><p>Every action works from the keyboard. Press Ctrl or ⌘ + K for the command palette.</p></div></div>
+          <div className="setting-line"><div><strong>Motion and 3D</strong><p>Reduce motion stops orbiting and transitions; turning 3D off replaces scenes with lists that carry the same information.</p></div></div>
         </div>
       </div>
       <div className="card setting-card section-space">

@@ -131,3 +131,33 @@ test("smart syllabus import proposes deadlines and saves only what the student c
     await s.cleanup();
   }
 });
+
+test("privacy: export contains only your data, and account deletion requires typed confirmation", async ({ browser, request }) => {
+  const s = await freshStudent(browser);
+  let deleted = false;
+  try {
+    await s.page.request.post("/api/courses", { data: { title: "Mine only" } });
+    const exported = await (await s.page.request.get("/api/account/export")).json();
+    expect(exported.account.id).toBe(s.userId);
+    expect(exported.courses.map((c: { title: string }) => c.title)).toEqual(["Mine only"]);
+    const other = await (await request.get("/api/account/export")).json();
+    expect(other.courses.map((c: { title: string }) => c.title)).not.toContain("Mine only");
+
+    expect((await s.page.request.post("/api/account/delete", { data: { confirm: "delete" } })).status()).toBe(400);
+    await s.page.goto("/settings");
+    await s.page.getByRole("button", { name: "Delete account" }).click();
+    const confirm = s.page.getByRole("dialog", { name: "Delete your account?" }).getByRole("button", { name: "Delete permanently" });
+    await expect(confirm).toBeDisabled();
+    await s.page.getByLabel("Type DELETE to confirm").fill("DELETE");
+    await confirm.click();
+    await expect(s.page).toHaveURL(/\/$/);
+    deleted = true;
+    const { data } = await s.db.auth.admin.getUserById(s.userId);
+    expect(data.user).toBeNull();
+    const { data: rows } = await s.db.from("courses").select("id").eq("owner_id", s.userId);
+    expect(rows).toEqual([]);
+  } finally {
+    if (!deleted) await s.cleanup();
+    else await s.context.close();
+  }
+});

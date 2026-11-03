@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-148%20passing-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-162%20passing-2ea44f)
 
 </div>
 
@@ -35,24 +35,28 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
 | **LearningRecoveryAgent** (OpenAI Agents SDK): 5 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval | ✅ code + tests · ⚠️ **live OpenAI runs unverified (no API key yet)** |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
+| Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
+| One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
 | Light / dark / system themes, reduced motion, 3D on/off, no-WebGL fallback, keyboard + screen-reader paths | ✅ |
 | Public deployment | ❌ not done (needs your approval and cloud accounts) |
 
 See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` for the test evidence.
 
-## Screenshots
+## Screenshots (Nature Flow 3.0)
 
-| Recovery lab: three honest routes | Approval gate: nothing saved until you approve |
+| Mission control: briefing from real deadlines and capacity | Recovery lab: three honest routes with 7-day timelines |
 | --- | --- |
-| ![Recovery lab](docs/screenshots/recovery-lab-dark.png) | ![Approval gate](docs/screenshots/approval-gate-light.png) |
-| **AI copilot: real tool timeline and page citations** | **Study schedule from the approved plan** |
-| ![Copilot](docs/screenshots/copilot-light.png) | ![Planner](docs/screenshots/planner-dark.png) |
-| **Knowledge vault: page-cited evidence search** | **3D learning universe from your courses** |
-| ![Knowledge vault](docs/screenshots/knowledge-vault-dark.png) | ![Universe](docs/screenshots/universe-dark.png) |
+| ![Mission control](docs/screenshots/dashboard-light.png) | ![Recovery lab](docs/screenshots/recovery-lab-dark.png) |
+| **Approval gate: exact changes before anything is saved** | **AI copilot: real tool timeline and page citations** |
+| ![Approval gate](docs/screenshots/approval-gate-light.png) | ![Copilot](docs/screenshots/copilot-light.png) |
+| **Study schedule: week view in your time zone** | **Learning universe: one floating island per course** |
+| ![Planner](docs/screenshots/planner-dark.png) | ![Universe](docs/screenshots/universe-dark.png) |
+| **Knowledge vault and smart syllabus import** | **Focus sanctuary: timed sessions saved to your history** |
+| ![Knowledge vault](docs/screenshots/vault-light.png) | ![Focus sanctuary](docs/screenshots/focus-dark.png) |
 
-<img src="docs/screenshots/mobile-dashboard-light.png" alt="Mobile dashboard" width="260" />
+<img src="docs/screenshots/mobile-dashboard-light.png" alt="Mobile mission control" width="260" /> <img src="docs/screenshots/knowledge-vault-dark.png" alt="Evidence search with page citations" width="520" />
 
-*Screenshots come from the real app running on local Supabase. The copilot screenshot was produced with the deterministic test model (labelled "Scripted test model · not AI" in the UI) because no OpenAI key was configured; tools, retrieval, citations and the approval flow are the real implementation.*
+*Screenshots come from the real app on local Supabase with synthetic data. The copilot screenshot uses the deterministic test model (labelled "Scripted test model · not AI" in the UI) because no OpenAI key was configured; tools, retrieval, citations and the approval flow are the real implementation.*
 
 ## Architecture
 

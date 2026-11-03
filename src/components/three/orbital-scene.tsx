@@ -3,6 +3,7 @@
 import { Canvas, useFrame, useThree } from "@react-three/fiber";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
+import { DeadlinePath, GreatTree, Island, WORLD } from "./nature-world";
 import { PALETTES } from "./palette";
 import type { SceneController } from "./controller";
 import type { UniverseGraph } from "./types";
@@ -23,7 +24,7 @@ type SceneProps = {
 type LabelRefs = React.RefObject<(HTMLDivElement | null)[]>;
 
 
-const RING_RADIUS = 2.25;
+const RING_RADIUS = 2.35;
 
 function layout(count: number) {
   return Array.from({ length: count }, (_, i) => {
@@ -73,10 +74,9 @@ function Universe({ graph, theme, selectedId, onSelect, autoRotate, showLabels, 
       const el = labels.current[i];
       if (!node || !el) return;
       node.getWorldPosition(projected);
-      // Place the label centred BELOW the node, clear of the sphere and its selection ring.
+      // Place the label centred ABOVE the island, clear of its beacon.
       const distance = camera.position.distanceTo(projected);
-      const ringRadius = (graph.nodes[i]?.id === selectedId ? 0.34 : 0.22) * fit;
-      const offset = (ringRadius / distance) * unitsToPx + 10;
+      const offset = -((0.78 * fit) / distance) * unitsToPx - el.offsetHeight - 6;
       projected.project(camera);
       const cx = (projected.x * 0.5 + 0.5) * width;
       const cy = (-projected.y * 0.5 + 0.5) * height;
@@ -88,70 +88,47 @@ function Universe({ graph, theme, selectedId, onSelect, autoRotate, showLabels, 
     });
   });
 
+  const world = WORLD[theme];
+  const islandSize = graph.nodes.length > 6 ? 0.78 : 1;
+  const pathPoints = useMemo(
+    () =>
+      graph.nodes
+        .map((n, i) => ({ due: n.nextDueAt ? Date.parse(n.nextDueAt) : Number.POSITIVE_INFINITY, pos: positions[i] }))
+        .filter((x) => Number.isFinite(x.due))
+        .sort((a, b) => a.due - b.due)
+        .map((x) => x.pos.clone().add(new THREE.Vector3(0, 0.05, 0))),
+    [graph.nodes, positions],
+  );
+
   return (
     <>
-      <ambientLight intensity={theme === "dark" ? 1.1 : 1.6} />
-      <pointLight position={[3, 3, 4]} intensity={60} color={palette.lightA} />
-      <pointLight position={[-3, -2, 2]} intensity={40} color={palette.lightB} />
+      <hemisphereLight args={[theme === "dark" ? "#cfe8dc" : "#fff6dc", theme === "dark" ? "#24382e" : "#7f9a86", theme === "dark" ? 2.2 : 2.1]} />
+      <directionalLight position={[4, 6, 3]} intensity={theme === "dark" ? 1.8 : 2.2} color={theme === "dark" ? "#e9eedc" : palette.lightA} />
       <group ref={group} rotation={[0.32, 0, 0]} scale={fit}>
-        <mesh>
-          <icosahedronGeometry args={[0.85, 3]} />
-          <meshStandardMaterial color={palette.core} emissive={palette.coreEmissive} emissiveIntensity={0.35} metalness={0.35} roughness={0.3} transparent opacity={0.92} />
-        </mesh>
-        <mesh scale={1.12}>
-          <icosahedronGeometry args={[0.85, 1]} />
-          <meshBasicMaterial color={palette.wire} wireframe transparent opacity={0.4} />
-        </mesh>
-        <mesh rotation={[Math.PI / 2, 0, 0]}>
-          <torusGeometry args={[RING_RADIUS, 0.007, 6, 160]} />
-          <meshBasicMaterial color={palette.ringB} transparent opacity={0.5} />
-        </mesh>
-        <mesh rotation={[1.1, 0.5, 0.2]}>
-          <torusGeometry args={[RING_RADIUS * 0.72, 0.006, 6, 140]} />
-          <meshBasicMaterial color={palette.ringA} transparent opacity={0.45} />
-        </mesh>
+        <GreatTree p={world} />
+        <DeadlinePath points={pathPoints} color={world.path} />
         {graph.nodes.map((node, i) => {
-          const pos = positions[i];
-          const color = palette.status[node.status];
           const isSelected = node.id === selectedId;
-          const isHovered = node.id === hovered;
-          const scale = (compact ? 0.13 : 0.16) * (isSelected ? 1.35 : isHovered ? 1.15 : 1);
           return (
-            <group key={node.id} position={pos} ref={(el) => { nodeRefs.current[i] = el; }}>
-              <mesh
-                scale={scale}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onSelect?.(node.id);
-                }}
-                onPointerOver={(event) => {
-                  event.stopPropagation();
-                  setHovered(node.id);
-                  document.body.style.cursor = onSelect ? "pointer" : "";
-                }}
-                onPointerOut={() => {
-                  setHovered(null);
-                  document.body.style.cursor = "";
-                }}
-              >
-                <sphereGeometry args={[1, 24, 24]} />
-                <meshBasicMaterial color={color} />
-              </mesh>
-              {isSelected ? (
-                <mesh rotation={[Math.PI / 2, 0, 0]}>
-                  <torusGeometry args={[0.3, 0.012, 6, 48]} />
-                  <meshBasicMaterial color={palette.selected} />
-                </mesh>
-              ) : null}
-              {node.topics.slice(0, 6).map((topic, t) => {
-                const a = (t / Math.min(node.topics.length, 6)) * Math.PI * 2;
-                return (
-                  <mesh key={topic.id} position={[Math.cos(a) * 0.42, Math.sin(a) * 0.18, Math.sin(a) * 0.42]} scale={0.045}>
-                    <sphereGeometry args={[1, 10, 10]} />
-                    <meshBasicMaterial color={palette.status[topic.status]} />
-                  </mesh>
-                );
-              })}
+            <group
+              key={node.id}
+              position={positions[i]}
+              ref={(el) => { nodeRefs.current[i] = el; }}
+              onClick={(event) => {
+                event.stopPropagation();
+                onSelect?.(node.id);
+              }}
+              onPointerOver={(event) => {
+                event.stopPropagation();
+                setHovered(node.id);
+                document.body.style.cursor = onSelect ? "pointer" : "";
+              }}
+              onPointerOut={() => {
+                setHovered(null);
+                document.body.style.cursor = "";
+              }}
+            >
+              <Island node={node} p={world} statusColor={palette.status} selected={isSelected} hovered={node.id === hovered} size={(compact ? 0.85 : 1) * islandSize} />
             </group>
           );
         })}

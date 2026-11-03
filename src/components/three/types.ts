@@ -16,6 +16,8 @@ export type UniverseNode = {
   progress: number | null;
   summary: string;
   href: string;
+  /** Earliest upcoming incomplete assignment deadline (ISO) — orders the deadline path. */
+  nextDueAt?: string | null;
   topics: UniverseTopic[];
 };
 

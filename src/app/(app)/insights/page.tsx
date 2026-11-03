@@ -15,7 +15,7 @@ export default async function InsightsPage() {
   const { supabase, user } = await requirePageUser("/insights");
   const [profile, now] = await Promise.all([getProfile(supabase, user.id), renderTime()]);
   const data = await getInsights(supabase, profile.timezone, now);
-  const hasActivity = data.tasksCompleted > 0 || data.quizAttempts > 0;
+  const hasActivity = data.tasksCompleted > 0 || data.quizAttempts > 0 || data.focusSessions14d > 0;
   return (
     <>
       <PageHeading
@@ -29,13 +29,13 @@ export default async function InsightsPage() {
       <div className="stat-row">
         <StatCard label="Latest quiz" value={data.latestQuiz ? `${Math.round(data.latestQuiz.score)}%` : null} caption={data.latestQuiz ? data.latestQuiz.topic : "No graded attempts yet"} />
         <StatCard label="Blocks finished" value={data.tasksCompleted ? String(data.tasksCompleted) : null} caption="Across all approved plans" />
-        <StatCard label="Time studied" value={data.minutesCompleted ? formatMinutes(data.minutesCompleted) : null} caption="From completed blocks" />
+        <StatCard label="Focus time" value={data.focusMinutes14d ? formatMinutes(data.focusMinutes14d) : null} caption={`${data.focusSessions14d} session${data.focusSessions14d === 1 ? "" : "s"} · last 14 days`} />
         <StatCard label="Active plan" value={data.activePlan ? `${data.activePlan.done}/${data.activePlan.total}` : null} caption={data.activePlan ? "Blocks done" : "No approved plan"} />
       </div>
       {hasActivity ? (
         <div className="insight-grid">
           <div className="card chart-card">
-            <div className="split-head"><h3>Study minutes, last 14 days</h3><Chip>{profile.timezone}</Chip></div>
+            <div className="split-head"><h3>Study minutes, last 14 days</h3><Chip>{formatMinutes(data.minutesCompleted)} total</Chip></div>
             <ActivityChart days={data.days} />
           </div>
           <div className="card card-inner">

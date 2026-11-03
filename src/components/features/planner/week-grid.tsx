@@ -36,10 +36,13 @@ export default function WeekGrid({
   const inWeek = tasks.filter((t) => Date.parse(t.startsAt) >= start.getTime() && Date.parse(t.startsAt) < end && t.status !== "cancelled");
   const local = (iso: string) => new TZDate(Date.parse(iso), timezone);
   const minuteOfDay = (d: TZDate) => d.getHours() * 60 + d.getMinutes();
-  const firstHour = Math.max(0, Math.min(8, ...inWeek.map((t) => local(t.startsAt).getHours())));
-  const lastHour = Math.min(24, Math.max(18, ...inWeek.map((t) => { const e = local(t.endsAt); return e.getHours() + (e.getMinutes() ? 1 : 0); })));
-  const hours = Array.from({ length: lastHour - firstHour }, (_, i) => firstHour + i);
   const sameDay = (a: TZDate, b: TZDate) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  // Fit the visible hours to the week's blocks (one hour of air either side, at least six hours tall).
+  const startHours = inWeek.map((t) => local(t.startsAt).getHours());
+  const endHours = inWeek.map((t) => { const e = local(t.endsAt); return (sameDay(e, local(t.startsAt)) ? e.getHours() : 24) + (e.getMinutes() ? 1 : 0); });
+  const firstHour = inWeek.length ? Math.max(0, Math.min(...startHours) - 1) : 8;
+  const lastHour = Math.min(24, Math.max(firstHour + 6, inWeek.length ? Math.max(...endHours) + 1 : 18));
+  const hours = Array.from({ length: lastHour - firstHour }, (_, i) => firstHour + i);
   const label = new Intl.DateTimeFormat("en-GB", { timeZone: timezone, day: "numeric", month: "short" });
 
   return (

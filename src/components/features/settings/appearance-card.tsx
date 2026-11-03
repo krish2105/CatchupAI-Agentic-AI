@@ -8,17 +8,24 @@ export default function AppearanceCard() {
   return (
     <div className="card setting-card">
       <div className="split-head"><h3>Look and feel</h3></div>
-      <div className="setting-line">
+      <div className="setting-line" style={{ display: "grid", gap: 12 }}>
         <div>
           <strong id="appearance-label">Appearance</strong>
-          <p>Switch between the complete light and dark systems, or follow your device.</p>
+          <p>Complete light and dark systems, or follow your device.</p>
         </div>
-        <Segmented<ThemePref>
-          label="Appearance"
-          value={prefs.theme}
-          onChange={(theme) => setPreferences({ theme })}
-          options={[{ value: "light", label: "Light" }, { value: "dark", label: "Dark" }, { value: "system", label: "System" }]}
-        />
+        <div className="theme-cards" role="group" aria-label="Appearance">
+          {([
+            { value: "light", label: "Light", hint: "Alpine morning" },
+            { value: "dark", label: "Dark", hint: "Moonlit forest" },
+            { value: "system", label: "System", hint: "Follows your device" },
+          ] as { value: ThemePref; label: string; hint: string }[]).map((o) => (
+            <button key={o.value} type="button" className={`theme-card theme-${o.value}`} aria-pressed={prefs.theme === o.value} onClick={() => setPreferences({ theme: o.value })}>
+              <span className="theme-swatch" aria-hidden="true"><i /><i /><i /></span>
+              <strong>{o.label}</strong>
+              <span>{o.hint}</span>
+            </button>
+          ))}
+        </div>
       </div>
       <div className="setting-line">
         <div>

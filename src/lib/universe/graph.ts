@@ -49,7 +49,8 @@ export function buildUniverseGraph(
         `${documents.filter((d) => d.courseId === course.id).length} document(s)`,
       ];
       if (overdue.length) parts.push(`${overdue.length} overdue`);
-      return { id: course.id, label: course.title, status, progress, summary: parts.join(" · ") + ".", href: `/courses/${course.id}`, topics };
+      const nextDueAt = own.filter((a) => a.status !== "completed" && new Date(a.dueAt).getTime() >= now).map((a) => a.dueAt).sort()[0] ?? null;
+      return { id: course.id, label: course.title, status, progress, summary: parts.join(" · ") + ".", href: `/courses/${course.id}`, nextDueAt, topics };
     }),
   };
 }
