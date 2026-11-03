@@ -1,6 +1,7 @@
 import "server-only";
 import { fromDbError } from "@/lib/http/errors";
 import type { ServerSupabase } from "@/lib/supabase/server";
+import { recoveryScoreTimeline, type ScorePoint } from "@/lib/insights/recovery-score";
 
 export type DayBucket = { date: string; minutes: number; blocks: number };
 export type Insights = {
@@ -14,12 +15,13 @@ export type Insights = {
   days: DayBucket[];
   topicScores: { topic: string; latest: number; attempts: number }[];
   courseProgress: { courseId: string; title: string; done: number; total: number }[];
+  recoveryScore: ScorePoint[];
 };
 
 /** Every number is derived from persisted rows (completed tasks, graded attempts). Nothing is estimated. */
 export async function getInsights(supabase: ServerSupabase, timezone: string, now: number): Promise<Insights> {
   const [tasksRes, attemptsRes, coursesRes, focusRes] = await Promise.all([
-    supabase.from("study_tasks").select("course_id, status, active, duration_minutes, completed_at"),
+    supabase.from("study_tasks").select("course_id, status, active, duration_minutes, completed_at, ends_at"),
     supabase.from("quiz_attempts").select("score_percent, created_at, quizzes(topic)").order("created_at", { ascending: false }).limit(50),
     supabase.from("courses").select("id, title"),
     supabase.from("focus_sessions").select("focused_minutes").gte("started_at", new Date(now - 14 * 86400_000).toISOString()),
@@ -48,7 +50,21 @@ export async function getInsights(supabase: ServerSupabase, timezone: string, no
     topics.set(a.topic, existing ? { ...existing, attempts: existing.attempts + 1 } : { latest: a.score, attempts: 1 });
   }
 
+  // End of each local day, found by stepping hours (handles any UTC offset, including DST days).
+  const endOfDay = (date: string) => {
+    let t = Date.parse(`${date}T12:00:00Z`) - 36 * 3600_000;
+    while (dayKey(t) <= date) t += 3600_000;
+    while (dayKey(t - 60_000) > date) t -= 60_000;
+    return Math.min(t - 1, now);
+  };
+  const recoveryScore = recoveryScoreTimeline(
+    active.map((t) => ({ endsAt: t.ends_at, completedAt: t.completed_at, status: t.status })),
+    days.map((d) => d.date),
+    endOfDay,
+  );
+
   return {
+    recoveryScore,
     latestQuiz: attempts[0] ? { score: attempts[0].score, topic: attempts[0].topic, at: attempts[0].at } : null,
     quizAttempts: attempts.length,
     tasksCompleted: completed.length,

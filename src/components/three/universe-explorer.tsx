@@ -47,7 +47,7 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
                     <span className={`topic-dot ${node.status}`} aria-hidden="true" />
                     <span className="universe-row-body">
                       <strong>{node.label}</strong>
-                      <span>{node.progress === null ? STATUS_LABEL[node.status] : `${node.progress}% of plan blocks done`} · {node.topics.length} landmark{node.topics.length === 1 ? "" : "s"}</span>
+                      <span>{node.progress === null ? STATUS_LABEL[node.status] : `${node.progress}% of plan blocks done`} · {node.topics.length} landmark{node.topics.length === 1 ? "" : "s"}{node.grown ? ` · ${node.grown} tree${node.grown === 1 ? "" : "s"} grown` : ""}</span>
                       {node.requires?.length ? <span>Builds on {node.requires.map(title).join(", ")}</span> : null}
                       <span className="inspector-meter" aria-hidden="true"><span style={{ width: `${node.progress ?? 0}%` }} /></span>
                     </span>
@@ -78,7 +78,7 @@ export default function UniverseExplorer({ graph }: { graph: UniverseGraph }) {
                 {selected.progress === null ? (
                   "No approved tasks for this course yet."
                 ) : (
-                  <><strong style={{ color: "var(--text)" }}>{selected.progress}%</strong> of approved tasks completed</>
+                  <><strong style={{ color: "var(--text)" }}>{selected.progress}%</strong> of approved tasks completed{selected.grown ? <> · {selected.grown} tree{selected.grown === 1 ? "" : "s"} grown, one per finished block</> : null}</>
                 )}
               </p>
               {buildsOn.length || leadsTo.length ? (

@@ -11,6 +11,7 @@ export type DocumentSummary = { id: string; courseId: string; filename: string; 
  * - on_track: the active plan has tasks for this course
  * - no_data: otherwise
  * progress = completed / total active-plan tasks for the course, or null without a plan.
+ * grown = completed blocks (one tree each on the island).
  */
 export function buildUniverseGraph(
   courses: Course[],
@@ -50,7 +51,7 @@ export function buildUniverseGraph(
       ];
       if (overdue.length) parts.push(`${overdue.length} overdue`);
       const nextDueAt = own.filter((a) => a.status !== "completed" && new Date(a.dueAt).getTime() >= now).map((a) => a.dueAt).sort()[0] ?? null;
-      return { id: course.id, label: course.title, status, progress, summary: parts.join(" · ") + ".", href: `/courses/${course.id}`, nextDueAt, topics };
+      return { id: course.id, label: course.title, status, progress, grown: completedTasks, summary: parts.join(" · ") + ".", href: `/courses/${course.id}`, nextDueAt, topics };
     }),
   };
 }

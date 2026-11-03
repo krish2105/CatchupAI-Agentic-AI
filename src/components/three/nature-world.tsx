@@ -55,9 +55,28 @@ function Pine({ position, scale = 1, color }: { position: [number, number, numbe
   );
 }
 
+/** A rounded broadleaf tree: grown by completing a study block (distinct from the document pines). */
+function Grown({ position, scale, p }: { position: [number, number, number]; scale: number; p: WorldPalette }) {
+  return (
+    <group position={position} scale={scale}>
+      <mesh position={[0, 0.05, 0]}>
+        <cylinderGeometry args={[0.012, 0.018, 0.1, 5]} />
+        <meshStandardMaterial color={p.trunk} roughness={0.9} />
+      </mesh>
+      <mesh position={[0, 0.14, 0]}>
+        <icosahedronGeometry args={[0.065, 0]} />
+        <meshStandardMaterial color={p.canopy2} roughness={0.85} flatShading />
+      </mesh>
+    </group>
+  );
+}
+
+export const MAX_GROWN_TREES = 12;
+
 /**
  * One course as a floating island. Grass lushness = real plan progress (muted without a plan); overdue required
  * work tints it autumn gold. Pines = documents, stone markers = assignments, coloured by their own status.
+ * Round trees on the rim = completed study blocks (up to 12), so the forest grows as the student works.
  */
 export function Island({ node, p, statusColor, selected, hovered, size }: { node: UniverseNode; p: WorldPalette; statusColor: Record<string, string>; selected: boolean; hovered: boolean; size: number }) {
   const grass = useMemo(() => {
@@ -84,6 +103,9 @@ export function Island({ node, p, statusColor, selected, hovered, size }: { node
       </mesh>
       {ring(Math.min(Math.max(docs.length, 2), 7), 0.3, 0.4).map(([x, z], i) => (
         <Pine key={`pine-${i}`} position={[x, 0.05, z]} scale={0.9 + (i % 3) * 0.15} color={docs[i] ? (docs[i].status === "on_track" ? p.canopy : p.grassLow) : p.canopy2} />
+      ))}
+      {ring(Math.min(node.grown ?? 0, MAX_GROWN_TREES), 0.46, 0.15).map(([x, z], i) => (
+        <Grown key={`grown-${i}`} position={[x, 0.05, z]} scale={0.85 + (i % 4) * 0.1} p={p} />
       ))}
       {tasks.slice(0, 6).map((t, i) => {
         const [x, z] = ring(Math.min(tasks.length, 6), 0.16, 1.1)[i];

@@ -14,6 +14,8 @@ export type UniverseNode = {
   status: NodeStatus;
   /** Percent of approved tasks completed for this course; null when there is no plan evidence. */
   progress: number | null;
+  /** Completed study blocks for this course: each one grows a tree on the island (the growing forest). */
+  grown?: number;
   summary: string;
   href: string;
   /** Earliest upcoming incomplete assignment deadline (ISO) — orders the deadline path. */

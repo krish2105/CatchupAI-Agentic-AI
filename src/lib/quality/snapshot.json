@@ -1,0 +1,61 @@
+{
+  "tests": {
+    "unit": 85,
+    "integration": 85,
+    "e2e": 56
+  },
+  "eval": {
+    "ranAt": "2026-11-03T20:09:20.870Z",
+    "retrievalMode": "lexical only (no OPENAI_API_KEY)",
+    "agentModel": "not configured — tool-selection cases skipped",
+    "totals": {
+      "cases": 30,
+      "pass": 25,
+      "fail": 0,
+      "skipped": 5
+    },
+    "categories": [
+      {
+        "category": "retrieval",
+        "total": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "category": "schedule",
+        "total": 8,
+        "pass": 8,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "category": "tool_selection",
+        "total": 5,
+        "pass": 0,
+        "fail": 0,
+        "skipped": 5
+      },
+      {
+        "category": "approval",
+        "total": 5,
+        "pass": 5,
+        "fail": 0,
+        "skipped": 0
+      },
+      {
+        "category": "security",
+        "total": 4,
+        "pass": 4,
+        "fail": 0,
+        "skipped": 0
+      }
+    ]
+  },
+  "security": {
+    "migrations": 14,
+    "tablesWithRls": 23,
+    "rateLimitBuckets": 11,
+    "securityDefinerFunctions": 9
+  }
+}

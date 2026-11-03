@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { TrendingUp } from "lucide-react";
 import ActivityChart from "@/components/features/insights/activity-chart";
+import ScoreChart from "@/components/features/insights/score-chart";
 import WeekReview from "@/components/features/insights/week-review";
 import { getWeekReview } from "@/lib/insights/week";
 import PageHeading from "@/components/ui/page-heading";
@@ -33,6 +34,13 @@ export default async function InsightsPage() {
         <StatCard label="Focus time" value={data.focusMinutes14d ? formatMinutes(data.focusMinutes14d) : null} caption={`${data.focusSessions14d} session${data.focusSessions14d === 1 ? "" : "s"} · last 14 days`} />
         <StatCard label="Active plan" value={data.activePlan ? `${data.activePlan.done}/${data.activePlan.total}` : null} caption={data.activePlan ? "Blocks done" : "No approved plan"} />
       </div>
+      {data.recoveryScore.some((p) => p.score !== null) ? (
+        <div className="card chart-card section-space">
+          <div className="split-head"><h3>Recovery score</h3><Chip>{`${[...data.recoveryScore].reverse().find((p) => p.score !== null)!.score}% today`}</Chip></div>
+          <p className="muted" style={{ fontSize: 12, marginTop: 6 }}>Share of your current plan&apos;s blocks that were done by the end of each day they were due. It shows keeping up with your own plan, not a grade.</p>
+          <ScoreChart points={data.recoveryScore} />
+        </div>
+      ) : null}
       {hasActivity ? (
         <div className="insight-grid">
           <div className="card chart-card">

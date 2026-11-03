@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { ArrowRight, BookOpenCheck, CalendarPlus, ListChecks, MessageSquareQuote, RefreshCcw, Scale, ShieldCheck } from "lucide-react";
 import Brand from "@/components/shell/brand";
 import ThemeButton from "@/components/shell/theme-button";
@@ -84,6 +85,7 @@ export default function Home() {
       </main>
       <footer className="lp-foot">
         <span>CatchUp AI · built for the Decoding Data Science Agentic AI Challenge, Nov 2026</span>
+        <Link href="/quality">Quality and trust: tests, evaluation, live status</Link>
         <a href="/orbital-atelier-preview.html">Original design concept (simulated, no backend) ↗</a>
       </footer>
     </div>

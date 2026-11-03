@@ -27,7 +27,7 @@ describe("buildUniverseGraph", () => {
       [],
       NOW,
     );
-    expect(g.nodes[0]).toMatchObject({ status: "on_track", progress: 50 });
+    expect(g.nodes[0]).toMatchObject({ status: "on_track", progress: 50, grown: 1 });
   });
 
   it("marks all-complete courses as mastered", () => {

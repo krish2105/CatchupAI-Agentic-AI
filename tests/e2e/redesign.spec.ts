@@ -350,6 +350,12 @@ test("weekly review recommends from real numbers and saves the student's reflect
     await s.page.goto("/insights");
     const recs = s.page.getByRole("list", { name: "Recommended next steps" });
     await expect(recs.getByRole("link").first()).toContainText("Replan around 1 missed block");
+    // Recovery score: the one block due so far was missed (0%); completing it lifts today's score to 100%.
+    await expect(s.page.getByRole("heading", { name: "Recovery score" })).toBeVisible();
+    await expect(s.page.getByText("0% today")).toBeVisible();
+    expect((await s.page.request.patch(`/api/study-tasks/${block.id}`, { data: { status: "completed" } })).ok()).toBe(true);
+    await s.page.reload();
+    await expect(s.page.getByText("100% today")).toBeVisible();
     await s.page.getByLabel("What went well this week?").fill("Finished the reading early.");
     await s.page.getByLabel("One focus for next week").fill("Start the worksheet on Monday.");
     await s.page.getByRole("button", { name: "Save reflection" }).click();
@@ -439,4 +445,17 @@ test("preferences: opt-in study emails persist and feedback is saved", async ({ 
   } finally {
     await s.cleanup();
   }
+});
+
+test("public quality page shows real counts and live status without signing in", async ({ browser }) => {
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const page = await context.newPage();
+  await page.goto("/quality");
+  await expect(page).toHaveURL(/\/quality$/);
+  await expect(page.getByRole("heading", { name: "How we know it works." })).toBeVisible();
+  await expect(page.getByText(/Database · \d+ ms round trip/)).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Automated tests" })).toBeVisible();
+  await expect(page.getByText(/\d+ passed/).first()).toBeVisible();
+  await expect(page.getByText(/Row-level security on all \d+ tables/)).toBeVisible();
+  await context.close();
 });

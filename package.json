@@ -23,7 +23,9 @@
     "db:types": "supabase gen types typescript --local > src/lib/supabase/database.types.ts",
     "seed:demo": "tsx scripts/seed-demo.ts",
     "fixtures:pdf": "tsx scripts/make-fixture-pdfs.ts",
-    "preflight": "tsx scripts/preflight.ts"
+    "preflight": "tsx scripts/preflight.ts",
+    "prebuild": "node scripts/quality-snapshot.mjs",
+    "quality:snapshot": "node scripts/quality-snapshot.mjs"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
