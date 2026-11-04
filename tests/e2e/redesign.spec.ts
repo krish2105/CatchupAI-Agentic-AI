@@ -464,6 +464,12 @@ test("public quality page shows real counts and live status without signing in",
   await expect(page.getByRole("heading", { name: "Automated tests" })).toBeVisible();
   await expect(page.getByText(/\d+ passed/).first()).toBeVisible();
   await expect(page.getByText(/Row-level security on all \d+ tables/)).toBeVisible();
+  // Live AI evaluation: recorded live runs only (4 Nov: 6 of 7 passed); cases never run say so.
+  await expect(page.getByRole("heading", { name: "Live AI evaluation" })).toBeVisible();
+  await expect(page.getByText(/\d+ of \d+ live case runs passed/)).toBeVisible();
+  const live = page.getByRole("table", { name: "Pass rate per live case" });
+  await expect(live.getByRole("row").filter({ hasText: "How many hours a week" })).toContainText("not run yet");
+  await expect(live.getByRole("row").filter({ hasText: "catch up before the worksheet" })).toContainText(/\d+\/\d+/);
   await context.close();
 });
 

@@ -13,6 +13,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { modelRuntime, runRecoveryAgent } from "@/lib/agents/recovery-agent";
 import { scriptedRuntime } from "@/lib/agents/testing/e2e-script";
 import { getEmbedder } from "@/lib/rag/embed";
+import { recordLiveRun } from "./live-history";
 import { processDocument } from "@/lib/rag/ingest";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
@@ -118,6 +119,11 @@ beforeAll(async () => {
 afterAll(async () => {
   await Promise.all(users.map((u) => deleteUser(u.id)));
   writeFileSync("docs/evidence/agent-traces/SUMMARY.json", JSON.stringify({ ranAt: new Date().toISOString(), mode: live ? `${live.kind}:${live.model}` : scripted ? "scripted plumbing check" : "skipped (no model)", scenarios: summary }, null, 2) + "\n");
+  // Live runs only: each scenario that actually ran adds to the per-case pass rate shown on /quality.
+  if (live) {
+    const ran = summary.filter((s) => s.status === "PASS" || s.status === "FAIL");
+    recordLiveRun({ ranAt: new Date().toISOString(), model: `${live.kind}:${live.model}`, cases: Object.fromEntries(ran.map((s) => [s.id, s.status === "PASS" ? "pass" : "fail"])) }, Object.fromEntries(summary.map((s) => [s.id, s.title])));
+  }
 });
 
 describe("agentic demonstration scenarios", () => {

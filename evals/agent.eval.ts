@@ -20,6 +20,7 @@ import { searchCourseMaterial } from "@/lib/rag/retrieve";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { admin, anon, deleteUser, signedInUser, type Db } from "../tests/integration/helpers";
+import { recordLiveRun } from "./live-history";
 
 type Category = "retrieval" | "schedule" | "tool_selection" | "approval" | "security" | "robustness";
 type Outcome = { id: string; category: Category; name: string; status: "pass" | "fail" | "skipped"; detail: string; ms: number };
@@ -84,6 +85,11 @@ afterAll(async () => {
     totals: { cases: results.length, pass: results.filter((r) => r.status === "pass").length, fail: results.filter((r) => r.status === "fail").length, skipped: results.filter((r) => r.status === "skipped").length },
   };
   writeFileSync("evals/results/latest.json", JSON.stringify({ meta, summary, results }, null, 2));
+  // Live runs only: each tool-selection case that actually ran adds to the per-case pass rate shown on /quality.
+  if (runtime) {
+    const live = results.filter((r) => r.category === "tool_selection");
+    recordLiveRun({ ranAt: meta.ranAt, model: meta.agentModel, cases: Object.fromEntries(live.filter((r) => r.status !== "skipped").map((r) => [r.id, r.status as "pass" | "fail"])) }, Object.fromEntries(live.map((r) => [r.id, r.name])));
+  }
   const rows = results.map((r) => `| ${r.id} | ${r.category} | ${r.name} | ${r.status === "pass" ? "PASS" : r.status === "fail" ? "**FAIL**" : "SKIPPED"} | ${r.detail.replace(/\|/g, "/").replace(/\n/g, " ")} | ${r.ms} |`);
   writeFileSync(
     "evals/REPORT.md",

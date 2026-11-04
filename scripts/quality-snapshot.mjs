@@ -15,6 +15,12 @@ const migrations = files("supabase/migrations", ".sql");
 const sql = migrations.map((f) => readFileSync(f, "utf8")).join("\n");
 const evals = JSON.parse(readFileSync("evals/results/latest.json", "utf8"));
 const limits = readFileSync("src/lib/http/rate-limit.ts", "utf8");
+// Live-model runs over time (evals/live-history.ts writes it; same counting as livePassRates there).
+const history = JSON.parse(readFileSync("evals/results/live-history.json", "utf8"));
+const liveCases = Object.entries(history.titles).map(([id, title]) => {
+  const results = history.runs.filter((r) => r.cases[id]).map((r) => r.cases[id]);
+  return { id, title, runs: results.length, passes: results.filter((s) => s === "pass").length, latest: results.at(-1) ?? null };
+});
 
 const snapshot = {
   tests: {
@@ -28,6 +34,12 @@ const snapshot = {
     agentModel: evals.meta.agentModel,
     totals: evals.meta.totals,
     categories: evals.summary.map(({ category, total, pass, fail, skipped }) => ({ category, total, pass, fail, skipped })),
+  },
+  live: {
+    runs: history.runs.length,
+    models: [...new Set(history.runs.map((r) => r.model))],
+    lastRanAt: history.runs.at(-1)?.ranAt ?? null,
+    cases: liveCases,
   },
   security: {
     migrations: migrations.length,

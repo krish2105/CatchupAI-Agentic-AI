@@ -72,6 +72,37 @@ export default async function QualityPage() {
           <p className="muted">Skipped cases need a real model and are never simulated. Retrieval: {e.retrievalMode}.</p>
         </section>
 
+        <section className="card quality-section" aria-labelledby="q-live">
+          <h2 id="q-live">Live AI evaluation</h2>
+          {(() => {
+            const ran = snapshot.live.cases.filter((c) => c.runs > 0);
+            const runs = ran.reduce((s, c) => s + c.runs, 0);
+            const passes = ran.reduce((s, c) => s + c.passes, 0);
+            return (
+              <>
+                <p>
+                  <b>{passes} of {runs} live case runs passed</b> · {ran.length} of {snapshot.live.cases.length} cases run so far · {snapshot.live.runs} live run{snapshot.live.runs === 1 ? "" : "s"} on {snapshot.live.models.join(", ") || "no model yet"}
+                  {snapshot.live.lastRanAt ? `, last ${date(snapshot.live.lastRanAt)}` : ""}.
+                </p>
+                <table className="data-table">
+                  <caption className="visually-hidden">Pass rate per live case</caption>
+                  <thead><tr><th scope="col">Case</th><th scope="col">Passed / live runs</th><th scope="col">Latest</th></tr></thead>
+                  <tbody>
+                    {snapshot.live.cases.map((c) => (
+                      <tr key={c.id}>
+                        <td>{c.title}</td>
+                        <td>{c.runs ? `${c.passes}/${c.runs}` : "not run yet"}</td>
+                        <td>{c.latest === "pass" ? "Pass" : c.latest === "fail" ? "Fail" : "—"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                <p className="muted">These cases need a real AI model, so they run on the free daily quota a few at a time. A case that hasn&apos;t run yet is shown as not run, never as passed.</p>
+              </>
+            );
+          })()}
+        </section>
+
         <section className="card quality-section" aria-labelledby="q-sec">
           <h2 id="q-sec">Security</h2>
           <ul className="quality-list">
