@@ -20,3 +20,21 @@ describe("recovery score timeline", () => {
     expect(recoveryScoreTimeline([], ["2026-11-01"], end)).toEqual([{ date: "2026-11-01", score: null, due: 0, done: 0 }]);
   });
 });
+
+describe("recovery score and clock skew", () => {
+  it("counts a block completed 'after now' by a few ms (database clock ahead of the server) on today's score", () => {
+    const now = Date.parse("2026-11-04T20:05:11.484Z");
+    const tasks = [{ endsAt: "2026-11-04T18:35:11Z", completedAt: "2026-11-04T20:05:11.493Z", status: "completed" }];
+    const points = recoveryScoreTimeline(tasks, ["2026-11-04"], end, now);
+    expect(points[0]).toMatchObject({ score: 100, due: 1, done: 1 });
+  });
+
+  it("still only treats blocks that have ended by now as due today", () => {
+    const now = Date.parse("2026-11-04T12:00:00Z");
+    const tasks = [
+      { endsAt: "2026-11-04T10:00:00Z", completedAt: null, status: "todo" },
+      { endsAt: "2026-11-04T18:00:00Z", completedAt: "2026-11-04T11:00:00Z", status: "completed" }, // done early, not yet due
+    ];
+    expect(recoveryScoreTimeline(tasks, ["2026-11-04"], end, now)[0]).toMatchObject({ due: 1, done: 0, score: 0 });
+  });
+});

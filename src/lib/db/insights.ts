@@ -55,12 +55,13 @@ export async function getInsights(supabase: ServerSupabase, timezone: string, no
     let t = Date.parse(`${date}T12:00:00Z`) - 36 * 3600_000;
     while (dayKey(t) <= date) t += 3600_000;
     while (dayKey(t - 60_000) > date) t -= 60_000;
-    return Math.min(t - 1, now);
+    return t - 1;
   };
   const recoveryScore = recoveryScoreTimeline(
     active.map((t) => ({ endsAt: t.ends_at, completedAt: t.completed_at, status: t.status })),
     days.map((d) => d.date),
     endOfDay,
+    now,
   );
 
   return {
