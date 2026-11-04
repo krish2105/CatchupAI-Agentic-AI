@@ -121,6 +121,28 @@ describe("approval", () => {
     expect(await errorOf(approveProposal(asServer(a.db), p.id, key()))).toMatchObject({ status: 409, code: "infeasible" });
   });
 
+  it("every draft carries a deterministic self-check, and a draft that fails it can't be approved", async () => {
+    // The previous test left a 2000-minute project due in 2 days: the self-check says what doesn't fit.
+    const short = await propose(a);
+    expect(short.selfCheck.status).toBe("shortfall");
+    expect(short.selfCheck.shortfalls).toEqual([expect.objectContaining({ title: "Huge project", minutes: expect.any(Number) })]);
+    expect(short.selfCheck.summary).toMatch(/Huge project: \d+ min don't fit before its deadline/);
+    await a.db.from("assignments").delete().eq("title", "Huge project");
+
+    const p = await propose(a);
+    expect(p.selfCheck).toMatchObject({ status: "pass", summary: expect.stringMatching(/^Self-check passed/) });
+    // Tamper with the stored draft (only the server can write proposals; this simulates a planner bug).
+    const broken = structuredClone(p.payload);
+    broken.items[0].scheduledMinutes += 30;
+    await admin().from("action_proposals").update({ payload: broken as never }).eq("id", p.id);
+    const e = await errorOf(approveProposal(asServer(a.db), p.id, key()));
+    expect(e).toMatchObject({ status: 409, code: "self_check_failed" });
+    const { count } = await a.db.from("study_plans").select("id", { count: "exact", head: true }).eq("status", "active");
+    const { data: still } = await a.db.from("action_proposals").select("status").eq("id", p.id).single();
+    expect(still!.status).toBe("pending");
+    expect(count).toBeLessThanOrEqual(1); // no new plan from the broken draft
+  });
+
   it("another student cannot approve, reject or read the proposal", async () => {
     const { data } = await admin().from("action_proposals").select("id").eq("owner_id", a.id).limit(1).single();
     expect(await errorOf(approveProposal(asServer(b.db), data!.id, key()))).toMatchObject({ status: 404 });

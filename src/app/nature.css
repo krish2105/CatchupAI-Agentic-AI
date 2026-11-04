@@ -863,3 +863,17 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 
 /* The list view sits under the absolutely positioned overline label; leave room so they never overlap. */
 .atlas-main .universe-list { padding-top: 56px; }
+
+/* Plan self-check badge (deterministic check shown in the copilot and the approval dialog). */
+.self-check { display: inline-block; max-width: 100%; }
+.self-check > summary { cursor: pointer; list-style: none; display: inline-flex; align-items: center; gap: 5px; }
+.self-check > summary::-webkit-details-marker { display: none; }
+.self-check > summary .ic { width: 13px; height: 13px; }
+.self-check > summary:focus-visible { outline: 2px solid var(--focus, currentColor); outline-offset: 2px; }
+.self-check-body { margin-top: 8px; padding: 10px 12px; border: 1px solid var(--stroke-strong); border-radius: 12px; background: var(--surface2); color: var(--text); font-size: 12.5px; display: grid; gap: 6px; }
+.self-check-body p { margin: 0; }
+.self-check-body ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.self-check-body li { display: flex; gap: 6px; align-items: flex-start; overflow-wrap: anywhere; }
+.self-check-body li .ic { width: 13px; height: 13px; flex: none; margin-top: 2px; }
+.self-check-body li[data-ok="true"] .ic { color: var(--good); }
+.self-check-body li[data-ok="false"] .ic { color: var(--warn); }

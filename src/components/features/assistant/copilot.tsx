@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
+import SelfCheckBadge from "@/components/features/recovery/self-check-badge";
 import TrustDrawer from "@/components/features/recovery/trust-drawer";
 import Thumbs from "@/components/ui/thumbs";
 import type { ToolEvent } from "@/lib/agents/context";
@@ -108,6 +109,7 @@ function AnswerView({ run }: { run: AgentRunDto }) {
             <Sparkles className="ic" aria-hidden="true" />
             <span>
               I drafted a {run.proposal.scenario} schedule that {run.proposal.feasible ? "fits your availability" : "doesn't fully fit"}. It is not saved.
+              {run.proposal.selfCheck ? ` ${run.proposal.selfCheck.summary}` : ""}
               {run.proposal.status === "pending" ? " See “Awaiting your decision”." : ` Status: ${run.proposal.status}.`}
             </span>
           </p>
@@ -183,6 +185,7 @@ function Decision({ run, onDecided }: { run: AgentRunDto; onDecided: (status: st
       <div className="label">Awaiting your decision</div>
       <h3>Draft plan · {proposal.feasible ? "fits your time" : "doesn't fit"}</h3>
       <p>{proposal.scenario[0].toUpperCase() + proposal.scenario.slice(1)} route drafted by the copilot. Nothing has been saved to your schedule.</p>
+      <SelfCheckBadge check={proposal.selfCheck} />
       {error ? <p className="field-error">{error}</p> : null}
       <div className="decision-actions">
         <Link className="btn primary small" href={`/recovery?proposal=${proposal.id}`}><ArrowRight className="ic" aria-hidden="true" /> Review in lab</Link>

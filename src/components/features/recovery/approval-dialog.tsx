@@ -7,6 +7,7 @@ import { Dialog } from "@/components/ui/controls";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import type { ProposalDto } from "@/lib/planner/service";
+import SelfCheckBadge from "./self-check-badge";
 import TrustDrawer from "./trust-drawer";
 import { formatDateTime, formatMinutes } from "@/lib/time";
 
@@ -76,7 +77,9 @@ export default function ApprovalDialog({
           <li className="keep">Leaves your courses, assignments and documents unchanged</li>
         </ul>
       </div>
+      <div style={{ margin: "10px 0" }}><SelfCheckBadge check={proposal.selfCheck} timeFormat={(iso) => formatDateTime(iso, timezone)} /></div>
       {!proposal.feasible ? <Notice tone="danger" title="This route doesn't fit your time and can't be approved." /> : null}
+      {proposal.selfCheck?.status === "fail" ? <Notice tone="danger" title="This draft failed its self-check, so it can't be approved. Compare the routes again." /> : null}
       <ol style={{ listStyle: "none", padding: 0, margin: 0, maxHeight: 280, overflow: "auto" }} aria-label="Proposed tasks">
         {tasks.map((t) => (
           <li key={`${t.itemId}-${t.startsAt}`} className="task-item">
@@ -101,7 +104,7 @@ export default function ApprovalDialog({
         <button type="button" className="btn ghost" onClick={reject} disabled={busy !== null}>
           {busy === "reject" ? <span className="spinner" aria-hidden="true" /> : null} Reject
         </button>
-        <button type="button" className="btn primary" onClick={approve} disabled={busy !== null || !proposal.feasible}>
+        <button type="button" className="btn primary" onClick={approve} disabled={busy !== null || !proposal.feasible || proposal.selfCheck?.status === "fail"}>
           {busy === "approve" ? <span className="spinner" aria-hidden="true" /> : <ShieldCheck className="ic" aria-hidden="true" />} Approve plan
         </button>
       </div>

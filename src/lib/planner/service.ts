@@ -1,4 +1,5 @@
 import "server-only";
+import { selfCheckPlan, type SelfCheck } from "./self-check";
 import { createHash } from "node:crypto";
 import { listAssignments } from "@/lib/db/assignments";
 import { getProfile } from "@/lib/db/profiles";
@@ -145,6 +146,8 @@ export type ProposalDto = {
   appliedPlanId: string | null;
   decidedAt: string | null;
   payload: ProposalPayload;
+  /** Deterministic re-check of the stored draft (see self-check.ts); computed on every read, never stored. */
+  selfCheck: SelfCheck;
 };
 
 export type ProposalPayload = {
@@ -181,6 +184,7 @@ export function toProposal(row: ProposalRow, now: number): ProposalDto {
     appliedPlanId: row.applied_plan_id,
     decidedAt: row.decided_at,
     payload: row.payload as unknown as ProposalPayload,
+    selfCheck: selfCheckPlan(row.payload as unknown as ProposalPayload),
   };
 }
 
@@ -251,6 +255,11 @@ const OUTCOME_ERRORS: Record<string, ApiError> = {
 };
 
 export async function approveProposal(supabase: ServerSupabase, id: string, idempotencyKey: string) {
+  // Defense in depth on top of the database's own deadline and overlap guards: re-check the stored draft.
+  const { data: stored } = await supabase.from("action_proposals").select("payload").eq("id", id).maybeSingle();
+  if (stored && selfCheckPlan(stored.payload as unknown as ProposalPayload).status === "fail") {
+    throw new ApiError(409, "self_check_failed", "This draft failed its self-check (blocks overlap, run past a deadline or don't add up), so it can't be approved. Compare the routes again for a fresh plan.");
+  }
   const { data, error } = await supabase.rpc("approve_proposal", { p_proposal_id: id, p_idempotency_key: idempotencyKey });
   if (error) {
     if (error.code === "23P01" || error.code === "23505") throw new ApiError(409, "conflict", "Another plan was approved at the same time. Reload and try again.");

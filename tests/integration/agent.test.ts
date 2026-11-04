@@ -4,6 +4,7 @@ import { runRecoveryAgent, type AnswerStreamEvent } from "@/lib/agents/recovery-
 import { ScriptedModel, ScriptedProvider, type ScriptStep } from "@/lib/agents/testing/scripted-model";
 import { clearToolCache, invalidateStudent } from "@/lib/agents/tool-cache";
 import { RECOVERY_TOOLS } from "@/lib/agents/tools";
+import { getAgentRun } from "@/lib/db/agent-runs";
 import { processDocument } from "@/lib/rag/ingest";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
@@ -298,6 +299,14 @@ describe("LearningRecoveryAgent", () => {
     expect(embeds).toBe(1);
     // The same passage keeps the same source id in this run.
     expect([...JSON.stringify(model.requests[2].input).matchAll(/\[S(\d+)\]/g)].map((m) => m[1]).every((id) => id === "1" || id === "2" || id === "3" || id === "4")).toBe(true);
+  });
+
+  it("the draft tool reports the plan's self-check to the model, and the run shows it", async () => {
+    const { run, model } = agentRun(a, [{ call: "draft_recovery_plan", args: { scenario: "essential", studyItems: [] } }, { answer: answer() }]);
+    const outcome = await run;
+    expect(JSON.stringify(model.requests[1].input)).toMatch(/selfCheck.*Self-check passed/);
+    const dto = await getAgentRun(asServer(a.db), outcome.runId);
+    expect(dto.proposal).toMatchObject({ status: "pending", selfCheck: { status: "pass" } });
   });
 
   it("keeps agent runs private to their owner", async () => {

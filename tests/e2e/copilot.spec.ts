@@ -34,9 +34,16 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     await s.page.reload();
     await expect(s.page.getByRole("link", { name: "statistics_module_4.pdf · p. 2" })).toBeVisible();
 
+    // The deterministic self-check is shown on the draft, and opens to list each check.
+    const badge = s.page.locator(".decision-card").getByText("Self-check passed", { exact: true });
+    await expect(badge).toBeVisible();
+    await badge.click();
+    await expect(s.page.locator(".decision-card")).toContainText("Every block before its deadline · yes");
+
     await s.page.getByRole("link", { name: "Review in lab" }).click();
     const dialog = s.page.getByRole("dialog", { name: /Approve/ });
     await expect(dialog).toBeVisible();
+    await expect(dialog.getByText("Self-check passed", { exact: true })).toBeVisible();
     await expect(dialog).toContainText("Review the cited notes");
     await dialog.getByRole("button", { name: "Approve plan" }).click();
     await s.page.waitForURL(/\/planner\?approved=1$/);

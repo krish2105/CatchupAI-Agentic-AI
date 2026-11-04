@@ -212,6 +212,7 @@ export const draftRecoveryPlan = tool({
           shortfallMinutes: s.shortfallMinutes,
           coveragePercent: s.coveragePercent,
           blocks: proposal.payload.tasks.length,
+          selfCheck: { status: proposal.selfCheck.status, summary: proposal.selfCheck.summary },
           overdue: proposal.payload.overdue.map((o) => o.title),
         }),
         outcome: `${input.scenario} draft: ${proposal.feasible ? "feasible" : `short by ${s.shortfallMinutes} min`}, ${proposal.payload.tasks.length} blocks (pending approval)`,

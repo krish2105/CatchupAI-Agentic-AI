@@ -1,4 +1,5 @@
 import "server-only";
+import { selfCheckPlan, type CheckablePlan, type SelfCheck } from "@/lib/planner/self-check";
 import type { ToolEvent } from "@/lib/agents/context";
 import type { AgentAnswer } from "@/lib/agents/recovery-agent";
 import { fromDbError } from "@/lib/http/errors";
@@ -15,18 +16,30 @@ export type AgentRunDto = {
   citations: RunCitation[];
   errorCode: string | null;
   createdAt: string;
-  proposal: { id: string; scenario: string; feasible: boolean; status: string } | null;
+  proposal: { id: string; scenario: string; feasible: boolean; status: string; selfCheck: SelfCheck | null } | null;
   /** What actually ran: model, token counts and wall-clock time (null while running or when unknown). */
   meta: { model: string | null; inputTokens: number | null; outputTokens: number | null; durationMs: number | null; fallbackFrom: string | null; fallbackReason: string | null };
 };
 
-const SELECT = "id, course_id, request_text, status, summary, tool_events, citations, error_code, created_at, completed_at, model, input_tokens, output_tokens, fallback_from, fallback_reason, action_proposals(id, scenario, feasible, status)";
+const SELECT = "id, course_id, request_text, status, summary, tool_events, citations, error_code, created_at, completed_at, model, input_tokens, output_tokens, fallback_from, fallback_reason, action_proposals(id, scenario, feasible, status, payload)";
 
 type Row = {
   id: string; course_id: string | null; request_text: string; status: string; summary: string | null; tool_events: unknown; citations: unknown; error_code: string | null; created_at: string;
   completed_at: string | null; model: string | null; input_tokens: number | null; output_tokens: number | null; fallback_from: string | null; fallback_reason: string | null;
-  action_proposals: { id: string; scenario: string; feasible: boolean; status: string }[];
+  action_proposals: { id: string; scenario: string; feasible: boolean; status: string; payload: unknown }[];
 };
+
+/** The payload stays on the server; the browser gets the self-check result only. */
+function toRunProposal(p: Row["action_proposals"][number] | null): AgentRunDto["proposal"] {
+  if (!p) return null;
+  let selfCheck: SelfCheck | null = null;
+  try {
+    selfCheck = selfCheckPlan(p.payload as CheckablePlan);
+  } catch {
+    selfCheck = null;
+  }
+  return { id: p.id, scenario: p.scenario, feasible: p.feasible, status: p.status, selfCheck };
+}
 
 function toRun(r: Row): AgentRunDto {
   let answer: AgentAnswer | null = null;
@@ -46,7 +59,7 @@ function toRun(r: Row): AgentRunDto {
     errorCode: r.error_code,
     createdAt: r.created_at,
     // After a model fallback a run can own two drafts: the first attempt's (expired) and the actionable one.
-    proposal: r.action_proposals.find((p) => p.status !== "expired") ?? r.action_proposals[0] ?? null,
+    proposal: toRunProposal(r.action_proposals.find((p) => p.status !== "expired") ?? r.action_proposals[0] ?? null),
     meta: {
       model: r.model,
       inputTokens: r.input_tokens,
