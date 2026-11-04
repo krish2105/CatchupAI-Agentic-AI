@@ -7,6 +7,8 @@ every security control stay on the server. The shell adds:
 - swipe back and forward
 - the session persists between launches
 - links to other sites (GitHub, docs, email) open in Safari, while the app, Supabase sign-in and the bot check stay inside
+- home-screen quick actions (press and hold the icon): Study schedule (month calendar), AI copilot, Focus sprint, Recovery tracker
+- calendar files: "Download .ics" opens a Quick Look preview (with Apple's "Add All" to Calendar), and `webcal:` subscription links open the Calendar app
 
 ## Build and run
 Requires **Xcode 16+** (from the Mac App Store) and XcodeGen.
@@ -23,6 +25,7 @@ phone (Settings → Privacy & Security → Developer Mode, then restart), connec
 `TEAM=<your team id> ios/install-on-iphone.sh`. A free Apple ID works; the app then needs re-installing every 7 days.
 
 ## Status
+- 1.1 (build 2), 2026-11-05: quick actions, .ics download → Quick Look, `webcal:` → Calendar. Built for the iPhone 17 Pro simulator with `xcodebuild` (no errors or warnings); checked there: the live month calendar renders, the quick-action menu shows all four actions, and "Recovery tracker" opens `/insights#tracker`. The .ics download path was not exercised (needs an approved plan in the signed-in account).
 - Built with Xcode (`xcodebuild`, iOS Simulator SDK, no errors or warnings) and run on an iPhone 17 Pro simulator on
   2026-11-04: it opens the live site and shows the sign-in screen with the bot check.
 - App Store: a web-view shell risks rejection under guideline 4.2 (minimum functionality). To publish, add native

@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @StateObject private var model = WebViewModel()
+    @ObservedObject private var quickActions = QuickActionRouter.shared
 
     var body: some View {
         ZStack(alignment: .top) {
@@ -21,6 +22,11 @@ struct ContentView: View {
             }
         }
         .background(Color(.systemBackground))
+        .onChange(of: quickActions.pendingURL) { _, url in
+            guard let url else { return }
+            model.open(url)
+            quickActions.pendingURL = nil
+        }
     }
 }
 

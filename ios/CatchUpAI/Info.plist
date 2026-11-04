@@ -17,11 +17,48 @@
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
-	<string>1.0</string>
+	<string>1.1</string>
 	<key>CFBundleVersion</key>
-	<string>1</string>
+	<string>2</string>
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
+	<key>UIApplicationShortcutItems</key>
+	<array>
+		<dict>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>calendar</string>
+			<key>UIApplicationShortcutItemSubtitle</key>
+			<string>Month calendar</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Study schedule</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>ai.catchup.schedule</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>sparkles</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>AI copilot</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>ai.catchup.copilot</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>leaf</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Focus sprint</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>ai.catchup.focus</string>
+		</dict>
+		<dict>
+			<key>UIApplicationShortcutItemIconSymbolName</key>
+			<string>chart.bar</string>
+			<key>UIApplicationShortcutItemTitle</key>
+			<string>Recovery tracker</string>
+			<key>UIApplicationShortcutItemType</key>
+			<string>ai.catchup.progress</string>
+		</dict>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict>
 		<key>UIColorName</key>
