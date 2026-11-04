@@ -62,6 +62,10 @@ export default async function SettingsPage() {
       <div className="settings-grid section-space">
         <PrivacyCard />
         <div className="card setting-card">
+          <div className="split-head"><h3>Your school or class</h3><a className="btn small" href="/org">Organisations</a></div>
+          <p className="muted">Join your class with a code. Teachers see class totals only, and only if you choose to share.</p>
+        </div>
+        <div className="card setting-card">
           <div className="split-head"><h3>Accessibility</h3></div>
           <div className="setting-line"><div><strong>Keyboard</strong><p>Every action works from the keyboard. Press Ctrl or ⌘ + K for the command palette.</p></div></div>
           <div className="setting-line"><div><strong>Motion and 3D</strong><p>Reduce motion stops orbiting and transitions; turning 3D off replaces scenes with lists that carry the same information.</p></div></div>

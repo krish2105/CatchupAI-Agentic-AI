@@ -23,6 +23,7 @@ const sections: PolicySection[] = [
         <li><strong>Account:</strong> your email address (for sign-in codes), display name, time zone and study preferences.</li>
         <li><strong>Your study data:</strong> courses, deadlines, uploaded PDF notes and the text extracted from them, plans you approve, focus sessions, quiz and teach-back attempts, weekly reflections and the memories you choose to keep.</li>
         <li><strong>Copilot runs:</strong> your question, the tools the copilot used, its answer and the pages it cited, and token counts. You can open each run in its trace view.</li>
+        <li><strong>Organisations (optional):</strong> the schools or classes you join, your role, and whether you share class totals. Teachers and admins of that organisation see your display name, your role and whether you share; nothing else. If you share, your completed study minutes, open deadlines and latest check score are added to class totals, which are shown only when at least 3 students share.</li>
         <li><strong>Error reports:</strong> grouped error messages with emails, ids, numbers and secrets removed before they are stored.</li>
       </ul>
     ),
@@ -33,7 +34,7 @@ const sections: PolicySection[] = [
     body: (
       <ul>
         <li>No advertising, no selling or sharing of data for marketing, no tracking cookies and no analytics scripts. The app&apos;s only cookies are the sign-in session cookies, set when you sign in; your theme and motion settings stay in your browser&apos;s local storage.</li>
-        <li>Other students can&apos;t see your data: every table is protected by row-level security, and this is tested on every release.</li>
+        <li>Other students can&apos;t see your data: every table is protected by row-level security, and this is tested on every release. Joining an organisation doesn&apos;t change that: teachers can&apos;t open your courses, notes, answers or plans.</li>
         <li>The copilot can&apos;t change your plan on its own. It drafts; you approve.</li>
       </ul>
     ),

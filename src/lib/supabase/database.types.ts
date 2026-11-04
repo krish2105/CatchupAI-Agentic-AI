@@ -672,6 +672,39 @@ export type Database = {
         }
         Relationships: []
       }
+      memberships: {
+        Row: {
+          created_at: string
+          org_id: string
+          role: string
+          share_progress: boolean
+          user_id: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          org_id: string
+          role?: string
+          share_progress?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          org_id?: string
+          role?: string
+          share_progress?: boolean
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "memberships_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notification_prefs: {
         Row: {
           daily_digest: boolean
@@ -717,6 +750,31 @@ export type Database = {
           id?: number
           note?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      organizations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          join_code: string
+          name: string
+        }
+        ComputedFields: never
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          join_code: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          join_code?: string
+          name?: string
         }
         Relationships: []
       }
@@ -1099,6 +1157,37 @@ export type Database = {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
       }
+      create_organization: { Args: { p_name: string }; Returns: string }
+      is_org_member: { Args: { p_org: string }; Returns: boolean }
+      join_organization: { Args: { p_code: string }; Returns: string }
+      leave_organization: { Args: { p_org: string }; Returns: undefined }
+      new_join_code: { Args: Record<PropertyKey, never>; Returns: string }
+      org_class_summary: {
+        Args: { p_org: string; p_since: string }
+        Returns: {
+          assignments_due_7d: number
+          avg_latest_quiz: number
+          blocks_completed: number
+          members: number
+          minutes_completed: number
+          overdue_assignments: number
+          sharing: number
+          shown: boolean
+          students: number
+        }[]
+      }
+      org_members: {
+        Args: { p_org: string }
+        Returns: {
+          display_name: string
+          joined_at: string
+          role: string
+          share_progress: boolean
+          user_id: string
+        }[]
+      }
+      org_role: { Args: { p_org: string }; Returns: string }
+      organization_join_code: { Args: { p_org: string }; Returns: string }
       record_app_error: {
         Args: {
           p_fingerprint: string
@@ -1112,6 +1201,10 @@ export type Database = {
         Returns: undefined
       }
       reject_proposal: { Args: { p_proposal_id: string }; Returns: Json }
+      require_full_account: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       search_course_chunks: {
         Args: {
           p_course_id: string
@@ -1131,6 +1224,14 @@ export type Database = {
           score: number
           vector_similarity: number
         }[]
+      }
+      set_member_role: {
+        Args: { p_org: string; p_role: string; p_user: string }
+        Returns: undefined
+      }
+      set_share_progress: {
+        Args: { p_org: string; p_share: boolean }
+        Returns: undefined
       }
     }
     Enums: {
