@@ -44,6 +44,30 @@ questions with every answering page listed: 8 direct, 2 paraphrased, 1 multi-pag
 The conflicting cases (G12 ATP yield, G13 test day) retrieve **both** the original page and the errata page, so the
 student sees the conflict instead of one silently winning.
 
+## Expanded gold set: 51 questions over three courses (2026-11-05, keyword only so far)
+The set grew from 18 to 51 questions ([evals/rag/gold.json](evals/rag/gold.json)): the biology course gained 9, and two
+more synthetic courses were added, statistics (8, on the Module 4 notes) and chemistry (16, a new 10-page fixture with a
+teacher update that conflicts with its revision guide). By type: 21 direct, 11 paraphrase, 6 multi-page, 4 conflicting,
+2 ambiguous, 7 abstain. Each query searches only its own course. The questions were written before the first run and
+were not changed after it.
+
+The first run had no embedding key (keyword only), so it went to [evals/RAG_REPORT_LEXICAL.md](evals/RAG_REPORT_LEXICAL.md);
+the eval now writes keyword-only runs there so they can't replace the live-embedding report.
+
+| Metric (keyword only, 51 cases) | Value |
+| --- | --- |
+| Recall@1 / Recall@3 (single-answer cases) | 79.4% / 88.2% |
+| Precision@3 | 0.72 |
+| MRR | 0.833 |
+| Multi-page and conflicting: all required pages in top 3 | 9 / 10 |
+| Correct abstention | 7 / 7 |
+| By type (correct) | direct 21/21, paraphrase 7/11, multi-page 5/6, conflicting 4/4, ambiguous 2/2, abstain 7/7 |
+
+Misses: G9 and G11 (as before), G31 "If two variables move together, does one cause the other?" and G32 "Is it safe to
+predict values far beyond the data I collected?" (both abstained: no shared words with page 3), G42 "when an atom gives up
+electrons" (the redox page says "loss"). All five are paraphrases with little word overlap, which is what embeddings are
+for; the hybrid run on all 51 is **not run yet** (it needs the embedding quota).
+
 ## Results with real embeddings (hybrid: keyword + gemini-embedding-001), 2026-11-04
 Same 18 questions, same fixtures, evidence bar 0.6 for Gemini vectors:
 
@@ -98,5 +122,5 @@ supplement if added later.
 
 ## Limitations and next steps
 - Semantic recall now works with Gemini embeddings (see above); the 0.6 evidence bar was checked on this set only and should be re-checked on real course material.
-- The 18-question set is small and synthetic: good for regression checks, not a benchmark.
+- The 51-question set is still small, synthetic and written by the developer: good for regression checks, not a benchmark.
 - Human review of the claim labels and of a sample of live answers is still to do once a model key exists.

@@ -1,7 +1,9 @@
 /**
  * RAG quality evaluation against the REAL ingestion + retrieval path on local Supabase, using the synthetic
  * fixtures in tests/fixtures/rag and the gold set in evals/rag/gold.json. Also measures the claim-support
- * checker against evals/rag/claims.json. Writes evals/results/rag-latest.json and evals/RAG_REPORT.md.
+ * checker against evals/rag/claims.json. Writes evals/results/rag-latest.json and evals/RAG_REPORT.md; a run without an
+ * embedding key (lexical only) writes evals/results/rag-lexical-latest.json and evals/RAG_REPORT_LEXICAL.md instead, so it
+ * never replaces the recorded live-embedding report.
  *   npm run db:start && npm run eval
  */
 import { readFileSync, writeFileSync } from "node:fs";
@@ -21,6 +23,7 @@ let a: User;
 let b: User;
 let biology: string;
 let stats: string;
+let chemistry: string;
 const asServer = (db: Db) => db as unknown as ServerSupabase;
 const embedder = getEmbedder();
 const K = gold.k;
@@ -33,7 +36,7 @@ async function ingest(user: User, courseId: string, path: string, filename: stri
   return doc.data!.id as string;
 }
 
-type Row = { id: string; type: string; query: string; retrieved: string[]; firstRelevantRank: number | null; recall1: boolean; recallK: boolean; precisionK: number | null; requiredAll: boolean | null; abstained: boolean; correct: boolean; ms: number };
+type Row = { id: string; course: string; type: string; query: string; retrieved: string[]; firstRelevantRank: number | null; recall1: boolean; recallK: boolean; precisionK: number | null; requiredAll: boolean | null; abstained: boolean; correct: boolean; ms: number };
 const rows: Row[] = [];
 const checks: { name: string; pass: boolean; detail: string }[] = [];
 
@@ -41,9 +44,11 @@ beforeAll(async () => {
   [a, b] = await Promise.all([signedInUser("rag-a"), signedInUser("rag-b")]);
   biology = (await a.db.from("courses").insert({ title: "Biology unit 2" }).select("id").single()).data!.id;
   stats = (await a.db.from("courses").insert({ title: "Applied Statistics" }).select("id").single()).data!.id;
+  chemistry = (await a.db.from("courses").insert({ title: "Chemistry foundations" }).select("id").single()).data!.id;
   await ingest(a, biology, "tests/fixtures/rag/biology_cells.pdf", "biology_cells.pdf");
   await ingest(a, biology, "tests/fixtures/rag/biology_errata.pdf", "biology_errata.pdf");
   await ingest(a, stats, "tests/fixtures/statistics_module_4.pdf", "statistics_module_4.pdf");
+  await ingest(a, chemistry, "tests/fixtures/rag/chemistry_basics.pdf", "chemistry_basics.pdf");
 });
 
 afterAll(async () => {
@@ -55,15 +60,17 @@ const quantile = (xs: number[], q: number) => [...xs].sort((x, y) => x - y)[Math
 
 describe("RAG quality", () => {
   it("retrieval, attribution, abstention, isolation, deletion and claim support", async () => {
+    const courseIds: Record<string, string> = { biology, statistics: stats, chemistry };
     for (const c of gold.cases) {
+      const course = "course" in c && c.course ? c.course : "biology";
       const t = performance.now();
-      const res = await searchCourseMaterial(asServer(a.db), { courseId: biology, query: c.query, topK: 5 }, embedder);
+      const res = await searchCourseMaterial(asServer(a.db), { courseId: courseIds[course], query: c.query, topK: 5 }, embedder);
       const ms = Math.round(performance.now() - t);
       const got = res.citations.map((x) => `${x.filename}#${x.pageStart}`);
       const relevant = new Set(c.relevant.map(([f, p]) => `${f}#${p}`));
       const topK = got.slice(0, K);
       if (c.type === "abstain") {
-        rows.push({ id: c.id, type: c.type, query: c.query, retrieved: topK, firstRelevantRank: null, recall1: false, recallK: false, precisionK: null, requiredAll: null, abstained: res.abstained, correct: res.abstained, ms });
+        rows.push({ id: c.id, course, type: c.type, query: c.query, retrieved: topK, firstRelevantRank: null, recall1: false, recallK: false, precisionK: null, requiredAll: null, abstained: res.abstained, correct: res.abstained, ms });
         continue;
       }
       const rank = got.findIndex((g) => relevant.has(g));
@@ -71,7 +78,7 @@ describe("RAG quality", () => {
       const requiredAll = required ? required.every((r) => topK.includes(r)) : null;
       const recallK = rank >= 0 && rank < K;
       rows.push({
-        id: c.id, type: c.type, query: c.query, retrieved: topK, firstRelevantRank: rank >= 0 ? rank + 1 : null, recall1: rank === 0, recallK,
+        id: c.id, course, type: c.type, query: c.query, retrieved: topK, firstRelevantRank: rank >= 0 ? rank + 1 : null, recall1: rank === 0, recallK,
         precisionK: topK.length ? topK.filter((g) => relevant.has(g)).length / topK.length : 0, requiredAll, abstained: res.abstained,
         correct: requiredAll ?? recallK, ms,
       });
@@ -122,13 +129,19 @@ describe("RAG quality", () => {
       claimChecker: { threshold: SUPPORT_THRESHOLD, labelled: scored.length, tp, fp, fn, tn, precision: Math.round((tp / (tp + fp)) * 1000) / 1000, recall: Math.round((tp / (tp + fn)) * 1000) / 1000, falseAccepts: scored.filter((c) => !c.label && c.predicted).map((c) => c.id) },
       checks,
     };
-    writeFileSync("evals/results/rag-latest.json", JSON.stringify({ metrics, rows }, null, 2));
+    const byGroup = (key: "course" | "type") =>
+      [...new Set(rows.map((r) => r[key]))].map((g) => {
+        const rs = rows.filter((r) => r[key] === g);
+        return `| ${g} | ${rs.length} | ${rs.filter((r) => r.correct).length}/${rs.length} |`;
+      });
+    const [jsonPath, reportPath] = embedder ? ["evals/results/rag-latest.json", "evals/RAG_REPORT.md"] : ["evals/results/rag-lexical-latest.json", "evals/RAG_REPORT_LEXICAL.md"];
+    writeFileSync(jsonPath, JSON.stringify({ metrics, rows }, null, 2));
     writeFileSync(
-      "evals/RAG_REPORT.md",
+      reportPath,
       [
         "# RAG evaluation (generated)",
         "",
-        `Generated by \`npm run eval\` at ${metrics.ranAt}. Retrieval: ${metrics.retrievalMode}. k = ${K}. Fixtures: tests/fixtures/rag (synthetic).`,
+        `Generated by \`npm run eval\` at ${metrics.ranAt}. Retrieval: ${metrics.retrievalMode}. k = ${K}. ${rows.length} gold cases over three synthetic courses (tests/fixtures/rag, tests/fixtures/statistics_module_4.pdf).`,
         "",
         "| Metric | Value |",
         "| --- | --- |",
@@ -144,9 +157,17 @@ describe("RAG quality", () => {
         `| Claim checker (threshold ${SUPPORT_THRESHOLD}) | precision ${metrics.claimChecker.precision}, recall ${metrics.claimChecker.recall} on ${scored.length} labelled claims; false accepts: ${metrics.claimChecker.falseAccepts.join(", ") || "none"} |`,
         ...checks.map((c) => `| ${c.name} | ${c.pass ? "PASS" : "**FAIL**"} (${c.detail}) |`),
         "",
-        "| ID | Type | Query | Top results | First relevant rank | Correct |",
-        "| --- | --- | --- | --- | --- | --- |",
-        ...rows.map((r) => `| ${r.id} | ${r.type} | ${r.query} | ${r.retrieved.join(", ") || "(abstained)"} | ${r.firstRelevantRank ?? "—"} | ${r.correct ? "yes" : "**no**"} |`),
+        "| Course | Cases | Correct |",
+        "| --- | --- | --- |",
+        ...byGroup("course"),
+        "",
+        "| Type | Cases | Correct |",
+        "| --- | --- | --- |",
+        ...byGroup("type"),
+        "",
+        "| ID | Course | Type | Query | Top results | First relevant rank | Correct |",
+        "| --- | --- | --- | --- | --- | --- | --- |",
+        ...rows.map((r) => `| ${r.id} | ${r.course} | ${r.type} | ${r.query} | ${r.retrieved.join(", ") || "(abstained)"} | ${r.firstRelevantRank ?? "—"} | ${r.correct ? "yes" : "**no**"} |`),
         "",
       ].join("\n"),
     );
