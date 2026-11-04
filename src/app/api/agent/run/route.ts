@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AGENT_LIMITS, runRecoveryAgent } from "@/lib/agents/recovery-agent";
 import { resolveRuntime } from "@/lib/agents/runtime";
 import { assertAiAvailable } from "@/lib/ai/guard";
+import { recordAppError } from "@/lib/observability/app-errors";
 import { logEvent } from "@/lib/observability/log";
 import { requireApiUser } from "@/lib/auth/session";
 import { getCourse } from "@/lib/db/courses";
@@ -59,6 +60,7 @@ export const POST = route(async (request: Request) => {
         send("final", { run: await getAgentRun(supabase, outcome.runId), removedUnsupportedFacts: outcome.removedUnsupportedFacts });
       } catch (error) {
         logEvent("error", "agent.stream_error", { error: error instanceof Error ? error.name : "unknown" });
+        await recordAppError({ source: "agent", path: "/api/agent/run", error });
         send("error", { code: "internal", message: "The copilot failed. Nothing was changed." });
       } finally {
         try {

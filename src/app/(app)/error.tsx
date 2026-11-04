@@ -1,12 +1,20 @@
 "use client";
 
-import { startTransition } from "react";
+import { startTransition, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { LogIn, RotateCcw } from "lucide-react";
 import { Notice } from "@/components/ui/primitives";
 
 export default function AppError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   const router = useRouter();
+  // Report to the self-hosted error tracker (redacted and grouped on the server). Best effort, once per error.
+  useEffect(() => {
+    void fetch("/api/errors/report", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ name: error.name, message: error.message.slice(0, 1000), digest: error.digest, path: window.location.pathname }),
+    }).catch(() => undefined);
+  }, [error]);
   // Server Component errors need fresh server data, not just a client re-render.
   const retry = () => startTransition(() => { router.refresh(); reset(); });
   return (

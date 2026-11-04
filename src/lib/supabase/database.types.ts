@@ -171,6 +171,51 @@ export type Database = {
           },
         ]
       }
+      app_error_groups: {
+        Row: {
+          count: number
+          error_name: string
+          fingerprint: string
+          first_seen: string
+          last_seen: string
+          message: string
+          notified_at: string | null
+          path: string
+          release: string | null
+          resolved_at: string | null
+          source: string
+          stack: string | null
+        }
+        Insert: {
+          count?: number
+          error_name: string
+          fingerprint: string
+          first_seen?: string
+          last_seen?: string
+          message: string
+          notified_at?: string | null
+          path: string
+          release?: string | null
+          resolved_at?: string | null
+          source: string
+          stack?: string | null
+        }
+        Update: {
+          count?: number
+          error_name?: string
+          fingerprint?: string
+          first_seen?: string
+          last_seen?: string
+          message?: string
+          notified_at?: string | null
+          path?: string
+          release?: string | null
+          resolved_at?: string | null
+          source?: string
+          stack?: string | null
+        }
+        Relationships: []
+      }
       assignment_checklist_items: {
         Row: {
           assignment_id: string
@@ -1053,6 +1098,18 @@ export type Database = {
       consume_rate_limit: {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
+      }
+      record_app_error: {
+        Args: {
+          p_fingerprint: string
+          p_message: string
+          p_name: string
+          p_path: string
+          p_release: string
+          p_source: string
+          p_stack: string
+        }
+        Returns: undefined
       }
       reject_proposal: { Args: { p_proposal_id: string }; Returns: Json }
       search_course_chunks: {

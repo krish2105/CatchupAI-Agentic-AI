@@ -1,0 +1,32 @@
+name: Error alerts
+
+# Every 30 minutes, asks the live app for error groups it hasn't reported yet (self-hosted error tracking,
+# table app_error_groups). If there are any, this run fails and GitHub emails the repository owner, which is
+# the alert; the log lists each group (already redacted: no secrets, emails, ids or numbers).
+# Needs the repository secret CRON_SECRET (the same value as on Vercel).
+on:
+  schedule:
+    - cron: "15,45 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Ask the app for new error groups
+        env:
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          test -n "$CRON_SECRET" || { echo "Add the CRON_SECRET repository secret first"; exit 1; }
+          body=$(curl -fsS --max-time 30 -H "Authorization: Bearer $CRON_SECRET" https://catchupai-chi.vercel.app/api/cron/error-alerts)
+          count=$(echo "$body" | jq '.newGroups | length')
+          echo "New error groups: $count"
+          if [ "$count" -gt 0 ]; then
+            echo "$body" | jq -r '.newGroups[] | "- [\(.source)] \(.name) at \(.path) ×\(.count) (release \(.release)): \(.message)"'
+            echo "::error::$count new error group(s). Open /ops in the app to review and resolve them."
+            exit 1
+          fi

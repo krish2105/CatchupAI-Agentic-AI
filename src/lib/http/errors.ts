@@ -79,6 +79,11 @@ export function route<A extends unknown[]>(handler: (...args: A) => Promise<Resp
       response = await runInRequestScope(request?.method ?? "GET", () => handler(...args));
     } catch (error) {
       response = jsonError(error, { requestId, path });
+      // Unexpected server failures go to the self-hosted error tracker (redacted, grouped, never throws).
+      if (response.status >= 500) {
+        const { recordAppError } = await import("@/lib/observability/app-errors");
+        await recordAppError({ source: "route", path: path ?? "/", error });
+      }
     }
     const ms = Date.now() - started;
     if (ms > 3000 || response.status >= 500) logEvent(response.status >= 500 ? "error" : "warn", "api.request", { requestId, path, method: request?.method, status: response.status, ms });
