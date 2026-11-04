@@ -4,13 +4,27 @@ import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { generateClozeQuiz, gradeQuiz, type Passage, type QuizKey, type QuizQuestion } from "./cloze";
+import { packTopic } from "@/lib/catchup/gain";
 import { revisionSchedule, topicProgress, type GradedAnswer, type RevisionItem, type TopicProgress } from "./revision";
 
 export type PublicQuestion = Omit<QuizQuestion, "term">;
 export type QuizSummary = { id: string; courseId: string; title: string; topic: string; createdAt: string; questionCount: number; latestScore: number | null; attempts: number };
 export type QuizResult = { scorePercent: number; results: ReturnType<typeof gradeQuiz>["results"]; weakTerms: string[]; attemptId: string };
 
-async function passagesFor(supabase: ServerSupabase, courseId: string, topic: string | null): Promise<Passage[]> {
+async function passagesFor(supabase: ServerSupabase, courseId: string, topic: string | null, documentId?: string): Promise<Passage[]> {
+  if (documentId) {
+    // A catch-up check: only this document's passages (RLS: only the student's own document is visible).
+    const { data, error } = await supabase
+      .from("document_chunks")
+      .select("id, document_id, page_start, content, documents!inner(filename, status)")
+      .eq("course_id", courseId)
+      .eq("document_id", documentId)
+      .eq("documents.status", "ready")
+      .order("chunk_index")
+      .limit(60);
+    if (error) throw fromDbError(error);
+    return data.map((r) => ({ chunkId: r.id, documentId: r.document_id, filename: (r.documents as unknown as { filename: string }).filename, page: r.page_start, content: r.content }));
+  }
   if (topic) {
     const { data, error } = await supabase.rpc("search_course_chunks", { p_course_id: courseId, p_query: topic, p_limit: 6 });
     if (error) throw fromDbError(error);
@@ -28,22 +42,29 @@ async function passagesFor(supabase: ServerSupabase, courseId: string, topic: st
 }
 
 /** Generates a grounded quiz from the student's own passages. Keys are stored server-only. */
-export async function createQuiz(deps: { supabase: ServerSupabase; admin: AdminSupabase; userId: string; courseId: string; topic: string | null; focusTerms?: string[] }) {
-  const { supabase, admin, userId, courseId, focusTerms } = deps;
+export async function createQuiz(deps: { supabase: ServerSupabase; admin: AdminSupabase; userId: string; courseId: string; topic: string | null; focusTerms?: string[]; documentId?: string }) {
+  const { supabase, admin, userId, courseId, focusTerms, documentId } = deps;
   // An adaptive retest searches for and blanks the concepts the student missed.
   const topic = focusTerms?.length ? focusTerms.join(" ") : deps.topic;
   const { data: course } = await supabase.from("courses").select("id, title").eq("id", courseId).maybeSingle();
   if (!course) throw new ApiError(404, "not_found", "Course not found.");
-  const passages = await passagesFor(supabase, courseId, topic);
+  let packLabel: string | null = null;
+  if (documentId) {
+    const { data: doc } = await supabase.from("documents").select("filename").eq("id", documentId).eq("course_id", courseId).maybeSingle();
+    if (!doc) throw new ApiError(404, "not_found", "Document not found in this course.");
+    packLabel = packTopic(doc.filename);
+  }
+  const passages = await passagesFor(supabase, courseId, topic, documentId);
   const seed = crypto.randomUUID();
   const { questions, keys } = generateClozeQuiz(passages, { seed, count: 5, focusTerms });
   if (questions.length < 3) {
     throw new ApiError(409, "not_enough_material", topic ? "Not enough matching material for that topic. Try a broader topic or upload more notes." : "Upload and index more text-based notes to generate a check.");
   }
+  const label = packLabel ?? (focusTerms?.length ? `Review: ${focusTerms.join(", ")}`.slice(0, 160) : (topic ?? "Whole course"));
   const publicQuestions: PublicQuestion[] = questions.map(({ id, prompt, options, evidence }) => ({ id, prompt, options, evidence }));
   const { data: quiz, error } = await admin
     .from("quizzes")
-    .insert({ owner_id: userId, course_id: courseId, title: `${course.title} knowledge check`, topic: focusTerms?.length ? `Review: ${focusTerms.join(", ")}`.slice(0, 160) : (topic ?? "Whole course"), questions: publicQuestions as unknown as Json })
+    .insert({ owner_id: userId, course_id: courseId, title: `${course.title} knowledge check`, topic: label, questions: publicQuestions as unknown as Json })
     .select("id, created_at")
     .single();
   if (error) throw fromDbError(error);
@@ -53,7 +74,7 @@ export async function createQuiz(deps: { supabase: ServerSupabase; admin: AdminS
     await admin.from("quizzes").delete().eq("id", quiz.id).eq("owner_id", userId);
     throw fromDbError(keyInsert.error);
   }
-  return { id: quiz.id, title: `${course.title} knowledge check`, topic: focusTerms?.length ? `Review: ${focusTerms.join(", ")}`.slice(0, 160) : (topic ?? "Whole course"), questions: publicQuestions, createdAt: quiz.created_at };
+  return { id: quiz.id, title: `${course.title} knowledge check`, topic: label, questions: publicQuestions, createdAt: quiz.created_at };
 }
 
 export async function getQuiz(supabase: ServerSupabase, id: string) {

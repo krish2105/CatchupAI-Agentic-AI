@@ -519,3 +519,46 @@ test("privacy notice and terms are public, linked from the landing page and sign
     await context.close();
   }
 });
+
+test("catch-up pack: graded pre-check and post-check from the pack's document, with the gain on Insights", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
+    await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
+    await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
+    await expect(s.page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
+
+    const takeCheck = async (button: string) => {
+      await s.page.goto("/catch-up");
+      await s.page.getByRole("navigation", { name: "Lecture documents" }).getByRole("link").first().click();
+      const card = s.page.getByRole("region", { name: "Before and after" });
+      await card.getByRole("button", { name: button }).click();
+      // The check opens straight away in the Practice arena.
+      await expect(s.page).toHaveURL(/\/quizzes\?quiz=[0-9a-f-]{36}$/);
+      await expect(s.page.getByRole("button", { name: /Next question|Submit answers/ })).toBeVisible();
+      const id = new URL(s.page.url()).searchParams.get("quiz")!;
+      const quiz = (await (await s.page.request.get(`/api/quizzes/${id}`)).json()).quiz as { topic: string; questions: unknown[] };
+      expect(quiz.topic).toBe("Catch-up: statistics_module_4.pdf");
+      const submitted = await s.page.request.post(`/api/quizzes/${id}/submit`, { data: { answers: quiz.questions.map(() => 0) } });
+      expect(submitted.ok()).toBe(true);
+      return (await submitted.json()).result.scorePercent as number;
+    };
+
+    const before = await takeCheck("Take the pre-check");
+    await s.page.goto("/catch-up");
+    await s.page.getByRole("navigation", { name: "Lecture documents" }).getByRole("link").first().click();
+    await expect(s.page.getByRole("region", { name: "Before and after" })).toContainText(`Pre-check: ${Math.round(before)}%`);
+
+    const after = await takeCheck("Take the post-check");
+    await s.page.goto("/insights");
+    const gains = s.page.getByRole("table", { name: "Catch-up pack scores before and after" });
+    const row = gains.getByRole("row").filter({ hasText: "statistics_module_4.pdf" });
+    await expect(row).toContainText(`${Math.round(before)}%`);
+    await expect(row).toContainText(`${Math.round(after)}%`);
+    await expect(row).toContainText(`${after - before >= 0 ? "+" : ""}${Math.round(after - before)} points`);
+  } finally {
+    await s.cleanup();
+  }
+});

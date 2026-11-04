@@ -1,7 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen, FileText, LifeBuoy } from "lucide-react";
-import { AddToPlan, CheckQuestions } from "@/components/features/catchup/pack-actions";
+import { AddToPlan, CheckQuestions, PackCheck } from "@/components/features/catchup/pack-actions";
+import { catchupGains, packTopic } from "@/lib/catchup/gain";
+import { getPracticeEvidence } from "@/lib/quiz/service";
+import { renderTime } from "@/lib/server/clock";
 import PageHeading from "@/components/ui/page-heading";
 import ListenButton from "@/components/ui/listen-button";
 import Thumbs from "@/components/ui/thumbs";
@@ -31,6 +34,8 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
     }
   }
   const pack = result?.pack;
+  const evidence = result ? await getPracticeEvidence(supabase, await renderTime()) : null;
+  const packGain = result ? catchupGains(evidence!.progress.filter((p) => p.courseId === result!.courseId && p.topic === packTopic(result!.filename)), { includePending: true })[0] ?? null : null;
   const listenText = pack
     ? `Catch-up pack for ${result!.filename}. Summary. ${pack.summary.map((s) => s.text).join(" ")} Key terms: ${pack.keyTerms.map((t) => t.term).join(", ")}.`
     : "";
@@ -88,6 +93,10 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
           <section className="card pack-card" aria-labelledby="pack-check">
             <h3 id="pack-check">Check yourself</h3>
             {pack.questions.length ? <CheckQuestions questions={pack.questions} /> : <p className="muted">This document is too short for check questions.</p>}
+          </section>
+          <section className="card pack-card" aria-labelledby="pack-gain">
+            <h3 id="pack-gain">Before and after</h3>
+            <PackCheck courseId={result!.courseId} documentId={docId!} gain={packGain} />
           </section>
           <section className="card pack-card" aria-labelledby="pack-plan">
             <h3 id="pack-plan">A 30-minute catch-up</h3>

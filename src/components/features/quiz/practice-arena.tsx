@@ -3,7 +3,7 @@
 import { ArrowRight, CheckCircle2, FileText, Repeat, RotateCcw, Sparkles, TrendingUp, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import type { RevisionItem, TopicProgress } from "@/lib/quiz/revision";
@@ -116,12 +116,15 @@ export default function PracticeArena({
   revision,
   progress,
   teachHistory = [],
+  openQuizId = null,
 }: {
   courses: { id: string; title: string; ready: boolean }[];
   quizzes: QuizSummary[];
   revision: RevisionItem[];
   progress: TopicProgress[];
   teachHistory?: TeachAttempt[];
+  /** A check to open straight away (?quiz=, e.g. a catch-up pack's before/after check). */
+  openQuizId?: string | null;
 }) {
   const router = useRouter();
   const usable = courses.filter((c) => c.ready);
@@ -170,6 +173,13 @@ export default function PracticeArena({
       setError(e instanceof ClientApiError ? e.message : "Couldn't open that check.");
     }
   }
+
+  const opened = useRef(false);
+  useEffect(() => {
+    if (!openQuizId || opened.current) return;
+    opened.current = true;
+    void retake(openQuizId);
+  }, [openQuizId]);
 
   if (active) {
     return (

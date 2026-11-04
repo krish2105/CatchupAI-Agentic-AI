@@ -12,8 +12,11 @@ const body = z
     courseId: uuid,
     topic: z.string().trim().min(2).max(120).nullable(),
     focusTerms: z.array(z.string().trim().min(2).max(40).regex(/^[A-Za-z][A-Za-z_-]*$/)).max(5).optional(),
+    // A catch-up pack's graded before/after check: questions from this document only.
+    documentId: uuid.optional(),
   })
-  .strict();
+  .strict()
+  .refine((b) => !(b.documentId && b.focusTerms?.length), { message: "A catch-up check can't also target terms." });
 
 export const POST = route(async (request: Request) => {
   const { supabase, user } = await requireApiUser();

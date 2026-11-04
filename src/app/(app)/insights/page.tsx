@@ -5,6 +5,8 @@ import { listCourses } from "@/lib/db/courses";
 import { listFocusSessions } from "@/lib/db/focus";
 import { getActivePlan } from "@/lib/db/tasks";
 import { getTracker } from "@/lib/db/tracker";
+import { catchupGains } from "@/lib/catchup/gain";
+import { getPracticeEvidence } from "@/lib/quiz/service";
 import type { Metadata } from "next";
 import { TrendingUp } from "lucide-react";
 import ActivityChart from "@/components/features/insights/activity-chart";
@@ -28,6 +30,7 @@ export default async function InsightsPage() {
     getInsights(supabase, profile.timezone, now), getWeekReview(supabase, profile.timezone, now), getTracker(supabase, profile.timezone, now),
     getActivePlan(supabase), listCourses(supabase), listFocusSessions(supabase, new Date(now - 180 * 86400_000).toISOString()),
   ]);
+  const gains = catchupGains((await getPracticeEvidence(supabase, now)).progress);
   const courseNames = Object.fromEntries(courses.map((c) => [c.id, c.title]));
   const hasActivity = data.tasksCompleted > 0 || data.quizAttempts > 0 || data.focusSessions14d > 0;
   return (
@@ -40,6 +43,26 @@ export default async function InsightsPage() {
       />
       <WeekReview review={review} />
       <RecoveryTracker data={tracker} timezone={profile.timezone} extra={<DaysStudied days={data.days} />} />
+      {gains.length ? (
+        <section className="card card-inner section-space" aria-labelledby="gain-title">
+          <div className="split-head"><h2 id="gain-title" className="trace-h2">Before and after catch-up</h2><Chip>From graded checks</Chip></div>
+          <p className="muted">First check on a catch-up pack versus the latest, both from the same document. Shown once a pack has both.</p>
+          <table className="data-table">
+            <caption className="visually-hidden">Catch-up pack scores before and after</caption>
+            <thead><tr><th scope="col">Pack</th><th scope="col">Before</th><th scope="col">After</th><th scope="col">Change</th></tr></thead>
+            <tbody>
+              {gains.map((g) => (
+                <tr key={`${g.courseId}-${g.document}`}>
+                  <td>{g.document}<span className="muted"> · {courseNames[g.courseId] ?? "Course"}</span></td>
+                  <td>{Math.round(g.before)}%</td>
+                  <td>{Math.round(g.after!)}%</td>
+                  <td>{g.gain! >= 0 ? "+" : ""}{Math.round(g.gain!)} points</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </section>
+      ) : null}
       {plan?.tasks.some((t) => t.status === "completed") ? (
         <div className="section-space" id="done-calendar">
           <MonthCalendar mode="done" timezone={profile.timezone} now={now} tasks={plan.tasks} deadlines={[]} focus={focus.map((f) => ({ startedAt: f.startedAt, focusedMinutes: f.focusedMinutes }))} revision={[]} courseNames={courseNames} />

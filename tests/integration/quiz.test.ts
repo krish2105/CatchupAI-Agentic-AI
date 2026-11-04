@@ -81,5 +81,27 @@ describe("knowledge checks", () => {
     const { data } = await admin().from("quiz_keys").select("keys").eq("quiz_id", retest.id).single();
     expect((data!.keys as { term: string }[]).map((k) => k.term)).toContain(missed.term.toLowerCase());
   });
-});
 
+  it("a catch-up check uses only the pack's document, under one topic per document, so before and after can be compared", async () => {
+    const course = (await a.db.from("courses").insert({ title: "Biology unit 2" }).select("id").single()).data!.id;
+    const ingest = async (path: string, filename: string) => {
+      const bytes = new Uint8Array(readFileSync(path));
+      const doc = await a.db.from("documents").insert({ course_id: course, filename, size_bytes: bytes.byteLength }).select("id, storage_path").single();
+      await a.db.storage.from("course-documents").upload(doc.data!.storage_path!, bytes, { contentType: "application/pdf" });
+      await processDocument({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, documentId: doc.data!.id, embedder: null });
+      return doc.data!.id as string;
+    };
+    const bio = await ingest("tests/fixtures/rag/biology_cells.pdf", "biology_cells.pdf");
+    await ingest("tests/fixtures/statistics_module_4.pdf", "stats_in_bio.pdf");
+
+    const pre = await createQuiz({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: course, topic: null, documentId: bio });
+    expect(pre.topic).toBe("Catch-up: biology_cells.pdf");
+    expect(new Set(pre.questions.map((q) => q.evidence.documentId))).toEqual(new Set([bio]));
+    const post = await createQuiz({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: course, topic: null, documentId: bio });
+    expect(post.topic).toBe(pre.topic);
+
+    // Another student can't build a check from this document, and a document must belong to the course.
+    await expect(createQuiz({ supabase: asServer(b.db), admin: adminDb(), userId: b.id, courseId: course, topic: null, documentId: bio })).rejects.toMatchObject({ status: 404 });
+    await expect(createQuiz({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: courseA, topic: null, documentId: bio })).rejects.toMatchObject({ status: 404 });
+  });
+});

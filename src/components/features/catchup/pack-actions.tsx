@@ -65,3 +65,38 @@ export function AddToPlan({ documentId }: { documentId: string }) {
     </div>
   );
 }
+
+/**
+ * Graded before/after check for this pack: the same kind of server-graded quiz from this document only, taken
+ * before studying (pre) and after (post). The gain shown is from those real attempts; nothing is estimated.
+ */
+export function PackCheck({ courseId, documentId, gain }: { courseId: string; documentId: string; gain: { before: number; after: number | null; gain: number | null; attempts: number } | null }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  async function start() {
+    setBusy(true);
+    setError(null);
+    try {
+      const { quiz } = await api<{ quiz: { id: string } }>("/api/quizzes/generate", { method: "POST", body: { courseId, topic: null, documentId } });
+      router.push(`/quizzes?quiz=${quiz.id}`);
+    } catch (e) {
+      setError(e instanceof ClientApiError ? e.message : "Couldn't start the check.");
+      setBusy(false);
+    }
+  }
+  const label = !gain ? "Take the pre-check" : gain.after === null ? "Take the post-check" : "Take it again";
+  return (
+    <div className="pack-gain">
+      {!gain ? (
+        <p>Take a graded 5-question check <b>before</b> you study, then again <b>after</b>, to see what you gained. Both come from this document only.</p>
+      ) : gain.after === null ? (
+        <p>Pre-check: <b>{Math.round(gain.before)}%</b>. Work through the pack, then take the post-check.</p>
+      ) : (
+        <p role="status">Before <b>{Math.round(gain.before)}%</b> → after <b>{Math.round(gain.after)}%</b> ({gain.gain! >= 0 ? "+" : ""}{Math.round(gain.gain!)} points, {gain.attempts} attempts).</p>
+      )}
+      <button type="button" className="btn small" onClick={start} disabled={busy}>{busy ? <span className="spinner" aria-hidden="true" /> : null} {label}</button>
+      {error ? <Notice tone="danger" title={error} /> : null}
+    </div>
+  );
+}
