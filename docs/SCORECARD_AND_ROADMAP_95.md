@@ -13,7 +13,7 @@ The live model now runs in production and in the evaluation (gemini-3.6-flash). 
 | **COO** (operability) | 91 | Readiness and uptime alerts, incident runbook, kill switch, budgets, cron jobs, redacted logs | No paging or Sentry; reminder-email SMTP not set |
 | **AI engineer** | 88 | Live Gemini runs; found and fixed the Gemini 3 thought-signature bug; minimal thinking; retry-delay handling; clear quota messages; live embeddings | Free-tier quota (20/day) and 10–90 s latency |
 | **Agentic AI engineer** | 90 | Live traces: 5 model-chosen tools → pending draft in 10.7 s; malicious document resisted; safe provider failure; 3/3 answered tool-selection cases correct | 5 live cases still to run; 1 provider timeout |
-| **RAG specialist** | 92 | Live Gemini embeddings: Recall@3 100%, MRR 0.939, multi-page 3/3, abstention 4/4; claim check (precision 0.94); deletion and isolation proven | Small synthetic set; no human-reviewed live answers yet |
+| **RAG specialist** | 92 | Live Gemini embeddings: Recall@3 100%, MRR 0.939, multi-page 3/3, abstention 4/4; claim check (precision 1.0 on 30 labelled claims, opposite-word rule); deletion and isolation proven | Small synthetic set; no human-reviewed live answers yet |
 | **Learning scientist** | 90 | Catch-up pack, retrieval practice, spaced revision, teach-back, reflection, recovery score | No measured learning outcomes |
 | **Competition judge** (DDS rubric, our estimate) | 69 / 80 + participation | Innovation 22/25 · Technical 24/25 · Real-world 12/15 · Presentation 11/15 | Platform participation (20) depends on Day 0 and daily submissions; video and post pending |
 

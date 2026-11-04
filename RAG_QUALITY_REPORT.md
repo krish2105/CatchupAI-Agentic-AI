@@ -62,20 +62,29 @@ photosynthesis) retrieves both pages. Embedding calls have their own free-tier q
 ## Claim-to-citation support
 A source id appearing in the context is **not** treated as verification. Before an answer is shown, each fact must:
 cite only sources retrieved in this run; cite no passage flagged as prompt injection; reproduce any quoted text exactly;
-use no number that is missing from the passage; and have at least 70% of its content words (stemmed) present, with no
-word that the passage negates.
+use no number that is missing from the passage; have at least 70% of its content words (stemmed) present, with no
+word that the passage negates; and not swap one side of an opposite pair ("double"/"half", "increase"/"decrease",
+"raise"/"lower", "high"/"low", "maximize"/"minimize", "identical"/"different", "before"/"after" and 11 more, listed in
+`OPPOSITES` in `src/lib/rag/claim-support.ts`) for the other side used in the passage sentence the claim most resembles.
 
-Measured against 24 labelled claims in [evals/rag/claims.json](evals/rag/claims.json) (12 supported, 12 not; labelled by the
+Measured against 30 labelled claims in [evals/rag/claims.json](evals/rag/claims.json) (14 supported, 16 not; labelled by the
 developer from the source text, **not yet reviewed by an independent person**):
 
 | | Predicted supported | Predicted unsupported |
 | --- | --- | --- |
-| Actually supported (12) | 12 | 0 |
-| Actually unsupported (12) | **1 (C20)** | 11 |
+| Actually supported (14) | 14 | 0 |
+| Actually unsupported (16) | 0 | 16 |
 
-Precision 0.938 and recall 1.0. Caught: wrong numbers, wrong page, invented facts, fabricated quotes, injected citations, a
-dropped negation ("Correlation proves causation") and mostly-new wording. **Missed:** C20, "gametes with *double* the
-chromosome number" against a passage saying *half*; antonyms aren't modelled.
+Precision 1.0 and recall 1.0 (2026-11-05; before the opposite-word rule: 0.938 / 1.0 on the first 24, with C20 accepted).
+Caught: wrong numbers, wrong page, invented facts, fabricated quotes, injected citations, a dropped negation
+("Correlation proves causation"), mostly-new wording, and swapped opposites: C20 ("*double* the chromosome number"
+against *half*), C25 (raising vs lowering), C26 (low vs high), C27 (maximizes vs minimizing), C28 (mitosis "different"
+against "identical", while the next sentence says "different" about meiosis).
+
+Be careful with that score: C25–C30 were written together with the rule, so they show that it works as designed, not
+how often it fires on real answers. The rule only knows the listed word pairs; a swap expressed another way ("twice
+as many" vs "half as many" works, "gains" vs "gives up" does not) still passes. It compares against the single
+best-matching sentence, so a sentence that uses both words of a pair never counts as a contradiction.
 
 What this means: the check is a deterministic structural guard that removes unrelated and invented citations. It does
 **not** prove that a claim is a correct reading of its passage. No LLM-as-judge is used, and it would only be a

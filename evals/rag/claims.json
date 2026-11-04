@@ -34,6 +34,12 @@
     { "id": "C21", "claim": "Glucose is split during glycolysis in the cytoplasm.", "passage": "bio3", "label": false, "note": "right fact, wrong citation" },
     { "id": "C22", "claim": "Extrapolating outside the observed range is risky.", "passage": "stats3", "label": true },
     { "id": "C23", "claim": "The Calvin cycle uses ATP and NADPH to fix carbon dioxide into sugar.", "passage": "bio3", "label": true },
-    { "id": "C24", "claim": "Large residuals suggest a poor fit for that observation.", "passage": "stats2", "label": true }
+    { "id": "C24", "claim": "Large residuals suggest a poor fit for that observation.", "passage": "stats2", "label": true },
+    { "id": "C25", "claim": "Enzymes speed up reactions by raising the activation energy.", "passage": "bio5", "label": false, "note": "opposite word (raising vs lowering), same words" },
+    { "id": "C26", "claim": "Low temperatures can denature an enzyme.", "passage": "bio5", "label": false, "note": "opposite word (low vs high)" },
+    { "id": "C27", "claim": "Ordinary least squares maximizes the sum of squared residuals.", "passage": "stats2", "label": false, "note": "opposite word (maximizes vs minimizing)" },
+    { "id": "C28", "claim": "Mitosis produces two genetically different daughter cells.", "passage": "bio4", "label": false, "note": "opposite word (different vs identical); the next sentence says different about meiosis" },
+    { "id": "C29", "claim": "Enzymes speed up reactions by lowering the activation energy.", "passage": "bio5", "label": true },
+    { "id": "C30", "claim": "Meiosis produces gametes with half the chromosome number.", "passage": "bio4", "label": true }
   ]
 }

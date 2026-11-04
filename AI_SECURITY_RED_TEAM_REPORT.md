@@ -37,5 +37,5 @@ retrieved text are untrusted; identity, permissions and every write are decided 
 - The injection detector is a heuristic. Novel phrasings will get through, but they still can't save, approve, delete or
   reach another student's data. The remaining harm is a misleading *suggestion*, which is shown separately from cited facts.
 - Model-judgement attacks (T6–T8) are unmeasured until a model key is configured.
-- Same-word contradictions can pass the claim check (see RAG_QUALITY_REPORT.md, C20).
+- Same-word contradictions pass the claim check unless they swap a listed opposite pair ("double"/"half" and 17 more; C20 is now rejected). Other contradictions with the same words still pass (see RAG_QUALITY_REPORT.md).
 - Regression suite: `tests/unit/injection.test.ts`, `tests/unit/claim-support.test.ts`, eval X1–X4 and B1–B5, `tests/integration/agent.test.ts`.
