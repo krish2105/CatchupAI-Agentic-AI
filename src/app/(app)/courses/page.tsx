@@ -3,6 +3,7 @@ import Link from "next/link";
 import { BookOpen, CalendarClock, CheckCircle2, FileText } from "lucide-react";
 import Landscape from "@/components/nature/landscape";
 import CourseDialog from "@/components/features/courses/course-dialog";
+import LmsImport from "@/components/features/courses/lms-import";
 import SyllabusImport from "@/components/features/courses/syllabus-import";
 import PageHeading from "@/components/ui/page-heading";
 import { Chip, EmptyCard } from "@/components/ui/primitives";
@@ -40,6 +41,7 @@ export default async function CoursesPage({ searchParams }: { searchParams: Prom
         actions={
           <>
             <SyllabusImport courses={courses.map((c) => ({ id: c.id, title: c.title }))} timezone={tz} defaultOpen={params.import === "syllabus"} />
+            <LmsImport timezone={tz} now={now} existing={assignments.map((a) => ({ courseTitle: titles[a.courseId] ?? "", title: a.title, dueAt: a.dueAt }))} />
             <CourseDialog small />
           </>
         }

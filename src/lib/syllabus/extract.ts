@@ -30,6 +30,9 @@ const ESTIMATES: [RegExp, number][] = [
   [/\blab\b/i, 120],
 ];
 
+/** Starting estimate in minutes for a piece of graded work, from words in its title (shared with the LMS import). */
+export const estimateMinutes = (text: string) => ESTIMATES.find(([r]) => r.test(text))?.[1] ?? 180;
+
 const MONTH_NAMES = Object.keys(MONTHS).sort((a, b) => b.length - a.length).join("|");
 const PATTERNS: { re: RegExp; parse: (m: RegExpMatchArray) => { y?: number; mo: number; d: number; note?: string } | null }[] = [
   { re: /\b(\d{4})-(\d{2})-(\d{2})\b/, parse: (m) => ({ y: +m[1], mo: +m[2] - 1, d: +m[3] }) },
@@ -106,7 +109,7 @@ export function extractSyllabusDeadlines(pages: string[], opts: { timezone: stri
         const due = new TZDate(year, parts.mo, parts.d, h, min, 0, opts.timezone);
         if (due.getMonth() !== parts.mo) continue; // e.g. 31 Nov
         const title = cleanTitle(line, [m[0], t?.[0] ?? ""]) || "Untitled deadline";
-        const estimate = ESTIMATES.find(([r]) => r.test(line))?.[1] ?? 180;
+        const estimate = estimateMinutes(line);
         const dueAt = new Date(due.getTime()).toISOString();
         const k = `${title.toLowerCase()}|${dueAt}`;
         if (seen.has(k)) break;
