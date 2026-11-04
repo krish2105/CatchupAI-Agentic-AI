@@ -27,7 +27,7 @@ async function traced<T>(
   const c = ctx.context;
   const started = Date.now();
   const push = (status: ToolEvent["status"], outcome: string) => {
-    const event: ToolEvent = { tool: name, status, startedAt: new Date(started).toISOString(), durationMs: Date.now() - started, args, outcome };
+    const event: ToolEvent = { tool: name, status, startedAt: new Date(started).toISOString(), durationMs: Date.now() - started, args, outcome, ...(c.attempt > 1 ? { attempt: c.attempt } : {}) };
     c.events.push(event);
     c.onEvent?.(event);
   };
@@ -99,7 +99,7 @@ export const searchCourseMaterialTool = tool({
   }),
   execute: (input, ctx?: RunContext<AgentContext>) =>
     traced(ctx, "search_course_material", { courseId: shortId(input.courseId), query: input.query.slice(0, 60), topK: input.topK }, async (c) => {
-      if (c.events.filter((e) => e.tool === "search_course_material").length >= LIMITS.maxSearches) throw new ToolDenied("Search budget for this request is used up.");
+      if (c.events.filter((e) => e.tool === "search_course_material" && (e.attempt ?? 1) === c.attempt).length >= LIMITS.maxSearches) throw new ToolDenied("Search budget for this request is used up.");
       await assertCourse(c, input.courseId);
       const { citations, abstained } = await searchCourseMaterial(c.supabase, { courseId: input.courseId, query: input.query, topK: input.topK }, c.embedder);
       if (abstained) return { result: "NO_EVIDENCE: nothing in this course's uploaded material supports an answer.", outcome: "No supporting evidence" };

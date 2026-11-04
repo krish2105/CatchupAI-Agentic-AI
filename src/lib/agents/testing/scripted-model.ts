@@ -8,7 +8,7 @@ import { Usage, type Model, type ModelProvider, type ModelRequest, type ModelRes
 export type ScriptStep =
   | { call: string; args: Record<string, unknown> | ((ctx: ScriptView) => Record<string, unknown>) }
   | { answer: unknown | ((ctx: ScriptView) => unknown) }
-  | { fail: string };
+  | { fail: string; status?: number };
 
 export type ScriptView = { turn: number; lastToolOutput: string; toolOutputs: string[]; input: string };
 
@@ -39,7 +39,8 @@ export class ScriptedModel implements Model {
     const ctx = view(request, this.turn);
     this.turn++;
     if (!step) throw new Error("Script exhausted");
-    if ("fail" in step) throw Object.assign(new Error(step.fail), { code: "model_error" });
+    // `status` mimics an HTTP error from the provider (429 quota, 503 overload) so fallback paths can be tested.
+    if ("fail" in step) throw Object.assign(new Error(step.fail), { code: "model_error", ...(step.status ? { status: step.status } : {}) });
     // No language model runs, so no tokens are used (the UI then shows no token count).
     const usage = new Usage({ requests: 1, inputTokens: 0, outputTokens: 0, totalTokens: 0 });
     if ("call" in step) {

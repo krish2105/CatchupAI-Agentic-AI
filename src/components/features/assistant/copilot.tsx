@@ -1,5 +1,6 @@
 "use client";
 
+import { fallbackNote } from "@/lib/agents/fallback-text";
 import { ArrowRight, BookOpen, Check, CheckCircle2, CircleSlash, FileText, Leaf, OctagonX, Sparkles, Square, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
@@ -34,6 +35,9 @@ const ERROR_TEXT: Record<string, string> = {
   model_error: "The AI service failed. Nothing was changed. Try again in a moment.",
   model_busy: "The free AI model is at its rate limit right now. Nothing was changed. Wait a minute and try again.",
   model_quota: "Today's free AI quota is used up, so the copilot is paused until it resets. Nothing was changed, and everything else still works.",
+  model_overloaded: "The AI model is overloaded right now. Nothing was changed. Try again in a few minutes.",
+  provider_timeout: "The AI model didn't answer in time. Nothing was changed. Try again in a moment.",
+  attempt_timeout: "The AI model didn't answer in time. Nothing was changed. Try again in a moment.",
 };
 
 function Timeline({ events, running }: { events: ToolEvent[]; running: boolean }) {
@@ -291,7 +295,7 @@ export default function Copilot({
           <div className="split-head"><h3>Agent activity</h3><Chip tone={running ? "warn" : "good"}>{running ? "Live" : shown ? (shown.status === "failed" ? "Failed" : "Complete") : "Idle"}</Chip></div>
           <Timeline events={live ? live.events : (shown?.events ?? [])} running={running} />
           {!live && shown?.meta.model && shown.status !== "running" ? (
-            <p className="trust-meta">Ran on <b>{shown.meta.model}</b>{shown.meta.durationMs !== null ? ` · ${(shown.meta.durationMs / 1000).toFixed(1)} s` : ""}{(shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0) > 0 ? ` · ${((shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens` : ""}</p>
+            <p className="trust-meta">Ran on <b>{shown.meta.model}</b>{fallbackNote(shown.meta) ? ` (${fallbackNote(shown.meta)})` : ""}{shown.meta.durationMs !== null ? ` · ${(shown.meta.durationMs / 1000).toFixed(1)} s` : ""}{(shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0) > 0 ? ` · ${((shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens` : ""}</p>
           ) : null}
           {!live && shown?.status === "failed" ? <p className="field-error" style={{ marginTop: 8 }}><OctagonX className="ic" aria-hidden="true" style={{ display: "inline", width: 12 }} /> Run failed: {shown.errorCode}</p> : null}
         </div>

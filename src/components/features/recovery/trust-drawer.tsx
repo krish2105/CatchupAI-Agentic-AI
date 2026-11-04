@@ -1,5 +1,6 @@
 "use client";
 
+import { fallbackNote } from "@/lib/agents/fallback-text";
 import { CheckCircle2, CircleSlash, FileText, ShieldCheck, X, XCircle } from "lucide-react";
 import { useState } from "react";
 import { Dialog } from "@/components/ui/controls";
@@ -106,6 +107,7 @@ export default function TrustDrawer({ proposalId, label = "Why trust this?" }: {
                 {data?.run?.meta.model ? (
                   <p className="trust-meta">
                     Model <b>{data.run.meta.model}</b>
+                    {fallbackNote(data.run.meta) ? <> ({fallbackNote(data.run.meta)})</> : null}
                     {data.run.meta.durationMs !== null ? <> · {(data.run.meta.durationMs / 1000).toFixed(1)} s</> : null}
                     {(data.run.meta.inputTokens ?? 0) + (data.run.meta.outputTokens ?? 0) > 0 ? <> · {((data.run.meta.inputTokens ?? 0) + (data.run.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens</> : null}
                   </p>

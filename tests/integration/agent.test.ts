@@ -26,17 +26,23 @@ async function uploadAndIngest(user: User, courseId: string, fixture: string, fi
   await processDocument({ supabase: asServer(user.db), admin: adminDb(), userId: user.id, documentId: doc.data!.id, embedder: fakeEmbedder });
 }
 
-function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; courseId?: string | null; message?: string } = {}) {
+function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; courseId?: string | null; message?: string; fallback?: ScriptStep[] } = {}) {
   const model = new ScriptedModel(steps, opts.loop);
+  const fallbackModel = opts.fallback ? new ScriptedModel(opts.fallback) : null;
   return {
     model,
+    fallbackModel,
     run: runRecoveryAgent({
       supabase: asServer(user.db),
       admin: adminDb(),
       userId: user.id,
       courseId: opts.courseId ?? null,
       message: opts.message ?? "I missed Module 4 and my worksheet is due soon. What should I do?",
-      runtime: { provider: new ScriptedProvider(model), model: "scripted-test-model" },
+      runtime: {
+        provider: new ScriptedProvider(model),
+        model: "scripted-test-model",
+        ...(fallbackModel ? { fallback: { provider: new ScriptedProvider(fallbackModel), model: "scripted-fallback-model" } } : {}),
+      },
       embedder: fakeEmbedder,
       now: Date.now(),
     }),
@@ -173,6 +179,44 @@ describe("LearningRecoveryAgent", () => {
     const search = { call: "search_course_material", args: { courseId: courseA, query: "regression slope", topK: 2 } } as const;
     const outcome = await agentRun(a, [search, search, search, search, search, { answer: answer() }]).run;
     expect(outcome.events.map((e) => e.status)).toEqual(["completed", "completed", "completed", "completed", "denied"]);
+  });
+
+  it("falls back once to the second model on a daily quota, and records which model answered and why", async () => {
+    const { run, fallbackModel } = agentRun(a, [{ call: "get_study_preferences", args: {} }, { fail: "Quota exceeded: GenerateRequestsPerDayPerProjectPerModel", status: 429 }], {
+      fallback: [{ call: "list_assignments", args: { courseId: null, includeCompleted: false } }, { answer: answer() }],
+    });
+    const outcome = await run;
+    expect(outcome).toMatchObject({ status: "completed", model: "scripted-fallback-model", fallbackFrom: "scripted-test-model", fallbackReason: "model_quota" });
+    expect(fallbackModel!.turn).toBe(2);
+    // Both attempts' tool calls really ran; the trace says which attempt each belongs to.
+    expect(outcome.events.map((e) => [e.tool, e.attempt ?? 1])).toEqual([["get_study_preferences", 1], ["list_assignments", 2]]);
+    const { data: stored } = await a.db.from("agent_runs").select("status, model, fallback_from, fallback_reason").eq("id", outcome.runId).single();
+    expect(stored).toEqual({ status: "completed", model: "scripted-fallback-model", fallback_from: "scripted-test-model", fallback_reason: "model_quota" });
+  });
+
+  it("expires the primary attempt's draft before the fallback drafts again, so only one draft stays actionable", async () => {
+    const draft = { call: "draft_recovery_plan", args: { scenario: "essential", studyItems: [] } } as const;
+    const outcome = await agentRun(a, [draft, { fail: "The model is overloaded", status: 503 }], { fallback: [draft, { answer: answer() }] }).run;
+    expect(outcome).toMatchObject({ status: "completed", fallbackReason: "model_overloaded" });
+    const { data: drafts } = await a.db.from("action_proposals").select("id, status").eq("run_id", outcome.runId);
+    expect(drafts!.filter((d) => d.status === "pending").map((d) => d.id)).toEqual([outcome.proposalId]);
+    expect(drafts!.filter((d) => d.status === "expired")).toHaveLength(1);
+  });
+
+  it("does not fall back on errors a second model wouldn't fix", async () => {
+    const { run, fallbackModel } = agentRun(a, [{ fail: "Invalid request", status: 400 }], { fallback: [{ answer: answer() }] });
+    const outcome = await run;
+    expect(outcome).toMatchObject({ status: "failed", errorCode: "model_error" });
+    expect(fallbackModel!.turn).toBe(0);
+    const { data: stored } = await a.db.from("agent_runs").select("model, fallback_from, fallback_reason").eq("id", outcome.runId).single();
+    expect(stored).toEqual({ model: "scripted-test-model", fallback_from: null, fallback_reason: null });
+  });
+
+  it("tries the fallback only once: if it also fails, the run fails safely with both facts recorded", async () => {
+    const outcome = await agentRun(a, [{ fail: "busy", status: 429 }], { fallback: [{ fail: "busy too", status: 503 }] }).run;
+    expect(outcome).toMatchObject({ status: "failed", errorCode: "model_overloaded", proposalId: null });
+    const { data: stored } = await a.db.from("agent_runs").select("status, model, fallback_from, fallback_reason, error_code").eq("id", outcome.runId).single();
+    expect(stored).toEqual({ status: "failed", model: "scripted-fallback-model", fallback_from: "scripted-test-model", fallback_reason: "model_busy", error_code: "model_overloaded" });
   });
 
   it("keeps agent runs private to their owner", async () => {

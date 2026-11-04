@@ -13,6 +13,8 @@ export type ToolEvent = {
   /** Privacy-safe argument summary (ids shortened, queries truncated). */
   args: Record<string, string | number | boolean | null>;
   outcome: string;
+  /** 2 when the call ran during the fallback attempt on the second model (absent = first attempt). */
+  attempt?: number;
 };
 
 /** suspicious = the passage contains instructions aimed at an AI (see rag/injection.ts); it can never back a fact. */
@@ -34,6 +36,8 @@ export type AgentContext = {
   /** Sources actually retrieved in this run, keyed by sourceId ("S1"...). Only these may be cited. */
   sources: Map<string, SourceRef>;
   proposalId: string | null;
+  /** 1 for the primary model, 2 after falling back. Per-request tool budgets count per attempt. */
+  attempt: number;
   onEvent?: (event: ToolEvent) => void;
 };
 

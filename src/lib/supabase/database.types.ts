@@ -113,6 +113,8 @@ export type Database = {
           course_id: string | null
           created_at: string
           error_code: string | null
+          fallback_from: string | null
+          fallback_reason: string | null
           id: string
           input_tokens: number | null
           model: string | null
@@ -129,6 +131,8 @@ export type Database = {
           course_id?: string | null
           created_at?: string
           error_code?: string | null
+          fallback_from?: string | null
+          fallback_reason?: string | null
           id?: string
           input_tokens?: number | null
           model?: string | null
@@ -145,6 +149,8 @@ export type Database = {
           course_id?: string | null
           created_at?: string
           error_code?: string | null
+          fallback_from?: string | null
+          fallback_reason?: string | null
           id?: string
           input_tokens?: number | null
           model?: string | null

@@ -43,6 +43,7 @@ and a kill switch (`ops_flags`; see INCIDENT_RESPONSE_RUNBOOK.md).
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key |
    | `SUPABASE_SECRET_KEY` | secret key (server only) |
    | `GEMINI_API_KEY` / `GEMINI_MODEL` / `AI_PROVIDER` | set by `scripts/configure-ai.py` (or `OPENAI_API_KEY` / `OPENAI_MODEL`) |
+   | `GEMINI_FALLBACK_MODEL` (optional) | a second Gemini model, tried once when the first hits its daily quota, is overloaded or times out; it has its own free quota. Plain config, not a secret |
    | `NEXT_PUBLIC_APP_URL` | `https://<your-app>.vercel.app` |
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | from step 2 |
    | `CRON_SECRET` | a random string of 32+ characters |

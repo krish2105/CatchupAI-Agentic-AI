@@ -323,15 +323,18 @@ test("calendar export: .ics download and a private feed link that can be revoked
     expect(link).toMatch(/\/api\/calendar\/feed\/[A-Za-z0-9_-]{43}$/);
 
     // A calendar app has no session: the link alone works.
-    const anonymous = await playwright.request.newContext();
-    const feed = await anonymous.get(link);
+    // The link's host comes from NEXT_PUBLIC_APP_URL (the dev server locally); the token is what matters, so
+    // request its path from the server under test.
+    const anonymous = await playwright.request.newContext({ baseURL: test.info().project.use.baseURL });
+    const feedPath = new URL(link).pathname;
+    const feed = await anonymous.get(feedPath);
     expect(feed.status()).toBe(200);
     expect(await feed.text()).toContain("Due: Essay");
 
     await s.page.getByRole("button", { name: "Revoke link" }).click();
     await expect(s.page.getByRole("button", { name: "Create private link" })).toBeVisible();
-    expect((await anonymous.get(link)).status()).toBe(404);
-    expect((await anonymous.get(link.replace(/[A-Za-z0-9_-]{43}$/, "x".repeat(43)))).status()).toBe(404);
+    expect((await anonymous.get(feedPath)).status()).toBe(404);
+    expect((await anonymous.get(feedPath.replace(/[A-Za-z0-9_-]{43}$/, "x".repeat(43)))).status()).toBe(404);
     await anonymous.dispose();
   } finally {
     await s.cleanup();
