@@ -466,3 +466,25 @@ test("public quality page shows real counts and live status without signing in",
   await expect(page.getByText(/Row-level security on all \d+ tables/)).toBeVisible();
   await context.close();
 });
+
+test("public status page reports the app, database and AI live, with uptime and incident notes", async ({ browser }) => {
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const page = await context.newPage();
+  try {
+    await page.goto("/status");
+    await expect(page).toHaveURL(/\/status$/); // no sign-in needed
+    await expect(page.getByRole("heading", { level: 1, name: "System status" })).toBeVisible();
+    const components = page.getByRole("list", { name: "Components" });
+    await expect(components.getByRole("listitem").filter({ hasText: "Web app" })).toContainText("Operational");
+    await expect(components.getByRole("listitem").filter({ hasText: "Database" })).toContainText(/Operational · \d+ ms/);
+    await expect(components.getByRole("listitem").filter({ hasText: "AI copilot" })).toContainText(/Operational|Paused|Not configured/);
+    await expect(page.getByRole("heading", { name: "Uptime checks" })).toBeVisible();
+    const incidents = page.getByRole("list", { name: "Incident notes, newest first" });
+    await expect(incidents.getByRole("listitem").first()).toContainText("Resolved");
+    // Public, so nothing about accounts or configuration values is shown.
+    await expect(page.locator("body")).not.toContainText(/@|sb_secret|GEMINI_API_KEY=/);
+  } finally {
+    await context.close();
+  }
+});
+

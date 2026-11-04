@@ -921,3 +921,24 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .ops-error-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .ops-error-head .btn { margin-left: auto; }
 .ops-errors pre { white-space: pre-wrap; font-size: 11px; margin: 6px 0 0; color: var(--muted); }
+
+/* Public status page (/status). */
+.status-page { display: grid; gap: 14px; }
+.status-page > p, .status-page section p { font-size: 13.5px; margin: 4px 0; }
+.status-banner { display: flex; align-items: center; gap: 10px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--stroke-strong); background: var(--surface); color: var(--text); font-weight: 700; font-size: 15px !important; }
+.status-banner .ic { width: 20px; height: 20px; flex: none; }
+.status-banner.up .ic { color: var(--good); }
+.status-banner.degraded .ic { color: var(--warn); }
+.status-banner.down .ic { color: var(--danger); }
+.status-components, .status-incidents { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.status-components > li { display: grid; grid-template-columns: 20px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--stroke); }
+.status-components > li:last-child { border-bottom: 0; }
+.status-components > li > .ic { width: 18px; height: 18px; }
+.status-components > li[data-state="up"] > .ic { color: var(--good); }
+.status-components > li[data-state="degraded"] > .ic { color: var(--warn); }
+.status-components > li[data-state="down"] > .ic { color: var(--danger); }
+.status-components > li[data-state="off"] > .ic { color: var(--muted); }
+.status-components p { margin: 2px 0 0 !important; }
+.status-incidents > li { border: 1px solid var(--stroke); border-radius: 12px; padding: 12px 14px; overflow-wrap: anywhere; }
+@media (max-width: 480px) { .status-components > li { grid-template-columns: 20px minmax(0, 1fr); } .status-components > li .chip { grid-column: 2; justify-self: start; } }
+.lp-foot-links { display: inline-flex; flex-wrap: wrap; gap: 14px; }
