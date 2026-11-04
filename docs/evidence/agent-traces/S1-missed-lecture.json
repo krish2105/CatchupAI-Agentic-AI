@@ -1,0 +1,132 @@
+{
+  "scenario": "S1-missed-lecture",
+  "title": "Missed the regression lecture: catch up before the worksheet",
+  "model": "gemini:gemini-3.6-flash",
+  "ranAt": "2026-11-04T08:23:00.454Z",
+  "request": "I missed the regression lecture. What do I need to know about residuals, and can you plan my catch-up before the worksheet is due?",
+  "latencyMs": 10680,
+  "tokens": {
+    "input": 7336,
+    "output": 618
+  },
+  "estimatedCostUsd": null,
+  "status": "completed",
+  "errorCode": null,
+  "steps": [
+    {
+      "step": 1,
+      "tool": "get_study_preferences",
+      "args": {},
+      "status": "completed",
+      "ms": 8,
+      "outcome": "16h per week, Asia/Dubai"
+    },
+    {
+      "step": 2,
+      "tool": "get_student_memory",
+      "args": {},
+      "status": "completed",
+      "ms": 9,
+      "outcome": "0 memories"
+    },
+    {
+      "step": 3,
+      "tool": "list_assignments",
+      "args": {
+        "courseId": "cf896733…",
+        "includeCompleted": false
+      },
+      "status": "completed",
+      "ms": 15,
+      "outcome": "1 assignment"
+    },
+    {
+      "step": 4,
+      "tool": "search_course_material",
+      "args": {
+        "courseId": "cf896733…",
+        "query": "residuals regression",
+        "topK": 6
+      },
+      "status": "completed",
+      "ms": 410,
+      "outcome": "4 passages: p. 2, p. 3, p. 4, p. 1"
+    },
+    {
+      "step": 5,
+      "tool": "draft_recovery_plan",
+      "args": {
+        "scenario": "balanced",
+        "studyItems": 2
+      },
+      "status": "completed",
+      "ms": 47,
+      "outcome": "balanced draft: feasible, 6 blocks (pending approval)"
+    }
+  ],
+  "answer": {
+    "facts": [
+      {
+        "statement": "A residual equals observed Y minus predicted Y_hat.",
+        "sources": [
+          "S1"
+        ]
+      },
+      {
+        "statement": "Ordinary least squares fits beta_0 and beta_1 by minimizing the sum of squared residuals.",
+        "sources": [
+          "S1"
+        ]
+      },
+      {
+        "statement": "Inspecting a residual plot helps identify nonlinear patterns or changing error variance, and large residuals suggest poor fit for a particular observation.",
+        "sources": [
+          "S1"
+        ]
+      },
+      {
+        "statement": "A basic linear regression analysis assumes a linear mean relationship and makes assumptions about residual behavior.",
+        "sources": [
+          "S2"
+        ]
+      },
+      {
+        "statement": "The Regression worksheet is due on 2026-11-09T08:22:48.815+00:00 with an estimated completion time of 150 minutes.",
+        "sources": []
+      }
+    ],
+    "suggestions": [
+      "I have drafted a recovery plan in the Recovery lab totaling 225 scheduled minutes (150 minutes for the Regression worksheet plus 45 minutes of residual study items) with 0 shortfall minutes.",
+      "Review residual concept definitions and residual plots first before attempting the worksheet exercises.",
+      "Please check the Recovery lab to review and approve the drafted plan."
+    ],
+    "clarifyingQuestion": null
+  },
+  "citations": [
+    "regression_lecture.pdf p. 2",
+    "regression_lecture.pdf p. 3"
+  ],
+  "removedUnsupportedFacts": 0,
+  "draft": {
+    "status": "pending",
+    "feasible": true,
+    "shortfallMinutes": 0,
+    "savedWithoutApproval": false
+  },
+  "measured": {
+    "expectedTools": [
+      "list_assignments",
+      "search_course_material",
+      "draft_recovery_plan"
+    ],
+    "usedTools": [
+      "get_study_preferences",
+      "get_student_memory",
+      "list_assignments",
+      "search_course_material",
+      "draft_recovery_plan"
+    ],
+    "toolRecall": 1,
+    "checksFailed": []
+  }
+}

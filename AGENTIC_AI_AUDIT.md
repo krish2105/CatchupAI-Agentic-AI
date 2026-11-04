@@ -1,7 +1,7 @@
 # Agentic AI audit: how a judge would see it
 
 **Date:** 2026-11-04. Written from the point of view of an Agentic AI competition judge. Every claim points to code or
-a test. The biggest gap, stated first: **there is no live-model run yet**, because no model key has been entered.
+a test. **Live-model evidence now exists** (gemini-3.6-flash): see LIVE_AGENT_EVALUATION_REPORT.md and `docs/evidence/agent-traces/`.
 
 ## What the agent is
 One agent, `LearningRecoveryAgent` (OpenAI Agents SDK 0.21, `src/lib/agents/recovery-agent.ts`), with **seven tools**:
@@ -31,7 +31,7 @@ plan, approve, delete or reach another student's data.
 | Safe failure? | Bad tool arguments never run; bad output fails the run and expires its draft; timeouts, turn and search budgets; kill switch | eval B1–B2, `ai-guard.test.ts` |
 | Memory? | Student-controlled; the agent can only suggest | `memory-mcp.test.ts`, E2E |
 | Interoperability? | Read-only MCP server with a personal, revocable token | E2E MCP test |
-| **Measured with a real model?** | **No:** 8 tool-selection cases and 3 demo scenarios are skipped | LIVE_AGENT_EVALUATION_REPORT.md |
+| **Measured with a real model?** | **Yes, partly:** 3/3 answered tool-selection cases correct, 1 provider timeout; S1, S3, S4 pass with real traces; 5 cases still to run | LIVE_AGENT_EVALUATION_REPORT.md |
 
 ## Three demonstration scenarios (reproducible)
 `npm run db:start && npm run eval` runs `evals/agentic-scenarios.eval.ts`. With a key, it writes real traces (tools, argument
@@ -46,14 +46,14 @@ summaries, timings, tokens, citations, draft status) to `docs/evidence/agent-tra
 Plumbing check with the scripted model (`SCENARIO_SCRIPTED=1`): 3/3 complete with 5 tool calls each. In scenario 3 the draft
 was refused because it cited a flagged passage. **These are not model results.**
 
-## Score: 78 / 100 for agentic AI today
+## Score: 90 / 100 for agentic AI today (was 78 before the live run)
 | Area | Weight | Score | Why |
 | --- | --- | --- | --- |
-| Model-directed multistep tool use, with live evidence | 30 | 15 | Architecture is real and tested; no live trace exists |
+| Model-directed multistep tool use, with live evidence | 30 | 25 | Live S1 trace: the model chose 5 tools in order and drafted a pending plan in 10.7 s; 5 live cases not yet run; free-tier latency |
 | Tool design and safety boundaries | 20 | 19 | Typed, owner-checked, read or propose only, budgets, kill switch |
-| Grounding and citations | 15 | 13 | Claim check, injection flags, abstention; lexical retrieval misses paraphrases |
+| Grounding and citations | 15 | 14 | Claim check, injection flags, abstention; semantic search with live embeddings |
 | Human approval and idempotency | 15 | 15 | Locked RPC, hash-bound, 10 parallel → 1 plan |
-| Evaluation rigour | 10 | 8 | 38 cases + RAG ground truth + red team; the live half is skipped |
+| Evaluation rigour | 10 | 9 | 38 cases + RAG ground truth (live embeddings: Recall@3 100%) + red team + live traces |
 | Memory, interop and observability | 10 | 8 | Student-controlled memory, MCP, traces in `agent_runs`, structured logs |
 
 **After the key is entered and the live eval passes at least 7 of 8 tool-selection cases and 3 of 3 scenarios: about 92.**

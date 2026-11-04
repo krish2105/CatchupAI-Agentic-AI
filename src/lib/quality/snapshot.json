@@ -5,14 +5,14 @@
     "e2e": 56
   },
   "eval": {
-    "ranAt": "2026-11-03T22:44:04.094Z",
-    "retrievalMode": "lexical only (no OPENAI_API_KEY)",
-    "agentModel": "not configured — tool-selection cases skipped",
+    "ranAt": "2026-11-04T08:22:47.289Z",
+    "retrievalMode": "hybrid (gemini-embedding-001)",
+    "agentModel": "gemini:gemini-3.6-flash",
     "totals": {
       "cases": 38,
-      "pass": 30,
-      "fail": 0,
-      "skipped": 8
+      "pass": 33,
+      "fail": 1,
+      "skipped": 4
     },
     "categories": [
       {
@@ -32,9 +32,9 @@
       {
         "category": "tool_selection",
         "total": 8,
-        "pass": 0,
-        "fail": 0,
-        "skipped": 8
+        "pass": 3,
+        "fail": 1,
+        "skipped": 4
       },
       {
         "category": "approval",

@@ -1,0 +1,26 @@
+{
+  "scenario": "S4-safe-failure",
+  "title": "The model provider fails: nothing is saved, the student gets a clear error",
+  "model": "gemini:gemini-model-that-does-not-exist",
+  "ranAt": "2026-11-04T08:23:23.423Z",
+  "request": "Plan my catch-up for the regression worksheet.",
+  "latencyMs": 449,
+  "tokens": {
+    "input": 0,
+    "output": 0
+  },
+  "estimatedCostUsd": null,
+  "status": "failed",
+  "errorCode": "model_error",
+  "steps": [],
+  "answer": null,
+  "citations": [],
+  "removedUnsupportedFacts": 0,
+  "draft": null,
+  "measured": {
+    "expectedTools": [],
+    "usedTools": [],
+    "toolRecall": null,
+    "checksFailed": []
+  }
+}

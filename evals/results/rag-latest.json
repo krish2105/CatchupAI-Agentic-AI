@@ -1,6 +1,6 @@
 {
   "metrics": {
-    "ranAt": "2026-11-04T08:16:06.676Z",
+    "ranAt": "2026-11-04T08:16:50.806Z",
     "retrievalMode": "hybrid (gemini-embedding-001)",
     "k": 3,
     "evidenceThreshold": {
@@ -12,13 +12,13 @@
     "recallAt1": 90.9,
     "recallAtK": 100,
     "precisionAtK": 0.774,
-    "mrr": 0.939,
+    "mrr": 0.955,
     "multiPageAndConflictAllRequiredInTopK": "3/3",
     "abstentionAccuracy": "4/4",
     "falseAbstentions": [],
     "latencyMs": {
-      "p50": 520,
-      "p95": 652
+      "p50": 523,
+      "p95": 952
     },
     "tokensAndCost": "query embedding per search (see embedding provider pricing)",
     "claimChecker": {
@@ -63,7 +63,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 582
+      "ms": 519
     },
     {
       "id": "G2",
@@ -79,7 +79,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 520
+      "ms": 522
     },
     {
       "id": "G3",
@@ -111,7 +111,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 518
+      "ms": 522
     },
     {
       "id": "G5",
@@ -128,7 +128,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 462
+      "ms": 529
     },
     {
       "id": "G6",
@@ -145,7 +145,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 526
+      "ms": 523
     },
     {
       "id": "G7",
@@ -163,7 +163,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 527
+      "ms": 523
     },
     {
       "id": "G8",
@@ -179,7 +179,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 520
+      "ms": 523
     },
     {
       "id": "G9",
@@ -187,17 +187,17 @@
       "query": "Which organelle is the powerhouse that makes the cell's energy molecules?",
       "retrieved": [
         "biology_cells.pdf#1",
-        "biology_errata.pdf#1",
-        "biology_cells.pdf#2"
+        "biology_cells.pdf#2",
+        "biology_errata.pdf#1"
       ],
-      "firstRelevantRank": 3,
+      "firstRelevantRank": 2,
       "recall1": false,
       "recallK": true,
       "precisionK": 0.3333333333333333,
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 405
+      "ms": 527
     },
     {
       "id": "G10",
@@ -214,7 +214,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 652
+      "ms": 519
     },
     {
       "id": "G11",
@@ -232,7 +232,7 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 384
+      "ms": 524
     },
     {
       "id": "G12",
@@ -249,7 +249,7 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 522
+      "ms": 523
     },
     {
       "id": "G13",
@@ -266,7 +266,7 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 409
+      "ms": 417
     },
     {
       "id": "G14",
@@ -284,7 +284,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 521
+      "ms": 631
     },
     {
       "id": "G15",
@@ -298,7 +298,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 400
+      "ms": 952
     },
     {
       "id": "G16",
@@ -312,7 +312,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 532
+      "ms": 467
     },
     {
       "id": "G17",
@@ -326,7 +326,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 396
+      "ms": 567
     },
     {
       "id": "G18",
@@ -340,7 +340,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 519
+      "ms": 403
     }
   ]
 }

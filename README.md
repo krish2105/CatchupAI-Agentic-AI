@@ -4,7 +4,7 @@
 
 ### Agentic academic recovery: evidence-grounded, feasibility-aware, approval-gated
 
-![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-267%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-30%2F38%20pass%2C%208%20pending%20live%20model-2ea44f)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js) ![React](https://img.shields.io/badge/React-19-149eca?logo=react) ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript) ![Supabase](https://img.shields.io/badge/Supabase-Postgres%20%2B%20RLS-3ecf8e?logo=supabase) ![OpenAI Agents SDK](https://img.shields.io/badge/OpenAI-Agents%20SDK-412991?logo=openai) ![Three.js](https://img.shields.io/badge/React%20Three%20Fiber-v9-000?logo=three.js) ![Tests](https://img.shields.io/badge/tests-274%20passing-2ea44f) ![Eval](https://img.shields.io/badge/eval-33%2F38%20pass%2C%201%20timeout%2C%204%20pending-2ea44f)
 
 **Live:** [catchupai-chi.vercel.app](https://catchupai-chi.vercel.app) · click **Try the demo, no sign-up** for a guided tour on synthetic data.
 
@@ -41,7 +41,7 @@ One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model)
 
 A typical request makes 4–6 real tool calls (deadlines → availability → notes → draft), each recorded and shown in the timeline. Facts must cite a passage that actually supports them. Passages that try to instruct an AI are flagged and can't be cited. Nothing is saved, approved or deleted by the AI.
 
-Being honest about it: **live-model behaviour hasn't been measured yet** because no model key is configured. The 8 tool-selection cases and 3 demo scenarios are reported as skipped, not passed. See [AGENTIC_AI_AUDIT.md](AGENTIC_AI_AUDIT.md) and [LIVE_AGENT_EVALUATION_REPORT.md](LIVE_AGENT_EVALUATION_REPORT.md).
+**Measured with the live model (gemini-3.6-flash, 4 Nov):** in the missed-lecture scenario the model chose 5 tools in order and drafted a feasible plan, left pending, in 10.7 s with facts cited to pages 2–3; it resisted a malicious document and failed safely when the provider broke; 3 of 3 answered tool-selection cases were correct (1 more timed out at Google). 5 live cases are still to run on the free tier's daily quota. See [LIVE_AGENT_EVALUATION_REPORT.md](LIVE_AGENT_EVALUATION_REPORT.md) and [AGENTIC_AI_AUDIT.md](AGENTIC_AI_AUDIT.md).
 
 ## Why TypeScript and not Python?
 
@@ -67,7 +67,7 @@ each database query stays inside one region.
 | Deterministic planner: **essential / balanced / full** routes, honest shortfall in minutes, what-if availability | ✅ |
 | Human approval gate: atomic, idempotent, refuses stale/expired/infeasible plans | ✅ |
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
-| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 7 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ code + tests · ⚠️ **live model runs unverified until a Gemini key is added** (`python3 scripts/configure-ai.py`) |
+| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 7 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see LIVE_AGENT_EVALUATION_REPORT.md) |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
@@ -215,7 +215,7 @@ scripts/                 setup, fixtures, demo recording, uptime and evidence to
 
 ## Known limitations
 
-- Live model runs and Gemini embeddings are implemented but **not yet exercised**: no key is configured. Until then retrieval is lexical, so paraphrased questions can miss (see RAG_QUALITY_REPORT.md).
+- The live model runs on Google's free tier: 20 requests a day per model and 10–90 s per answer when Google is busy. Paid quota would remove both limits.
 - Text-based PDFs only (no OCR), ≤ 10 MB and ≤ 50 pages, processed synchronously.
 - Knowledge checks are fill-in-the-blank from your own sentences, not LLM-written questions.
 - No institutional LMS integration (Moodle or Canvas) yet. The iOS app (`ios/`) wraps the web app and is not on the App Store.
