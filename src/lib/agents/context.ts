@@ -15,6 +15,8 @@ export type ToolEvent = {
   outcome: string;
   /** 2 when the call ran during the fallback attempt on the second model (absent = first attempt). */
   attempt?: number;
+  /** true when the result came from the short-lived per-student read cache (no database or embedding call). */
+  cached?: boolean;
 };
 
 /** suspicious = the passage contains instructions aimed at an AI (see rag/injection.ts); it can never back a fact. */

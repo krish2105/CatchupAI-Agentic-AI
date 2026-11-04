@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { runRecoveryAgent, type AnswerStreamEvent } from "@/lib/agents/recovery-agent";
 import { ScriptedModel, ScriptedProvider, type ScriptStep } from "@/lib/agents/testing/scripted-model";
+import { clearToolCache, invalidateStudent } from "@/lib/agents/tool-cache";
 import { RECOVERY_TOOLS } from "@/lib/agents/tools";
 import { processDocument } from "@/lib/rag/ingest";
 import type { AdminSupabase } from "@/lib/supabase/admin";
@@ -246,6 +247,57 @@ describe("LearningRecoveryAgent", () => {
     const texts = streamed.filter((e) => e.type === "text");
     expect(texts.length).toBeGreaterThan(1);
     expect(texts.at(-1)).toMatchObject({ suggestions: outcome.answer!.suggestions });
+  });
+
+  it("serves repeated reads from the cache within a run, marks them in the trace, and refetches after a write", async () => {
+    clearToolCache();
+    const prefs = { call: "get_study_preferences", args: {} } as const;
+    const list = { call: "list_assignments", args: { courseId: null, includeCompleted: false } } as const;
+    const first = await agentRun(a, [prefs, list, prefs, list, { answer: answer() }]).run;
+    expect(first.events.map((e) => [e.tool, e.cached ?? false])).toEqual([
+      ["get_study_preferences", false],
+      ["list_assignments", false],
+      ["get_study_preferences", true],
+      ["list_assignments", true],
+    ]);
+    // A second question seconds later reuses the same reads.
+    const second = await agentRun(a, [list, { answer: answer() }]).run;
+    expect(second.events[0]).toMatchObject({ tool: "list_assignments", cached: true });
+
+    // Any write clears the student's cache, so the next read sees the new data.
+    await a.db.from("assignments").insert({ course_id: courseA, title: "Cache check quiz", due_at: days(6), estimated_minutes: 30 });
+    invalidateStudent(a.id); // what every authenticated write request does (see tool-cache unit tests)
+    const third = await agentRun(a, [list, { answer: answer() }]).run;
+    expect(third.events[0].cached).toBeUndefined();
+    expect(third.events[0].outcome).toMatch(/2 assignments/);
+    await a.db.from("assignments").delete().eq("title", "Cache check quiz");
+    invalidateStudent(a.id);
+  });
+
+  it("never serves one student's cached reads to another", async () => {
+    clearToolCache();
+    const list = { call: "list_assignments", args: { courseId: null, includeCompleted: false } } as const;
+    const runA = await agentRun(a, [list, { answer: answer() }]).run;
+    const runB = await agentRun(b, [list, { answer: answer() }]).run;
+    expect(runA.events[0].outcome).toMatch(/assignment/);
+    expect(runB.events[0]).toMatchObject({ outcome: "0 assignments" });
+    expect(runB.events[0].cached).toBeUndefined();
+  });
+
+  it("caches course search per student and query, without repeating the embedding request", async () => {
+    clearToolCache();
+    let embeds = 0;
+    const counting = { ...fakeEmbedder, embed: async (texts: string[]) => { embeds++; return fakeEmbedder.embed(texts); } };
+    const search = { call: "search_course_material", args: { courseId: courseA, query: "What does a residual mean?", topK: 4 } } as const;
+    const model = new ScriptedModel([search, search, { answer: answer() }]);
+    const outcome = await runRecoveryAgent({
+      supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: courseA, message: "What does a residual mean?",
+      runtime: { provider: new ScriptedProvider(model), model: "scripted-test-model" }, embedder: counting, now: Date.now(),
+    });
+    expect(outcome.events.map((e) => e.cached ?? false)).toEqual([false, true]);
+    expect(embeds).toBe(1);
+    // The same passage keeps the same source id in this run.
+    expect([...JSON.stringify(model.requests[2].input).matchAll(/\[S(\d+)\]/g)].map((m) => m[1]).every((id) => id === "1" || id === "2" || id === "3" || id === "4")).toBe(true);
   });
 
   it("keeps agent runs private to their owner", async () => {

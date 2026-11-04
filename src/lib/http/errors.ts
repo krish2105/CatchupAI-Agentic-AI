@@ -1,3 +1,4 @@
+import { runInRequestScope } from "./request-scope";
 import { NextResponse } from "next/server";
 import { ZodError } from "zod";
 import { logEvent } from "@/lib/observability/log";
@@ -74,7 +75,8 @@ export function route<A extends unknown[]>(handler: (...args: A) => Promise<Resp
     const started = Date.now();
     let response: Response;
     try {
-      response = await handler(...args);
+      // The request scope lets an authenticated write clear that student's cached tool reads.
+      response = await runInRequestScope(request?.method ?? "GET", () => handler(...args));
     } catch (error) {
       response = jsonError(error, { requestId, path });
     }

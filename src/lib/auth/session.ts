@@ -1,3 +1,4 @@
+import { noteAuthenticatedStudent } from "@/lib/http/request-scope";
 import "server-only";
 import { redirect } from "next/navigation";
 import { ApiError } from "@/lib/http/errors";
@@ -39,5 +40,6 @@ export async function requireApiUser() {
   const supabase = await createClient();
   const user = await readUser(supabase);
   if (!user) throw new ApiError(401, "unauthenticated", "Sign in to continue.");
+  noteAuthenticatedStudent(user.id);
   return { supabase, user };
 }
