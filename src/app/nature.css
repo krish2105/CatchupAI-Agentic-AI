@@ -924,7 +924,8 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .ops-controls { display: grid; gap: 10px; margin-top: 12px; }
 .ops-actions { display: flex; gap: 8px; flex-wrap: wrap; }
 .ops-uptime { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
-.ops-uptime li a { display: block; width: 14px; height: 28px; border-radius: 4px; background: var(--good); }
+/* Each check is a link: at least 24×24 px (WCAG 2.2 target size). */
+.ops-uptime li a { display: block; width: 24px; height: 28px; border-radius: 5px; background: var(--good); }
 .ops-uptime li[data-result="failure"] a, .ops-uptime li[data-result="cancelled"] a, .ops-uptime li[data-result="timed_out"] a { background: var(--danger); }
 .ops-uptime li[data-result="in_progress"] a, .ops-uptime li[data-result="queued"] a { background: var(--stroke-strong); }
 .ops-uptime li a:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
