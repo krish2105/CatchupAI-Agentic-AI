@@ -29,9 +29,10 @@ export async function createOtherTenant() {
 export async function freshStudent(
   browser: import("@playwright/test").Browser,
   profile: { timezone?: string; weekly_minutes?: number[]; study_start_time?: string } = {},
+  opts: { email?: string } = {},
 ) {
   const db = adminDb();
-  const email = `fresh-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}@test.catchup.local`;
+  const email = opts.email ?? `fresh-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}@test.catchup.local`;
   const { data: created, error } = await db.auth.admin.createUser({ email, email_confirm: true });
   if (error) throw error;
   const userId = created.user.id;

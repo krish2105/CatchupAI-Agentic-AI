@@ -1,0 +1,81 @@
+import type { Metadata } from "next";
+import { AiControls, ResolveButton } from "@/components/features/ops/ops-controls";
+import PageHeading from "@/components/ui/page-heading";
+import { Chip } from "@/components/ui/primitives";
+import { opsSnapshot, requireOpsOwnerPage, uptimeHistory } from "@/lib/ops/service";
+import { renderTime } from "@/lib/server/clock";
+import { adminClient } from "@/lib/supabase/admin";
+
+export const metadata: Metadata = { title: "Operations", robots: { index: false, follow: false } };
+
+const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { timeZone: "Asia/Dubai", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
+
+/**
+ * Owner-only operations page (OPS_OWNER_EMAILS). Anyone else gets a not-found. Reads with the service role
+ * after the owner check: AI switch and budget, today's runs, open error groups and recent uptime checks.
+ */
+export default async function OpsPage() {
+  await requireOpsOwnerPage();
+  const now = await renderTime();
+  const [snap, uptime] = await Promise.all([opsSnapshot(adminClient(), now), uptimeHistory()]);
+  const used = snap.ai.budget > 0 ? Math.min(100, Math.round((snap.ai.tokensToday / snap.ai.budget) * 100)) : 100;
+  const aiOn = snap.ai.enabled && !snap.ai.envKillSwitch;
+  const okRuns = uptime?.filter((r) => r.conclusion === "success").length ?? 0;
+  const finished = uptime?.filter((r) => r.status === "completed").length ?? 0;
+
+  return (
+    <>
+      <PageHeading eyebrow="Owner only · times in GST" title="Operations" description="Switch AI off in an emergency, watch today's spend, and work through new errors. Every value here is read live from the database or GitHub." />
+      <div className="ops-grid">
+        <section className="card card-inner" aria-labelledby="ops-ai">
+          <div className="split-head"><h2 id="ops-ai" className="trace-h2">AI</h2><Chip tone={aiOn ? "good" : "danger"}>{aiOn ? "On" : "Paused"}</Chip></div>
+          {snap.ai.envKillSwitch ? <p className="muted">Paused by the <code>AI_KILL_SWITCH</code> environment variable, which overrides the switch below.</p> : null}
+          <p><b>{snap.ai.tokensToday.toLocaleString("en-GB")}</b> of {snap.ai.budget.toLocaleString("en-GB")} tokens used today (UTC day)</p>
+          <div className="ops-meter" role="meter" aria-label="Share of today's token budget used" aria-valuemin={0} aria-valuemax={100} aria-valuenow={used}><span style={{ width: `${used}%` }} /></div>
+          <p className="muted">Runs today: {snap.runsToday.total} · failed {snap.runsToday.failed} · fell back to the second model {snap.runsToday.fellBack} · tool calls served from cache {snap.runsToday.cachedCalls}</p>
+          <AiControls initial={{ enabled: snap.ai.enabled, budget: snap.ai.budget, note: snap.ai.note }} />
+        </section>
+
+        <section className="card card-inner" aria-labelledby="ops-uptime">
+          <div className="split-head"><h2 id="ops-uptime" className="trace-h2">Uptime checks</h2>{uptime ? <Chip tone={okRuns === finished ? "good" : "warn"}>{okRuns}/{finished} passed</Chip> : null}</div>
+          {uptime === null ? (
+            <p className="muted">Couldn&apos;t reach GitHub right now. The checks run every 30 minutes in the Uptime workflow.</p>
+          ) : uptime.length === 0 ? (
+            <p className="muted">No uptime runs yet.</p>
+          ) : (
+            <ol className="ops-uptime" aria-label="Recent uptime checks, newest first">
+              {uptime.map((r) => (
+                <li key={r.url} data-result={r.conclusion ?? r.status} title={`${when(r.at)} · ${r.conclusion ?? r.status}`}>
+                  <a href={r.url} target="_blank" rel="noopener noreferrer"><span className="visually-hidden">{when(r.at)}: {r.conclusion ?? r.status}</span></a>
+                </li>
+              ))}
+            </ol>
+          )}
+        </section>
+
+        <section className="card card-inner ops-wide" aria-labelledby="ops-errors">
+          <div className="split-head"><h2 id="ops-errors" className="trace-h2">Open error groups</h2><Chip tone={snap.errorGroups.length ? "warn" : "good"}>{snap.errorGroups.length}</Chip></div>
+          {snap.errorGroups.length === 0 ? (
+            <p className="muted">No open errors. New ones also arrive by email through the Error alerts workflow.</p>
+          ) : (
+            <ul className="ops-errors" aria-label="Open error groups, most recent first">
+              {snap.errorGroups.map((g) => (
+                <li key={g.fingerprint}>
+                  <div className="ops-error-head">
+                    <Chip>{g.source}</Chip>
+                    <strong>{g.errorName}</strong>
+                    <code>{g.path}</code>
+                    <span className="muted">×{g.count} · first {when(g.firstSeen)} · last {when(g.lastSeen)}{g.release ? ` · ${g.release}` : ""}</span>
+                    <ResolveButton fingerprint={g.fingerprint} />
+                  </div>
+                  <p>{g.message}</p>
+                  {g.stack ? <details><summary>Stack (first frames, redacted)</summary><pre>{g.stack}</pre></details> : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
+    </>
+  );
+}

@@ -25,7 +25,8 @@ export default defineConfig({
   ],
   webServer: {
     command: "npm run build && npx next start -p 3100",
-    env: { CATCHUP_TEST_MODEL: "scripted" },
+    // OPS_OWNER_EMAILS makes one fixed test account the operator for the /ops tests.
+    env: { CATCHUP_TEST_MODEL: "scripted", OPS_OWNER_EMAILS: "ops-owner@test.catchup.local" },
     url: `${baseURL}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,
