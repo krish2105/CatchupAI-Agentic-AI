@@ -1,7 +1,7 @@
 {
   "metrics": {
-    "ranAt": "2026-11-03T22:44:04.570Z",
-    "retrievalMode": "lexical only (no embedding key)",
+    "ranAt": "2026-11-04T08:16:06.676Z",
+    "retrievalMode": "hybrid (gemini-embedding-001)",
     "k": 3,
     "evidenceThreshold": {
       "lexicalCoverage": 0.34,
@@ -10,17 +10,17 @@
     },
     "cases": 18,
     "recallAt1": 90.9,
-    "recallAtK": 90.9,
-    "precisionAtK": 0.75,
-    "mrr": 0.909,
-    "multiPageAndConflictAllRequiredInTopK": "2/3",
+    "recallAtK": 100,
+    "precisionAtK": 0.774,
+    "mrr": 0.939,
+    "multiPageAndConflictAllRequiredInTopK": "3/3",
     "abstentionAccuracy": "4/4",
     "falseAbstentions": [],
     "latencyMs": {
-      "p50": 2,
-      "p95": 3
+      "p50": 520,
+      "p95": 652
     },
-    "tokensAndCost": "0 tokens, $0 (lexical retrieval runs in Postgres)",
+    "tokensAndCost": "query embedding per search (see embedding provider pricing)",
     "claimChecker": {
       "threshold": 0.7,
       "labelled": 24,
@@ -63,7 +63,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 582
     },
     {
       "id": "G2",
@@ -79,7 +79,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 3
+      "ms": 520
     },
     {
       "id": "G3",
@@ -95,7 +95,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 3
+      "ms": 525
     },
     {
       "id": "G4",
@@ -111,7 +111,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 518
     },
     {
       "id": "G5",
@@ -128,7 +128,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 462
     },
     {
       "id": "G6",
@@ -145,7 +145,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 526
     },
     {
       "id": "G7",
@@ -153,8 +153,8 @@
       "query": "How does oxygen cross the cell membrane?",
       "retrieved": [
         "biology_cells.pdf#1",
-        "biology_cells.pdf#4",
-        "biology_cells.pdf#3"
+        "biology_cells.pdf#3",
+        "biology_cells.pdf#4"
       ],
       "firstRelevantRank": 1,
       "recall1": true,
@@ -163,7 +163,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 527
     },
     {
       "id": "G8",
@@ -179,7 +179,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 520
     },
     {
       "id": "G9",
@@ -187,17 +187,17 @@
       "query": "Which organelle is the powerhouse that makes the cell's energy molecules?",
       "retrieved": [
         "biology_cells.pdf#1",
-        "biology_cells.pdf#4",
-        "biology_errata.pdf#1"
+        "biology_errata.pdf#1",
+        "biology_cells.pdf#2"
       ],
-      "firstRelevantRank": null,
+      "firstRelevantRank": 3,
       "recall1": false,
-      "recallK": false,
-      "precisionK": 0,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
       "requiredAll": null,
       "abstained": false,
-      "correct": false,
-      "ms": 2
+      "correct": true,
+      "ms": 405
     },
     {
       "id": "G10",
@@ -214,7 +214,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 652
     },
     {
       "id": "G11",
@@ -222,16 +222,17 @@
       "query": "Compare cellular respiration with photosynthesis",
       "retrieved": [
         "biology_cells.pdf#6",
+        "biology_cells.pdf#3",
         "biology_cells.pdf#2"
       ],
       "firstRelevantRank": 1,
       "recall1": true,
       "recallK": true,
       "precisionK": 1,
-      "requiredAll": false,
+      "requiredAll": true,
       "abstained": false,
-      "correct": false,
-      "ms": 2
+      "correct": true,
+      "ms": 384
     },
     {
       "id": "G12",
@@ -248,7 +249,7 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 3
+      "ms": 522
     },
     {
       "id": "G13",
@@ -265,7 +266,7 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 3
+      "ms": 409
     },
     {
       "id": "G14",
@@ -273,8 +274,8 @@
       "query": "membrane",
       "retrieved": [
         "biology_cells.pdf#1",
-        "biology_cells.pdf#6",
-        "biology_cells.pdf#3"
+        "biology_cells.pdf#3",
+        "biology_cells.pdf#6"
       ],
       "firstRelevantRank": 1,
       "recall1": true,
@@ -283,7 +284,7 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 2
+      "ms": 521
     },
     {
       "id": "G15",
@@ -297,7 +298,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 2
+      "ms": 400
     },
     {
       "id": "G16",
@@ -311,7 +312,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 2
+      "ms": 532
     },
     {
       "id": "G17",
@@ -325,7 +326,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 2
+      "ms": 396
     },
     {
       "id": "G18",
@@ -339,7 +340,7 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 3
+      "ms": 519
     }
   ]
 }

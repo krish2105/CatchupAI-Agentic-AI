@@ -52,6 +52,10 @@ const cost = (model: string, input: number, output: number) => {
 const days = (n: number) => new Date(Date.now() + n * 86400_000).toISOString();
 
 async function scenario(id: string, title: string, u: User & { course: string }, message: string, expectTools: string[], checks: (out: Awaited<ReturnType<typeof runRecoveryAgent>>) => string[], modelOverride?: string) {
+  if (live && process.env.LIVE_CASES && !process.env.LIVE_CASES.split(",").includes(id.split("-")[0])) {
+    summary.push({ id, title, status: "SKIPPED", reason: "not selected for this run (LIVE_CASES quota budget)" });
+    return;
+  }
   if (!live && !scripted) {
     summary.push({ id, title, status: "SKIPPED", reason: "no model key configured" });
     return;

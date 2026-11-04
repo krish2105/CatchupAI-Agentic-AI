@@ -187,6 +187,8 @@ describe("evaluation suite", () => {
     const toolCase = (id: string, prompt: string, expected: string[], forbid?: (out: Out, used: Set<string>) => void) =>
       record(id, "tool_selection", `"${prompt}" uses ${expected.join(" + ")}`, async () => {
         if (!runtime) return { skipped: "no model key configured (GEMINI_API_KEY or OPENAI_API_KEY + OPENAI_MODEL)" };
+        // LIVE_CASES=T1,T2 runs only those live cases (the Gemini free tier allows 20 requests a day per model).
+        if (process.env.LIVE_CASES && !process.env.LIVE_CASES.split(",").includes(id)) return { skipped: "not selected for this run (LIVE_CASES quota budget)" };
         const started = Date.now();
         const out = await runRecoveryAgent({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: courseA, message: prompt, runtime, embedder, now: Date.now() });
         const used = new Set(out.events.map((e) => e.tool));

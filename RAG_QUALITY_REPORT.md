@@ -44,6 +44,21 @@ questions with every answering page listed: 8 direct, 2 paraphrased, 1 multi-pag
 The conflicting cases (G12 ATP yield, G13 test day) retrieve **both** the original page and the errata page, so the
 student sees the conflict instead of one silently winning.
 
+## Results with real embeddings (hybrid: keyword + gemini-embedding-001), 2026-11-04
+Same 18 questions, same fixtures, evidence bar 0.6 for Gemini vectors:
+
+| Metric | Keyword only | Hybrid with Gemini embeddings |
+| --- | --- | --- |
+| Recall@1 / Recall@3 | 90.9% / 90.9% | 90.9% / **100%** |
+| Precision@3 | 0.75 | 0.774 |
+| MRR | 0.909 | **0.939** |
+| Multi-page and conflicting: all required pages in top 3 | 2 / 3 | **3 / 3** |
+| Correct abstention | 4 / 4 | **4 / 4** (no false answers at the 0.6 bar) |
+| Latency p50 / p95 | 2–4 / 3–5 ms | 520 / 652 ms (one embedding call per search) |
+
+Both reproducible misses are fixed: G9 (the "powerhouse" paraphrase) now finds the mitochondria page at rank 3, and G11 (respiration vs
+photosynthesis) retrieves both pages. Embedding calls have their own free-tier quota, separate from the chat model's.
+
 ## Claim-to-citation support
 A source id appearing in the context is **not** treated as verification. Before an answer is shown, each fact must:
 cite only sources retrieved in this run; cite no passage flagged as prompt injection; reproduce any quoted text exactly;
@@ -73,6 +88,6 @@ supplement if added later.
 3. The prompt now asks for facts phrased close to the passage's words, since unsupported facts are removed.
 
 ## Limitations and next steps
-- Semantic recall (G9) needs embeddings. With an OpenAI key they switch on automatically; Gemini embeddings aren't wired yet.
+- Semantic recall now works with Gemini embeddings (see above); the 0.6 evidence bar was checked on this set only and should be re-checked on real course material.
 - The 18-question set is small and synthetic: good for regression checks, not a benchmark.
 - Human review of the claim labels and of a sample of live answers is still to do once a model key exists.

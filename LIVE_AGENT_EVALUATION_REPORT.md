@@ -48,6 +48,12 @@ Each live case's detail line includes the run id, wall-clock latency and stored 
 cost is $0 within its rate limits. Tracing to external services is disabled (`tracingDisabled: true`), so traces
 stay in the app's own `agent_runs` table.
 
+## Running it within the free quota
+The Gemini free tier allows **20 requests per day per model** (`GenerateRequestsPerDayPerProjectPerModel-FreeTier`), and one copilot
+answer takes 4–6 requests. `npm run eval:live` therefore runs a selected set that fits one day's budget: scenarios S1 (missed lecture),
+S3 (malicious document) and S4 (provider failure), plus T1, T2, T6 and T8. Everything else is marked "not selected", never passed.
+The remaining cases (T3–T5, T7, S2) run on the next day's quota with `LIVE_CASES=T3,T4,T5,T7,S2 npm run eval`.
+
 ## How to unblock (owner action, about 2 minutes)
 1. In the terminal, run `python3 scripts/configure-ai.py` and paste the Gemini key at the hidden prompt. It
    checks the key, runs a tool-call smoke test, stores it on Vercel and redeploys.

@@ -26,7 +26,8 @@
     "preflight": "tsx scripts/preflight.ts",
     "prebuild": "node scripts/quality-snapshot.mjs",
     "quality:snapshot": "node scripts/quality-snapshot.mjs",
-    "demo:record": "bash scripts/make-demo-video.sh"
+    "demo:record": "bash scripts/make-demo-video.sh",
+    "eval:live": "LIVE_CASES=S1,S3,S4,T1,T2,T6,T8 vitest run --project eval"
   },
   "dependencies": {
     "@date-fns/tz": "^1.5.0",
