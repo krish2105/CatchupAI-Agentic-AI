@@ -38,5 +38,7 @@ export const APP_ROUTES: AppRoute[] = [
 ];
 
 export function routeForPath(pathname: string): AppRoute | undefined {
-  return APP_ROUTES.find((r) => pathname === r.href || pathname.startsWith(`${r.href}/`));
+  // Agent traces (/runs/[id]) belong to the copilot.
+  const path = pathname.startsWith("/runs/") ? "/assistant" : pathname;
+  return APP_ROUTES.find((r) => path === r.href || path.startsWith(`${r.href}/`));
 }

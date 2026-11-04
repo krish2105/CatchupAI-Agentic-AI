@@ -2,6 +2,7 @@
 
 import { fallbackNote } from "@/lib/agents/fallback-text";
 import { CheckCircle2, CircleSlash, FileText, ShieldCheck, X, XCircle } from "lucide-react";
+import Link from "next/link";
 import { useState } from "react";
 import { Dialog } from "@/components/ui/controls";
 import { Notice } from "@/components/ui/primitives";
@@ -104,6 +105,7 @@ export default function TrustDrawer({ proposalId, label = "Why trust this?" }: {
                     })}
                   </ul>
                 ) : <p className="muted">No AI tools were involved: this plan came straight from the deterministic planner.</p>}
+                {data?.run ? <p className="trust-meta"><Link href={`/runs/${data.run.id}`}>Open the full agent trace</Link></p> : null}
                 {data?.run?.meta.model ? (
                   <p className="trust-meta">
                     Model <b>{data.run.meta.model}</b>

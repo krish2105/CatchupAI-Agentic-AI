@@ -59,6 +59,34 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     await expect(trust.getByRole("link", { name: /statistics_module_4\.pdf · p\. 2/ }).first()).toBeVisible();
     await expect(trust).toContainText("calculated by a fixed algorithm");
 
+    // The full trace: every tool the agent chose, with privacy-safe arguments, timing, model and cited pages.
+    await trust.getByRole("link", { name: "Open the full agent trace" }).click();
+    await s.page.waitForURL(/\/runs\/[0-9a-f-]{36}$/);
+    const traceUrl = s.page.url();
+    await expect(s.page.getByRole("heading", { level: 1, name: "Agent trace" })).toBeVisible();
+    const steps = s.page.getByRole("list", { name: "Tool calls in the order the agent chose them" });
+    await expect(steps.getByRole("listitem")).toHaveCount(5);
+    await expect(steps).toContainText("search_course_material");
+    await expect(steps).toContainText('query: "What does a residual mean?"');
+    await expect(steps).toContainText(/\d+ ms/);
+    await expect(s.page.getByRole("region", { name: "Run summary" })).toContainText("scripted-test-model");
+    await expect(s.page.getByRole("region", { name: "Pages cited in the answer" }).getByRole("link", { name: /statistics_module_4\.pdf · p\. 2/ })).toBeVisible();
+    await expect(s.page.getByText("Self-check passed", { exact: true })).toBeVisible();
+
+    // Owner only: another student gets the not-found page and none of the run's data, and so does a malformed id.
+    // (The app layout streams its shell first, so Next.js sends the not-found UI with status 200.)
+    const other = await freshStudent(browser);
+    try {
+      await other.page.goto(traceUrl);
+      await expect(other.page.getByRole("heading", { name: "This page doesn't exist." })).toBeVisible();
+      await expect(other.page.getByText("What does a residual mean?")).toHaveCount(0);
+      await expect(other.page.getByRole("heading", { name: "Agent trace" })).toHaveCount(0);
+      await other.page.goto("/runs/not-a-uuid");
+      await expect(other.page.getByRole("heading", { name: "This page doesn't exist." })).toBeVisible();
+    } finally {
+      await other.cleanup();
+    }
+
     const { data: runs } = await s.db.from("agent_runs").select("status, tool_events").eq("owner_id", s.userId);
     expect(runs).toHaveLength(1);
     expect(runs![0].status).toBe("completed");

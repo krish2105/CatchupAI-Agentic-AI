@@ -347,6 +347,7 @@ export default function Copilot({
           {!live && shown?.meta.model && shown.status !== "running" ? (
             <p className="trust-meta">Ran on <b>{shown.meta.model}</b>{fallbackNote(shown.meta) ? ` (${fallbackNote(shown.meta)})` : ""}{shown.meta.durationMs !== null ? ` · ${(shown.meta.durationMs / 1000).toFixed(1)} s` : ""}{(shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0) > 0 ? ` · ${((shown.meta.inputTokens ?? 0) + (shown.meta.outputTokens ?? 0)).toLocaleString("en-GB")} tokens` : ""}</p>
           ) : null}
+          {!live && shown && shown.status !== "running" ? <p className="trust-meta"><Link href={`/runs/${shown.id}`}>Full trace</Link></p> : null}
           {!live && shown?.status === "failed" ? <p className="field-error" style={{ marginTop: 8 }}><OctagonX className="ic" aria-hidden="true" style={{ display: "inline", width: 12 }} /> Run failed: {shown.errorCode}</p> : null}
         </div>
         {pending ? (

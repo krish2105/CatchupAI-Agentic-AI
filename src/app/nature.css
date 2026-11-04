@@ -877,3 +877,28 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .self-check-body li .ic { width: 13px; height: 13px; flex: none; margin-top: 2px; }
 .self-check-body li[data-ok="true"] .ic { color: var(--good); }
 .self-check-body li[data-ok="false"] .ic { color: var(--warn); }
+
+/* Agent trace viewer (/runs/[id]). */
+.trace-grid { display: grid; gap: 14px; grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1024px) { .trace-grid { grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); } .trace-grid > :nth-child(2) { grid-row: span 3; grid-column: 2; } }
+.trace-h2 { font-size: 15px; font-weight: 700; margin: 0 0 10px; }
+.trace-grid p { font-size: 13.5px; }
+.trace-request { margin: 4px 0 12px; font-size: 14px; overflow-wrap: anywhere; }
+.trace-facts { display: grid; gap: 8px; margin: 0; }
+.trace-facts > div { display: grid; grid-template-columns: 88px minmax(0, 1fr); gap: 8px; font-size: 13px; }
+.trace-facts dt { color: var(--muted); }
+.trace-facts dd { margin: 0; overflow-wrap: anywhere; }
+.trace-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.trace-steps > li { display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; padding: 10px; border: 1px solid var(--stroke); border-radius: 12px; }
+.trace-steps > li[data-status="denied"], .trace-steps > li[data-status="failed"] { border-color: var(--stroke-strong); }
+.trace-step-no { width: 24px; height: 24px; border-radius: 999px; display: grid; place-items: center; font-size: 11px; font-weight: 700; background: var(--surface2); color: var(--text); }
+.trace-step-body { min-width: 0; display: grid; gap: 4px; font-size: 13px; }
+.trace-step-body p { margin: 0; }
+.trace-step-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; }
+.trace-step-head > .ic { width: 15px; height: 15px; color: var(--good); }
+.trace-steps > li[data-status="denied"] .trace-step-head > .ic, .trace-steps > li[data-status="failed"] .trace-step-head > .ic { color: var(--warn); }
+.trace-step-head .chip .ic { width: 11px; height: 11px; }
+.trace-call { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11.5px; overflow-wrap: anywhere; color: var(--muted); }
+.trace-timing { font-size: 11.5px; }
+.trace-cites, .trace-notes { margin: 0 0 8px; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 13px; }
+.trace-notes { list-style: disc; padding-left: 18px; color: var(--muted); }
