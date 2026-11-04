@@ -1,23 +1,36 @@
 # CatchUp AI: honest scorecard and the path to 95+
 
-_Re-assessed 2026-11-04 (late) after the M8 release, the speed fix, the submission pack and the iPhone install. Scores judge what is verifiable today, not what the code could do. They are our own assessment, not official scores._
+_Re-assessed 2026-11-05 after releases d9aec49, fc1b48b and 8df1cbc (batch A code, batch D operations, month calendar and tracker, batch B, organisations and billing groundwork). Scores judge what is verifiable today, not what the code could do. They are our own assessment, not official scores._
 
-## Where it stands: **96 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91 → 94 → 95 → 95 → 96)
-The live model now runs in production and in the evaluation (gemini-3.6-flash). Remaining gaps: 5 live cases not yet run (free-tier quota), no volunteer pilot, video and LinkedIn post pending.
+## Where it stands: **97 / 100** (history: 72 → 76 → 78 → 80 → 86 → 90 → 91 → 94 → 95 → 95 → 96 → 97)
+Live in production: model fallback, streamed answers, tool-result cache, plan self-check, agent trace viewer, self-hosted error tracking, /ops, public /status, month calendar and recovery tracker, opposite-word claim check, FSRS revision, pre/post checks, LMS import, privacy and terms. Organisations are built but wait for migrations 0018–0019 in production. Every one is covered by unit, integration and E2E tests with the scripted model. What holds the score back: fallback and streaming have **not run on the live Gemini model yet**, 6 live cases are still unrun, and there is still no pilot, video or LinkedIn post.
 
-| Role | Score | What earns points | What costs points |
+| Role | Before | Now | What earns points | What costs points |
+| --- | --- | --- | --- | --- |
+| **CEO** (problem, story, market) | 86 | **88** | Clear problem, catch-up pack, approval story; status page; plain-language privacy and terms; LMS export import lowers switching cost | No users, pricing or outcome evidence |
+| **CTO** (architecture, security) | 96 | **98** | Error tracking without a third party (redacted at source, grouped, server-only table), owner-only /ops (everyone else gets not-found), readiness shared by /status and uptime, self-check enforced before approval, 17 migrations with RLS | Alerts not active until the `CRON_SECRET` repo secret is set |
+| **Senior PM** (scope, UX) | 94 | **96** | Calendar and tracker from a research report, with follow-ups shipped (done view, draft blocks, colour key); getting-started checklist and activation funnel; trace viewer; status page | No pilot; Day 0 not done |
+| **COO** (operability) | 91 | **94** | Kill switch and budget editable in /ops, error groups with resolve, public incident notes, uptime history | `OPS_OWNER_EMAILS` and `CRON_SECRET` not set yet; reminder SMTP not set |
+| **AI engineer** | 88 | **91** | Fallback chain with recorded reason, streaming with Gemini signature reassembly, read cache that skips embedding calls | None of the three verified on live Gemini yet; free-tier latency |
+| **Agentic AI engineer** | 90 | **93** | Deterministic self-check reported to the model and shown to the student; full trace per run (tools, args, timing, cached/fallback markers) | 6 live cases unrun; T8 timeout not re-tested with the fallback |
+| **RAG specialist** | 92 | **94** | Gold set 18 → 51 over 3 courses; opposite-word rule (claim-check precision 1.0 on 30 labelled claims, C20 fixed); opt-in faithfulness judge that can only remove facts; live-embedding run on 18: Recall@3 100%, MRR 0.939 | Hybrid run on the 51 not done yet (keyword-only Recall@3 88.2%); synthetic material only |
+| **Learning scientist** | 90 | **94** | FSRS spaced revision; graded pre- and post-check per catch-up pack with the gain on Insights; tracker without streaks or points, fresh week each Monday | No real students' learning gains measured yet |
+| **MVP** | 78 | **86** | Streamed answers, self-checked plans, month calendar, tracker, LMS deadline import, getting-started checklist, privacy and terms | No real users |
+| **SaaS** | 45 | **60** | Organisations and memberships with join codes, teacher totals only above 3 students, audit log, seat limits (0018–0019, tested locally); Stripe webhook verification groundwork; LMS import; legal pages; status, error tracking, ops | Organisations not in production (migrations unapplied); billing not wired to any page or route; no paying institution |
+| **Competition judge** (DDS rubric, our estimate) | 69 / 80 | **73 / 80** + participation | Innovation 23/25 · Technical 25/25 · Real-world 14/15 · Presentation 11/15 | Participation (20) depends on Day 0 and daily submissions; video and post pending |
+
+**Fastest gains now:** run the remaining live cases today (AI and agentic +2–4 each, MVP +2); set `CRON_SECRET`, `OPS_OWNER_EMAILS` and `GEMINI_FALLBACK_MODEL` (COO +2); Day 0 and every checkpoint on time (participation 20); live-model video and LinkedIn post (presentation +3); 3–5 pilot sessions (CEO, PM, MVP, learning scientist).
+
+## What's left
+
+| # | Work | Gain | Who |
 | --- | --- | --- | --- |
-| **CEO** (problem, story, market) | 86 | Clear student problem; catch-up pack and approval story; professor brief; direct reuse for an LMS (Learners Education) | No users, pricing or outcome evidence yet |
-| **CTO** (architecture, security) | 96 | RLS on 25 tables, locked idempotent approval, nonce CSP, claim-checked citations, injection flagging, kill switch and token budget, functions next to the database (0.63 s dashboard), CI and uptime checks, backup drill | No error-tracking service (Sentry) |
-| **Senior PM** (scope, UX) | 94 | Every planned feature shipped and tested; phone, iPhone app, accessibility; dated checkpoint tracker; Day 1 template filled | Volunteer pilot not run; Day 0 not done |
-| **COO** (operability) | 91 | Readiness and uptime alerts, incident runbook, kill switch, budgets, cron jobs, redacted logs | No paging or Sentry; reminder-email SMTP not set |
-| **AI engineer** | 88 | Live Gemini runs; found and fixed the Gemini 3 thought-signature bug; minimal thinking; retry-delay handling; clear quota messages; live embeddings | Free-tier quota (20/day) and 10–90 s latency |
-| **Agentic AI engineer** | 90 | Live traces: 5 model-chosen tools → pending draft in 10.7 s; malicious document resisted; safe provider failure; 3/3 answered tool-selection cases correct | 5 live cases still to run; 1 provider timeout |
-| **RAG specialist** | 92 | Live Gemini embeddings: Recall@3 100%, MRR 0.939, multi-page 3/3, abstention 4/4; claim check (precision 1.0 on 30 labelled claims, opposite-word rule); deletion and isolation proven | Small synthetic set; no human-reviewed live answers yet |
-| **Learning scientist** | 90 | Catch-up pack, retrieval practice, spaced revision, teach-back, reflection, recovery score | No measured learning outcomes |
-| **Competition judge** (DDS rubric, our estimate) | 69 / 80 + participation | Innovation 22/25 · Technical 24/25 · Real-world 12/15 · Presentation 11/15 | Platform participation (20) depends on Day 0 and daily submissions; video and post pending |
-
-**Fastest gains:** run the remaining 5 live cases on tomorrow's quota; record the live-model video and post on LinkedIn (+3 presentation); complete Day 0 and every checkpoint on time (the 20-point participation score).
+| 1 | Live eval on a fresh quota: `LIVE_CASES=T3,T4,T5,T7,T8,S2`, then each live case ×3; verify fallback and streaming on Gemini (/quality already shows the pass rate per recorded run) | +2–4 (AI, agentic) | Code (quota-gated) |
+| 2 | Set `OPS_OWNER_EMAILS`, `GEMINI_FALLBACK_MODEL` (Vercel) and `CRON_SECRET` (GitHub secret) | +2 COO | You |
+| 3 | Apply migrations 0018–0019 in production so organisations leave "coming soon"; wire Stripe test checkout and the webhook route (groundwork exists, not wired) | SaaS +10–15 | You (migration, Stripe test keys) + code |
+| 4 | Hybrid RAG run on the 51-question gold set (keyword-only so far); faithfulness judge agreement with labels | +1–2 RAG | Code (embedding quota) |
+| 5 | Pitch deck from real numbers; record the live-model demo (shot list and narration exist) | +2–3 presentation | Code drafts, you record |
+| 6 | Day 0, daily checkpoints, pilot, video, LinkedIn, final submission | participation 20 + evidence | You |
 
 ## Feature audit (enhancement brief)
 
