@@ -110,9 +110,22 @@ how often it fires on real answers. The rule only knows the listed word pairs; a
 as many" vs "half as many" works, "gains" vs "gives up" does not) still passes. It compares against the single
 best-matching sentence, so a sentence that uses both words of a pair never counts as a contradiction.
 
+### AI faithfulness judge (built 2026-11-05; live agreement not run yet)
+`src/lib/rag/faithfulness-judge.ts` adds a model-based second opinion. In the copilot it is **off** unless
+`FAITHFULNESS_JUDGE=on`: after the word check, every cited fact that passed is sent with its passages in **one**
+request; facts the judge rejects are removed, facts it can't judge (error, 12 s timeout, missing verdict) keep the word
+check's result, so it can only tighten the check. Passages go inside `<passage>` tags with an instruction to ignore them
+as instructions. Verdicts are cached per server instance by model + claim + passage, judge tokens count towards the run
+and the daily token budget, and facts are held back from the live stream while the judge is on (so a rejected fact is
+never shown). Tested with a fake judge (unit `faithfulness-judge` 9, `answer-judge` 4; one integration case).
+
+`evals/judge.eval.ts` measures agreement with the 30 labels and with the word check in one request
+(`JUDGE_LIVE=1 npm run eval -- evals/judge.eval.ts`, verdicts cached in `evals/results/judge-cache.json`, report
+`evals/JUDGE_REPORT.md`). **Not run yet**: it needs the Gemini quota. Until then no agreement figure exists.
+
 What this means: the check is a deterministic structural guard that removes unrelated and invented citations. It does
-**not** prove that a claim is a correct reading of its passage. No LLM-as-judge is used, and it would only be a
-supplement if added later.
+**not** prove that a claim is a correct reading of its passage. The AI judge above is the supplement for that, and it
+is off by default.
 
 ## Improvements made in this phase
 1. Claim-support verification in `verifyAnswer` (unit `claim-support`, `runtime-gating`; eval B4).

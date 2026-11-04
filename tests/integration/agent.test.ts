@@ -5,6 +5,7 @@ import { ScriptedModel, ScriptedProvider, type ScriptStep } from "@/lib/agents/t
 import { clearToolCache, invalidateStudent } from "@/lib/agents/tool-cache";
 import { RECOVERY_TOOLS } from "@/lib/agents/tools";
 import { getAgentRun } from "@/lib/db/agent-runs";
+import { VerdictCache, type JudgeClient } from "@/lib/rag/faithfulness-judge";
 import { processDocument } from "@/lib/rag/ingest";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
@@ -28,7 +29,7 @@ async function uploadAndIngest(user: User, courseId: string, fixture: string, fi
   await processDocument({ supabase: asServer(user.db), admin: adminDb(), userId: user.id, documentId: doc.data!.id, embedder: fakeEmbedder });
 }
 
-function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; courseId?: string | null; message?: string; fallback?: ScriptStep[]; onAnswer?: (e: AnswerStreamEvent) => void } = {}) {
+function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; courseId?: string | null; message?: string; fallback?: ScriptStep[]; onAnswer?: (e: AnswerStreamEvent) => void; judge?: JudgeClient } = {}) {
   const model = new ScriptedModel(steps, opts.loop);
   const fallbackModel = opts.fallback ? new ScriptedModel(opts.fallback) : null;
   return {
@@ -48,6 +49,7 @@ function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; cours
       embedder: fakeEmbedder,
       now: Date.now(),
       onAnswer: opts.onAnswer,
+      judge: opts.judge ? { client: opts.judge, cache: new VerdictCache() } : null,
     }),
   };
 }
@@ -121,6 +123,43 @@ describe("LearningRecoveryAgent", () => {
     expect(stored!.tool_events).toHaveLength(4);
     expect(stored!.citations).toEqual([expect.objectContaining({ sourceId: "S1", page: 2, filename: "module4.pdf" })]);
     expect(stored!.input_tokens).toBe(0); // the scripted model uses no tokens and reports none
+  });
+
+  it("with the AI judge on: removes a fact the judge rejects after the word check, holds facts from the stream and counts judge tokens", async () => {
+    const judged: string[] = [];
+    const judge: JudgeClient = {
+      model: "fake-judge",
+      async complete(_system, user) {
+        const items = [...user.matchAll(/<item id="([^"]+)">\nClaim: ([^\n]*)/g)];
+        judged.push(...items.map((m) => m[2]));
+        // Rejects the overstated claim even though its words are all in the passage.
+        return { text: JSON.stringify({ verdicts: items.map((m) => ({ id: m[1], supported: !/always/.test(m[2]), reason: "fake" })) }), usage: { inputTokens: 120, outputTokens: 15 } };
+      },
+    };
+    const events: AnswerStreamEvent[] = [];
+    const { run } = agentRun(
+      a,
+      [
+        { call: "search_course_material", args: { courseId: courseA, query: "What does a residual mean?", topK: 4 } },
+        {
+          answer: answer([
+            { statement: "A residual is observed Y minus predicted Y-hat.", sourceIds: ["S1"] },
+            { statement: "A residual always equals observed Y minus predicted Y-hat.", sourceIds: ["S1"] },
+            { statement: "The regression worksheet is due in five days.", sourceIds: [] },
+          ]),
+        },
+      ],
+      { judge, onAnswer: (e) => events.push(e) },
+    );
+    const outcome = await run;
+    expect(outcome.status).toBe("completed");
+    expect(judged).toHaveLength(2); // only cited facts reach the judge
+    expect(outcome.answer!.facts.map((f) => f.statement)).toEqual(["A residual is observed Y minus predicted Y-hat.", "The regression worksheet is due in five days."]);
+    expect(outcome.removedUnsupportedFacts).toBe(1);
+    expect(events.some((e) => e.type === "fact")).toBe(false);
+    const { data: stored } = await a.db.from("agent_runs").select("summary, input_tokens, output_tokens").eq("id", outcome.runId).single();
+    expect(stored).toMatchObject({ input_tokens: 120, output_tokens: 15 });
+    expect(stored!.summary).not.toContain("always equals");
   });
 
   it("denies a forged course id from another student and leaks nothing", async () => {

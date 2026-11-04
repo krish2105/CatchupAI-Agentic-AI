@@ -9,6 +9,7 @@ import type { ServerSupabase } from "@/lib/supabase/server";
 import type { AgentContext, SourceRef, ToolEvent } from "./context";
 import { logEvent } from "@/lib/observability/log";
 import { claimSupport } from "@/lib/rag/claim-support";
+import { judgeClaims, judgeClientFromEnv, judgeEnabled, VerdictCache, type JudgeClient, type JudgeUsage } from "@/lib/rag/faithfulness-judge";
 import { geminiFetch } from "./gemini-fetch";
 import { parsePartialAnswer } from "./partial-answer";
 import { RECOVERY_TOOLS } from "./tools";
@@ -140,6 +141,37 @@ export function verifyAnswer(answer: AgentAnswer, sources: Map<string, SourceRef
   return { answer: { ...answer, facts }, citations: cited, removed };
 }
 
+export type AnswerJudge = { client: JudgeClient; cache: VerdictCache };
+export type JudgeSummary = { model: string; checked: number; removed: number; failed: number; cached: number; usage: JudgeUsage };
+
+// One verdict cache per server instance, shared by every run (keys include the model, claim and passage text).
+const sharedJudgeCache = new VerdictCache();
+
+/** The judge from the environment, only when FAITHFULNESS_JUDGE=on and a key exists. */
+export function defaultJudge(): AnswerJudge | null {
+  if (!judgeEnabled()) return null;
+  const client = judgeClientFromEnv();
+  return client ? { client, cache: sharedJudgeCache } : null;
+}
+
+/**
+ * Second check after verifyAnswer: the AI judge sees each cited fact that passed the word check, with its passages,
+ * in one request. Facts it rejects are removed; facts it couldn't judge (error, timeout, skipped) are kept, so the
+ * judge can only tighten the word check, never loosen it. Facts without source ids (tool results) aren't judged.
+ */
+export async function judgeAnswer(verified: ReturnType<typeof verifyAnswer>, sources: Map<string, SourceRef>, judge: AnswerJudge | null): Promise<{ verified: ReturnType<typeof verifyAnswer>; judge: JudgeSummary | null }> {
+  const cited = verified.answer.facts.map((f, i) => ({ f, i })).filter(({ f }) => f.sourceIds.length > 0);
+  if (!judge || cited.length === 0) return { verified, judge: null };
+  const r = await judgeClaims(cited.map(({ f, i }) => ({ id: `F${i + 1}`, claim: f.statement, passages: f.sourceIds.map((id) => sources.get(id)!.snippet) })), judge.client, judge.cache);
+  const drop = new Set(cited.filter(({ i }) => r.verdicts.get(`F${i + 1}`)?.supported === false).map(({ i }) => i));
+  const facts = verified.answer.facts.filter((_, i) => !drop.has(i));
+  const citations = [...new Set(facts.flatMap((f) => f.sourceIds))].map((id) => sources.get(id)!);
+  return {
+    verified: { answer: { ...verified.answer, facts }, citations, removed: verified.removed + drop.size },
+    judge: { model: judge.client.model, checked: cited.length, removed: drop.size, failed: r.failed, cached: r.cached, usage: r.usage },
+  };
+}
+
 /** The citation shape stored in agent_runs.citations and sent to the browser. */
 const toRunCitation = (c: SourceRef) => ({ sourceId: c.sourceId, documentId: c.documentId, filename: c.filename, page: c.pageStart, chunkId: c.chunkId });
 
@@ -157,7 +189,7 @@ const FactShape = AgentAnswer.shape.facts.element;
  * fact is never shown, not even briefly. Suggestions (advice) stream as they are written; updates are batched by
  * text growth so the event count stays near one per few words. The final, persisted answer always replaces this.
  */
-export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: AnswerStreamEvent) => void, opts: { minTextGrowthChars?: number } = {}) {
+export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: AnswerStreamEvent) => void, opts: { minTextGrowthChars?: number; holdFacts?: boolean } = {}) {
   const minGrowth = opts.minTextGrowthChars ?? 12;
   let text = "";
   let factsSeen = 0;
@@ -179,7 +211,8 @@ export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: 
       if (!partial) return;
       while (factsSeen < partial.facts.length) {
         const fact = FactShape.safeParse(partial.facts[factsSeen++]);
-        if (!fact.success || factsShown >= 8 /* AgentAnswer facts max */) continue;
+        // With the AI judge on, facts wait for the final answer: the judge may still remove one.
+        if (!fact.success || opts.holdFacts || factsShown >= 8 /* AgentAnswer facts max */) continue;
         const verified = verifyAnswer({ facts: [fact.data], suggestions: [], clarifyingQuestion: null }, sources);
         if (!verified.answer.facts.length) continue;
         factsShown++;
@@ -218,8 +251,11 @@ export async function runRecoveryAgent(deps: {
   onRunCreated?: (runId: string) => void;
   /** Live answer events while the final answer is written (verified facts, partial suggestions). */
   onAnswer?: (event: AnswerStreamEvent) => void;
+  /** AI faithfulness judge; defaults to the environment's (FAITHFULNESS_JUDGE=on), null turns it off. */
+  judge?: AnswerJudge | null;
 }): Promise<RunOutcome> {
   const { admin, userId } = deps;
+  const judge = deps.judge === undefined ? defaultJudge() : deps.judge;
   const { data: run, error } = await admin
     .from("agent_runs")
     .insert({ owner_id: userId, course_id: deps.courseId, request_text: deps.message.slice(0, AGENT_LIMITS.maxMessageChars), model: deps.runtime.model, status: "running" })
@@ -260,7 +296,7 @@ export async function runRecoveryAgent(deps: {
     const input = `${deps.message}${courseNote}`;
     try {
       if (!deps.onAnswer || !streamingEnabled()) return await runner.run(agent, input, { context, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal });
-      const streamer = createAnswerStreamer(context.sources, deps.onAnswer);
+      const streamer = createAnswerStreamer(context.sources, deps.onAnswer, { holdFacts: Boolean(judge) });
       const streamed = await runner.run(agent, input, { context, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal, stream: true });
       for await (const event of streamed) {
         if (event.type !== "raw_model_stream_event") continue;
@@ -300,8 +336,11 @@ export async function runRecoveryAgent(deps: {
     }
     const parsed = AgentAnswer.safeParse(result.finalOutput);
     if (!parsed.success) throw Object.assign(new Error("invalid model output"), { code: "invalid_output" });
-    const verified = verifyAnswer(parsed.data, context.sources);
-    const usage = result.rawResponses.reduce((acc, r) => ({ input: acc.input + (r.usage?.inputTokens ?? 0), output: acc.output + (r.usage?.outputTokens ?? 0) }), { input: 0, output: 0 });
+    const judged = await judgeAnswer(verifyAnswer(parsed.data, context.sources), context.sources, judge);
+    const verified = judged.verified;
+    const modelUsage = result.rawResponses.reduce((acc, r) => ({ input: acc.input + (r.usage?.inputTokens ?? 0), output: acc.output + (r.usage?.outputTokens ?? 0) }), { input: 0, output: 0 });
+    // Judge tokens count towards the run (and so towards the daily token budget).
+    const usage = { input: modelUsage.input + (judged.judge?.usage.inputTokens ?? 0), output: modelUsage.output + (judged.judge?.usage.outputTokens ?? 0) };
     await admin
       .from("agent_runs")
       .update({
@@ -318,7 +357,7 @@ export async function runRecoveryAgent(deps: {
     logEvent("info", "agent.run", {
       runId: run.id, status: "completed", model: current.model, fallbackReason, ms: Date.now() - deps.now, inputTokens: usage.input, outputTokens: usage.output,
       tools: context.events.length, toolFailures: context.events.filter((e) => e.status !== "completed").length,
-      removedFacts: verified.removed, flaggedPassages: [...context.sources.values()].filter((s) => s.suspicious).length, drafted: Boolean(context.proposalId),
+      removedFacts: verified.removed, judgeModel: judged.judge?.model ?? null, judgeChecked: judged.judge?.checked ?? 0, judgeRemoved: judged.judge?.removed ?? 0, judgeFailed: judged.judge?.failed ?? 0, judgeCached: judged.judge?.cached ?? 0, flaggedPassages: [...context.sources.values()].filter((s) => s.suspicious).length, drafted: Boolean(context.proposalId),
     });
     return { runId: run.id, status: "completed", answer: verified.answer, citations: verified.citations, events: context.events, proposalId: context.proposalId, removedUnsupportedFacts: verified.removed, model: current.model, ...fallbackInfo() };
   } catch (e) {
