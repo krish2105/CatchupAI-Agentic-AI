@@ -9,7 +9,8 @@ import { api, ClientApiError } from "@/lib/client/api";
 import TrustDrawer from "@/components/features/recovery/trust-drawer";
 import Thumbs from "@/components/ui/thumbs";
 import type { ToolEvent } from "@/lib/agents/context";
-import type { AgentRunDto } from "@/lib/db/agent-runs";
+import type { AnswerStreamEvent } from "@/lib/agents/recovery-agent";
+import type { AgentRunDto, RunCitation } from "@/lib/db/agent-runs";
 
 const PROMPTS = [
   "I missed two classes. Help me catch up before my next deadline.",
@@ -117,6 +118,50 @@ function AnswerView({ run }: { run: AgentRunDto }) {
   );
 }
 
+type LiveAnswer = { facts: { statement: string; citations: RunCitation[] }[]; suggestions: string[]; clarifyingQuestion: string | null };
+type LiveRun = { request: string; events: ToolEvent[]; answer: LiveAnswer };
+const EMPTY_LIVE_ANSWER: LiveAnswer = { facts: [], suggestions: [], clarifyingQuestion: null };
+
+function applyAnswerEvent(answer: LiveAnswer, e: AnswerStreamEvent): LiveAnswer {
+  if (e.type === "reset") return EMPTY_LIVE_ANSWER;
+  if (e.type === "fact") return { ...answer, facts: [...answer.facts, { statement: e.fact.statement, citations: e.citations }] };
+  return { ...answer, suggestions: e.suggestions, clarifyingQuestion: e.clarifyingQuestion };
+}
+
+/** The answer as the model writes it. Facts appear only after their citation passed the check on the server. */
+function LiveAnswerView({ answer }: { answer: LiveAnswer }) {
+  if (!answer.facts.length && !answer.suggestions.length && !answer.clarifyingQuestion) return null;
+  return (
+    <div className="answer" data-testid="live-answer">
+      <span className="answer-avatar" aria-hidden="true"><Leaf className="ic" /></span>
+      <div className="answer-body">
+        <div className="answer-eyebrow">CatchUp AI · Writing…</div>
+        {answer.facts.length ? (
+          <section aria-label="Checked facts so far">
+            <h3 className="answer-title">Verified from your material</h3>
+            {answer.facts.map((f, i) => (
+              <p key={i}>
+                {f.statement}{" "}
+                {f.citations.map((c) => (
+                  <span key={c.sourceId} className="cite-chip"><FileText className="ic" aria-hidden="true" /> {c.filename} · p. {c.page}</span>
+                ))}
+              </p>
+            ))}
+          </section>
+        ) : null}
+        {answer.suggestions.length ? (
+          <section aria-label="Suggestions so far">
+            <h3 className="answer-title">Suggestions</h3>
+            <ul className="answer-checks">{answer.suggestions.map((x, i) => <li key={i}><Check className="ic" aria-hidden="true" /> {x}</li>)}</ul>
+          </section>
+        ) : null}
+        {answer.clarifyingQuestion ? <p><strong>Question:</strong> {answer.clarifyingQuestion}</p> : null}
+        <p className="answer-note">Facts appear only after their page citation is checked. The finished answer replaces this.</p>
+      </div>
+    </div>
+  );
+}
+
 function Decision({ run, onDecided }: { run: AgentRunDto; onDecided: (status: string) => void }) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -164,7 +209,7 @@ export default function Copilot({
   const [message, setMessage] = useState("");
   const [courseId, setCourseId] = useState<string>(rescue?.courseId ?? courses[0]?.id ?? "");
   const rescueStarted = useRef(false);
-  const [live, setLive] = useState<{ request: string; events: ToolEvent[] } | null>(null);
+  const [live, setLive] = useState<LiveRun | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [selectedRun, setSelectedRun] = useState<string | null>(initialRuns.at(-1)?.id ?? null);
   const abort = useRef<AbortController | null>(null);
@@ -175,7 +220,7 @@ export default function Copilot({
     const trimmed = text.trim();
     if (trimmed.length < 3 || running) return;
     setError(null);
-    setLive({ request: trimmed, events: [] });
+    setLive({ request: trimmed, events: [], answer: EMPTY_LIVE_ANSWER });
     setMessage("");
     const controller = new AbortController();
     abort.current = controller;
@@ -204,6 +249,7 @@ export default function Copilot({
           const event = /^event: (\w+)/m.exec(chunk)?.[1];
           const data = JSON.parse(/^data: (.*)$/m.exec(chunk)?.[1] ?? "null");
           if (event === "tool") setLive((l) => (l ? { ...l, events: [...l.events, data as ToolEvent] } : l));
+          if (event === "answer") setLive((l) => (l ? { ...l, answer: applyAnswerEvent(l.answer, data as AnswerStreamEvent) } : l));
           if (event === "final") {
             const run = (data as { run: AgentRunDto }).run;
             setRuns((r) => [...r, run]);
@@ -265,6 +311,7 @@ export default function Copilot({
             </div>
           ))}
           {live ? <div className="chat-bubble user">{live.request}</div> : null}
+          {live ? <LiveAnswerView answer={live.answer} /> : null}
           {error ? <Notice tone="danger" title={error} /> : null}
         </div>
         {runtime.configured ? (

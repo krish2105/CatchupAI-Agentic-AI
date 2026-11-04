@@ -55,6 +55,15 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     const { data: runs } = await s.db.from("agent_runs").select("status, tool_events").eq("owner_id", s.userId);
     expect(runs).toHaveLength(1);
     expect(runs![0].status).toBe("completed");
+
+    // The answer is streamed: answer events (checked facts, then suggestions as they're written) arrive before
+    // "final". Read the raw SSE stream directly (the browser consumes the copilot's own stream).
+    const sse = await (await s.page.request.post("/api/agent/run", { data: { message: "What does a residual mean?", courseId: course.course.id } })).text();
+    const answerAt = sse.indexOf("event: answer");
+    expect(answerAt).toBeGreaterThan(-1);
+    expect(answerAt).toBeLessThan(sse.indexOf("event: final"));
+    expect(sse).toMatch(/event: answer\ndata: \{"type":"fact".*"page":2/);
+    expect((sse.match(/event: answer\ndata: \{"type":"text"/g) ?? []).length).toBeGreaterThan(1);
   } finally {
     await s.cleanup();
   }

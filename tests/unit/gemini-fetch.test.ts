@@ -68,3 +68,25 @@ describe("Gemini daily quota", () => {
     expect(waits).toEqual([]);
   });
 });
+
+describe("Gemini thought signatures on streamed responses", () => {
+  it("collects a tool call split across SSE chunks and remembers its signature", async () => {
+    const chunks = [
+      { choices: [{ delta: { tool_calls: [{ index: 0, id: "call_s", function: { name: "list_assignments", arguments: '{"courseId"' }, extra_content: signature }] } }] },
+      { choices: [{ delta: { tool_calls: [{ index: 0, function: { arguments: ':null}' } }] } }] },
+      { choices: [{ delta: {}, finish_reason: "tool_calls" }] },
+    ];
+    const sse = chunks.map((c) => `data: ${JSON.stringify(c)}\n\n`).join("") + "data: [DONE]\n\n";
+    const streamed: typeof fetch = async () =>
+      new Response(new Blob([sse]).stream(), { headers: { "content-type": "text/event-stream" } });
+    const res = await geminiFetch(streamed)("https://x/v1beta/openai/chat/completions", { method: "POST", body: JSON.stringify({ stream: true }) });
+    // The body passes through unchanged for the SDK to read.
+    expect(await res.text()).toBe(sse);
+
+    let sent = "";
+    const capture: typeof fetch = async (_input, init) => { sent = String(init?.body); return new Response("{}", { headers: { "content-type": "application/json" } }); };
+    // Matched by function name + the reassembled arguments even if the SDK sends a different id.
+    await geminiFetch(capture)("https://x/v1beta/openai/chat/completions", { method: "POST", body: JSON.stringify({ messages: [{ role: "assistant", tool_calls: [{ id: "other", function: { name: "list_assignments", arguments: '{"courseId":null}' } }] }] }) });
+    expect(JSON.parse(sent).messages[0].tool_calls[0].extra_content).toEqual(signature);
+  });
+});

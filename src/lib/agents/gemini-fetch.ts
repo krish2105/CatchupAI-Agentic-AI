@@ -41,6 +41,56 @@ export function rememberResponse(json: { choices?: { message?: Message }[] }) {
   for (const choice of json.choices ?? []) for (const call of choice.message?.tool_calls ?? []) remember(call);
 }
 
+type StreamedCall = { id?: string; name?: string; args: string; extra?: unknown };
+
+/**
+ * Streamed responses (`stream: true`, used for live answers) carry tool calls in pieces across SSE chunks; the
+ * signature arrives on one of them. This passes the bytes through untouched while reassembling each call, and
+ * remembers its signature when the stream ends, so the next request can send it back. Exported for tests.
+ */
+export function rememberStream(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
+  const decoder = new TextDecoder();
+  const calls = new Map<number, StreamedCall>();
+  let pending = "";
+  const readLines = (final: boolean) => {
+    const lines = pending.split("\n");
+    pending = final ? "" : (lines.pop() ?? "");
+    for (const line of lines) {
+      const data = line.startsWith("data:") ? line.slice(5).trim() : "";
+      if (!data || data === "[DONE]") continue;
+      try {
+        const chunk = JSON.parse(data) as { choices?: { delta?: { tool_calls?: (ToolCall & { index?: number })[] } }[] };
+        for (const choice of chunk.choices ?? []) {
+          for (const tc of choice.delta?.tool_calls ?? []) {
+            const call = calls.get(tc.index ?? 0) ?? { args: "" };
+            if (tc.id) call.id = tc.id;
+            if (tc.function?.name) call.name = tc.function.name;
+            if (tc.function?.arguments) call.args += tc.function.arguments;
+            if (tc.extra_content) call.extra = tc.extra_content;
+            calls.set(tc.index ?? 0, call);
+          }
+        }
+      } catch {
+        /* not a JSON chunk */
+      }
+    }
+  };
+  return body.pipeThrough(
+    new TransformStream<Uint8Array, Uint8Array>({
+      transform(bytes, controller) {
+        pending += decoder.decode(bytes, { stream: true });
+        readLines(false);
+        controller.enqueue(bytes);
+      },
+      flush() {
+        pending += decoder.decode();
+        readLines(true);
+        for (const c of calls.values()) remember({ id: c.id, function: { name: c.name, arguments: c.args }, extra_content: c.extra });
+      },
+    }),
+  );
+}
+
 const RETRYABLE = new Set([429, 500, 503]);
 
 /** Seconds Google asks us to wait (from `retryDelay: "23s"` in the error body), or a default. Exported for tests. */
@@ -76,7 +126,11 @@ export function geminiFetch(base: typeof fetch = fetch, opts: { maxAttempts?: nu
       waited += delay;
       response = await base(input, nextInit);
     }
-    if (isChat && response.ok && (response.headers.get("content-type") ?? "").includes("application/json")) {
+    const type = response.headers.get("content-type") ?? "";
+    if (isChat && response.ok && type.includes("text/event-stream") && response.body) {
+      return new Response(rememberStream(response.body), { status: response.status, statusText: response.statusText, headers: response.headers });
+    }
+    if (isChat && response.ok && type.includes("application/json")) {
       try {
         rememberResponse(await response.clone().json());
       } catch {

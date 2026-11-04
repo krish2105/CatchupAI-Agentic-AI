@@ -18,7 +18,8 @@ const body = z.object({ message: z.string().trim().min(3).max(AGENT_LIMITS.maxMe
 
 /**
  * Runs the LearningRecoveryAgent and streams real tool events (Server-Sent Events) as they execute.
- * Events: run {runId} · tool {event} · final {run} · error {code,message}.
+ * Events: run {runId} · tool {event} · answer {reset | fact (already citation-checked) | text (partial suggestions)}
+ * · final {run} · error {code,message}. The final run is the persisted, verified answer and replaces any live text.
  */
 export const POST = route(async (request: Request) => {
   const { supabase, user } = await requireApiUser();
@@ -53,6 +54,7 @@ export const POST = route(async (request: Request) => {
           signal: request.signal,
           onRunCreated: (runId) => send("run", { runId }),
           onEvent: (event) => send("tool", event),
+          onAnswer: (event) => send("answer", event),
         });
         send("final", { run: await getAgentRun(supabase, outcome.runId), removedUnsupportedFacts: outcome.removedUnsupportedFacts });
       } catch (error) {

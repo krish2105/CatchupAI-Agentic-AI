@@ -1,6 +1,6 @@
 import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-import { runRecoveryAgent } from "@/lib/agents/recovery-agent";
+import { runRecoveryAgent, type AnswerStreamEvent } from "@/lib/agents/recovery-agent";
 import { ScriptedModel, ScriptedProvider, type ScriptStep } from "@/lib/agents/testing/scripted-model";
 import { RECOVERY_TOOLS } from "@/lib/agents/tools";
 import { processDocument } from "@/lib/rag/ingest";
@@ -26,7 +26,7 @@ async function uploadAndIngest(user: User, courseId: string, fixture: string, fi
   await processDocument({ supabase: asServer(user.db), admin: adminDb(), userId: user.id, documentId: doc.data!.id, embedder: fakeEmbedder });
 }
 
-function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; courseId?: string | null; message?: string; fallback?: ScriptStep[] } = {}) {
+function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; courseId?: string | null; message?: string; fallback?: ScriptStep[]; onAnswer?: (e: AnswerStreamEvent) => void } = {}) {
   const model = new ScriptedModel(steps, opts.loop);
   const fallbackModel = opts.fallback ? new ScriptedModel(opts.fallback) : null;
   return {
@@ -45,6 +45,7 @@ function agentRun(user: User, steps: ScriptStep[], opts: { loop?: boolean; cours
       },
       embedder: fakeEmbedder,
       now: Date.now(),
+      onAnswer: opts.onAnswer,
     }),
   };
 }
@@ -217,6 +218,34 @@ describe("LearningRecoveryAgent", () => {
     expect(outcome).toMatchObject({ status: "failed", errorCode: "model_overloaded", proposalId: null });
     const { data: stored } = await a.db.from("agent_runs").select("status, model, fallback_from, fallback_reason, error_code").eq("id", outcome.runId).single();
     expect(stored).toEqual({ status: "failed", model: "scripted-fallback-model", fallback_from: "scripted-test-model", fallback_reason: "model_busy", error_code: "model_overloaded" });
+  });
+
+  it("streams the answer while the model writes it: verified facts with pages, suggestions word by word", async () => {
+    const streamed: AnswerStreamEvent[] = [];
+    const outcome = await agentRun(
+      a,
+      [
+        { call: "search_course_material", args: { courseId: courseA, query: "What does a residual mean?", topK: 4 } },
+        {
+          answer: answer(
+            [
+              { statement: "A residual is observed Y minus predicted Y-hat.", sourceIds: ["S1"] },
+              { statement: "Invented fact citing a source that was never retrieved.", sourceIds: ["S9"] },
+            ],
+            ["Start with the regression worksheet tonight, then review residual plots."],
+          ),
+        },
+      ],
+      { onAnswer: (e) => streamed.push(e) },
+    ).run;
+    expect(outcome.status).toBe("completed");
+    const facts = streamed.filter((e) => e.type === "fact");
+    // The unsupported fact was never shown, not even briefly.
+    expect(facts.map((f) => f.type === "fact" && f.fact.statement)).toEqual(["A residual is observed Y minus predicted Y-hat."]);
+    expect(facts[0]).toMatchObject({ citations: [{ filename: "module4.pdf", page: 2 }] });
+    const texts = streamed.filter((e) => e.type === "text");
+    expect(texts.length).toBeGreaterThan(1);
+    expect(texts.at(-1)).toMatchObject({ suggestions: outcome.answer!.suggestions });
   });
 
   it("keeps agent runs private to their owner", async () => {

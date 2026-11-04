@@ -1,4 +1,4 @@
-import { Usage, type Model, type ModelProvider, type ModelRequest, type ModelResponse } from "@openai/agents";
+import { Usage, type Model, type ModelProvider, type ModelRequest, type ModelResponse, type StreamEvent } from "@openai/agents";
 
 /**
  * Deterministic stand-in for an LLM, used ONLY by automated tests (and by the E2E server when explicitly
@@ -57,8 +57,25 @@ export class ScriptedModel implements Model {
     };
   }
 
-  async *getStreamedResponse(): AsyncIterable<never> {
-    throw new Error("ScriptedModel does not stream");
+  /**
+   * Streams the same scripted response the way a provider would: response_started, the answer text in small
+   * pieces (so streaming code sees many deltas), then response_done. Mirrors the SDK's own testing model.
+   */
+  async *getStreamedResponse(request: ModelRequest): AsyncIterable<StreamEvent> {
+    const response = await this.getResponse(request);
+    yield { type: "response_started" };
+    for (const item of response.output) {
+      if (item.type !== "message" || item.role !== "assistant") continue;
+      for (const part of item.content) {
+        if (part.type !== "output_text") continue;
+        for (let i = 0; i < part.text.length; i += 9) yield { type: "output_text_delta", delta: part.text.slice(i, i + 9) };
+      }
+    }
+    const u = response.usage;
+    yield {
+      type: "response_done",
+      response: { id: `scripted_${this.turn}`, usage: { requests: u.requests, inputTokens: u.inputTokens, outputTokens: u.outputTokens, totalTokens: u.totalTokens }, output: response.output as Extract<StreamEvent, { type: "response_done" }>["response"]["output"] },
+    };
   }
 }
 

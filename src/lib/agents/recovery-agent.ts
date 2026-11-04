@@ -10,6 +10,7 @@ import type { AgentContext, SourceRef, ToolEvent } from "./context";
 import { logEvent } from "@/lib/observability/log";
 import { claimSupport } from "@/lib/rag/claim-support";
 import { geminiFetch } from "./gemini-fetch";
+import { parsePartialAnswer } from "./partial-answer";
 import { RECOVERY_TOOLS } from "./tools";
 
 // The free Gemini tier can take 10–30 s per step, so a full run gets up to 170 s (route maxDuration is 200 s).
@@ -139,6 +140,70 @@ export function verifyAnswer(answer: AgentAnswer, sources: Map<string, SourceRef
   return { answer: { ...answer, facts }, citations: cited, removed };
 }
 
+/** The citation shape stored in agent_runs.citations and sent to the browser. */
+const toRunCitation = (c: SourceRef) => ({ sourceId: c.sourceId, documentId: c.documentId, filename: c.filename, page: c.pageStart, chunkId: c.chunkId });
+
+/** Live answer events sent while the model writes its final answer (SSE event "answer"). */
+export type AnswerStreamEvent =
+  | { type: "reset" }
+  | { type: "fact"; fact: { statement: string; sourceIds: string[] }; citations: ReturnType<typeof toRunCitation>[] }
+  | { type: "text"; suggestions: string[]; clarifyingQuestion: string | null };
+
+const FactShape = AgentAnswer.shape.facts.element;
+
+/**
+ * Turns the model's streamed JSON into live answer events. A fact is emitted only once it is complete AND passes
+ * the same check as the final answer (retrieved, not flagged, supported by the cited passage), so an unsupported
+ * fact is never shown, not even briefly. Suggestions (advice) stream as they are written; updates are batched by
+ * text growth so the event count stays near one per few words. The final, persisted answer always replaces this.
+ */
+export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: AnswerStreamEvent) => void, opts: { minTextGrowthChars?: number } = {}) {
+  const minGrowth = opts.minTextGrowthChars ?? 12;
+  let text = "";
+  let factsSeen = 0;
+  let factsShown = 0;
+  let lastKey = "";
+  let lastLength = 0;
+  let shown = false;
+  return {
+    reset() {
+      if (shown) emit({ type: "reset" });
+      text = "";
+      factsSeen = factsShown = lastLength = 0;
+      lastKey = "";
+      shown = false;
+    },
+    push(delta: string) {
+      text += delta;
+      const partial = parsePartialAnswer(text);
+      if (!partial) return;
+      while (factsSeen < partial.facts.length) {
+        const fact = FactShape.safeParse(partial.facts[factsSeen++]);
+        if (!fact.success || factsShown >= 8 /* AgentAnswer facts max */) continue;
+        const verified = verifyAnswer({ facts: [fact.data], suggestions: [], clarifyingQuestion: null }, sources);
+        if (!verified.answer.facts.length) continue;
+        factsShown++;
+        shown = true;
+        emit({ type: "fact", fact: fact.data, citations: verified.citations.map(toRunCitation) });
+      }
+      const suggestions = partial.suggestions.slice(0, 6).map((x) => x.slice(0, 400));
+      const question = partial.clarifyingQuestion?.slice(0, 300) ?? null;
+      const key = JSON.stringify([suggestions, question]);
+      if (key === lastKey || (!suggestions.length && !question)) return;
+      const length = key.length;
+      // A just-finished suggestion is always sent; otherwise wait until the text has grown a few words.
+      if (length - lastLength < minGrowth && partial.midString) return;
+      lastKey = key;
+      lastLength = length;
+      shown = true;
+      emit({ type: "text", suggestions, clarifyingQuestion: question });
+    },
+  };
+}
+
+/** Streaming can be turned off with AGENT_STREAMING=off (e.g. if a provider's stream misbehaves). */
+export const streamingEnabled = () => process.env.AGENT_STREAMING?.trim().toLowerCase() !== "off";
+
 export async function runRecoveryAgent(deps: {
   supabase: ServerSupabase;
   admin: AdminSupabase;
@@ -151,6 +216,8 @@ export async function runRecoveryAgent(deps: {
   signal?: AbortSignal;
   onEvent?: (event: ToolEvent) => void;
   onRunCreated?: (runId: string) => void;
+  /** Live answer events while the final answer is written (verified facts, partial suggestions). */
+  onAnswer?: (event: AnswerStreamEvent) => void;
 }): Promise<RunOutcome> {
   const { admin, userId } = deps;
   const { data: run, error } = await admin
@@ -189,8 +256,22 @@ export async function runRecoveryAgent(deps: {
     const attemptTimeout = budgetMs === null ? null : AbortSignal.timeout(budgetMs);
     const attemptSignal = attemptTimeout ? AbortSignal.any([signal, attemptTimeout]) : signal;
     const runner = new Runner({ modelProvider: choice.provider, tracingDisabled: true, workflowName: "catchup-recovery" });
+    const agent = buildRecoveryAgent(choice.model);
+    const input = `${deps.message}${courseNote}`;
     try {
-      return await runner.run(buildRecoveryAgent(choice.model), `${deps.message}${courseNote}`, { context, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal });
+      if (!deps.onAnswer || !streamingEnabled()) return await runner.run(agent, input, { context, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal });
+      const streamer = createAnswerStreamer(context.sources, deps.onAnswer);
+      const streamed = await runner.run(agent, input, { context, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal, stream: true });
+      for await (const event of streamed) {
+        if (event.type !== "raw_model_stream_event") continue;
+        const data = event.data as { type: string; delta?: string };
+        // Each model turn starts fresh: text from a turn that ends in a tool call is not the answer.
+        if (data.type === "response_started") streamer.reset();
+        else if (data.type === "output_text_delta" && data.delta) streamer.push(data.delta);
+      }
+      await streamed.completed;
+      if (streamed.error) throw streamed.error;
+      return streamed;
     } catch (e) {
       const code = signal.aborted ? (timeout.aborted ? "timeout" : "cancelled") : attemptTimeout?.aborted ? "attempt_timeout" : classifyRunError(e);
       throw Object.assign(e instanceof Error ? e : new Error("model failure"), { runCode: code });
@@ -211,6 +292,7 @@ export async function runRecoveryAgent(deps: {
       if (context.proposalId) await admin.from("action_proposals").update({ status: "expired", decided_at: new Date().toISOString() }).eq("id", context.proposalId).eq("owner_id", userId).eq("status", "pending");
       context.proposalId = null;
       context.attempt = 2;
+      deps.onAnswer?.({ type: "reset" });
       fallbackReason = code;
       current = fallback;
       await admin.from("agent_runs").update({ model: current.model, fallback_from: deps.runtime.model, fallback_reason: code }).eq("id", run.id).eq("owner_id", userId);
@@ -226,7 +308,7 @@ export async function runRecoveryAgent(deps: {
         status: "completed",
         summary: JSON.stringify(verified.answer),
         tool_events: context.events as unknown as Json,
-        citations: verified.citations.map((c) => ({ sourceId: c.sourceId, documentId: c.documentId, filename: c.filename, page: c.pageStart, chunkId: c.chunkId })) as unknown as Json,
+        citations: verified.citations.map(toRunCitation) as unknown as Json,
         input_tokens: usage.input,
         output_tokens: usage.output,
         completed_at: new Date().toISOString(),
