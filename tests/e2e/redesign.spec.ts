@@ -488,3 +488,28 @@ test("public status page reports the app, database and AI live, with uptime and 
   }
 });
 
+test("privacy notice and terms are public, linked from the landing page and sign-in, and point to the self-service controls", async ({ browser }) => {
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const page = await context.newPage();
+  try {
+    await page.goto("/");
+    await page.getByRole("contentinfo").getByRole("link", { name: "Privacy" }).click();
+    await expect(page).toHaveURL(/\/privacy$/); // no sign-in needed
+    await expect(page.getByRole("heading", { level: 1, name: "Privacy, in plain language" })).toBeVisible();
+    for (const name of ["What we store", "Who processes it, and where", "How long we keep it", "Your rights and controls"]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
+    await expect(page.getByText(/Google may use that content to improve its products/)).toBeVisible();
+    await expect(page.getByText(/deleted automatically after 24 hours/)).toBeVisible();
+    await expect(page.getByRole("link", { name: /Preferences → Privacy and data → Export/ })).toHaveAttribute("href", "/settings");
+    // The table of contents jumps to each section.
+    await page.getByRole("navigation", { name: "On this page" }).getByRole("link", { name: "How long we keep it" }).click();
+    await expect(page).toHaveURL(/#keep$/);
+    await page.getByRole("link", { name: "Terms of use" }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Terms of use, in plain language" })).toBeVisible();
+    await expect(page.getByRole("heading", { level: 2, name: "AI answers can be wrong" })).toBeVisible();
+    await page.goto("/login");
+    await expect(page.getByRole("link", { name: "terms of use" })).toHaveAttribute("href", "/terms");
+    await expect(page.getByRole("link", { name: "privacy notice" })).toHaveAttribute("href", "/privacy");
+  } finally {
+    await context.close();
+  }
+});

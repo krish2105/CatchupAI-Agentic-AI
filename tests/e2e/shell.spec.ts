@@ -105,7 +105,7 @@ test.describe("responsive layout", () => {
       test(`no horizontal overflow at ${width}px (${theme})`, async ({ page }) => {
         await seedPrefs(page, { theme, motion: "reduce" });
         await page.setViewportSize({ width, height: 900 });
-        for (const path of ["/", "/quality", "/status", ...APP_PATHS]) {
+        for (const path of ["/", "/quality", "/status", "/privacy", "/terms", ...APP_PATHS]) {
           await page.goto(path);
           await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
           const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
@@ -121,7 +121,7 @@ test.describe("accessibility (axe)", () => {
     test(`no serious or critical violations (${theme})`, async ({ page }) => {
       await seedPrefs(page, { theme, motion: "reduce", threeD: false });
       const found: string[] = [];
-      for (const path of ["/", "/quality", "/status", ...APP_PATHS]) {
+      for (const path of ["/", "/quality", "/status", "/privacy", "/terms", ...APP_PATHS]) {
         await page.goto(path);
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
         const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();

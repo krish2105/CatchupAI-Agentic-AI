@@ -1,6 +1,7 @@
 "use client";
 
 import { ArrowRight, MailCheck } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/features/auth/turnstile";
@@ -57,6 +58,7 @@ export default function LoginForm({ next, linkError }: { next: string; linkError
           <button className="btn primary" type="submit" disabled={busy || Boolean(TURNSTILE_SITE_KEY && !captcha)}>
             {busy ? <span className="spinner" aria-hidden="true" /> : null} Send sign-in code <ArrowRight className="ic" aria-hidden="true" />
           </button>
+          <p className="field-hint">By continuing you agree to the <Link href="/terms">terms of use</Link> and the <Link href="/privacy">privacy notice</Link>.</p>
         </form>
       ) : (
         <form onSubmit={verify} style={{ display: "grid", gap: 14, marginTop: 22 }}>

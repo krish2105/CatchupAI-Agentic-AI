@@ -861,6 +861,15 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .quality-stats span { font-size: 12px; color: var(--muted); }
 .quality .data-table { width: 100%; }
 
+/* Plain-language privacy notice and terms */
+.policy-intro { color: var(--muted); max-width: 680px; line-height: 1.6; font-size: 17px; }
+.policy-toc { margin: 0; padding-left: 20px; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 6px 20px; line-height: 1.5; }
+.policy-section { display: grid; gap: 10px; line-height: 1.65; }
+.policy-section p, .policy-section ul { margin: 0; max-width: 72ch; }
+.policy-section ul { padding-left: 20px; display: grid; gap: 6px; }
+.policy-section h2 { scroll-margin-top: 16px; }
+.policy-page a:not(.btn) { text-decoration: underline; text-underline-offset: 3px; }
+
 /* The list view sits under the absolutely positioned overline label; leave room so they never overlap. */
 .atlas-main .universe-list { padding-top: 56px; }
 
