@@ -25,7 +25,7 @@ export default function ScoreChart({ points }: { points: ScorePoint[] }) {
 
   return (
     <div style={{ position: "relative" }}>
-      <svg className="bar-chart score-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Daily recovery score, last ${points.length} days.${latest ? ` Latest ${latest.score}%.` : ""} Table below.`}>
+      <svg className="bar-chart score-chart" viewBox={`0 0 ${W} ${H}`} role="group" aria-label={`Daily recovery score, last ${points.length} days.${latest ? ` Latest ${latest.score}%.` : ""} Table below.`}>
         {[0, 50, 100].map((t) => (
           <g key={t}>
             <line className="chart-gridline" x1={pad.left} x2={W - pad.right} y1={y(t)} y2={y(t)} strokeDasharray={t === 0 ? undefined : "2 4"} />
@@ -34,7 +34,7 @@ export default function ScoreChart({ points }: { points: ScorePoint[] }) {
         ))}
         {segments.map((d) => <path key={d} className="score-line" d={d} />)}
         {points.map((p, i) => (
-          <g key={p.date} tabIndex={p.score === null ? -1 : 0} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)} aria-label={`${label(p.date)}: ${p.score === null ? "no blocks due yet" : `${p.score}%, ${p.done} of ${p.due} blocks`}`}>
+          <g key={p.date} tabIndex={p.score === null ? -1 : 0} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)} role="img" aria-label={`${label(p.date)}: ${p.score === null ? "no blocks due yet" : `${p.score}%, ${p.done} of ${p.due} blocks`}`}>
             <rect className="hit" x={pad.left + i * slot} y={pad.top} width={slot} height={H - pad.top - pad.bottom} />
             {p.score !== null ? <circle className="score-dot" cx={x(i)} cy={y(p.score)} r={hover === i ? 5 : 4} /> : null}
             {i % 2 === 1 || points.length <= 7 ? <text className="chart-label" x={x(i)} y={H - 8} textAnchor="middle">{label(p.date)}</text> : null}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildMonthView, monthGrid, shiftMonth } from "@/lib/planner/month";
+import { buildMonthView, courseColors, doneLevel, monthGrid, shiftMonth } from "@/lib/planner/month";
 
 const NOW = Date.parse("2026-11-09T06:00:00Z"); // Monday 9 Nov, 10:00 Dubai
 
@@ -63,7 +63,7 @@ describe("month view", () => {
     const deadline = (id: string) => all.flatMap((d) => d.deadlines).find((x) => x.id === id)!;
     expect(deadline("late").overdue).toBe(true);
     expect(deadline("handed").overdue).toBe(false);
-    expect(view.totals).toEqual({ blocks: 3, done: 1, missed: 1, deadlines: 2 });
+    expect(view.totals).toMatchObject({ blocks: 3, done: 1, missed: 1, deadlines: 2, drafts: 0 });
   });
 
   it("labels each day for screen readers with the full date and what's on it", () => {
@@ -89,5 +89,44 @@ describe("month view", () => {
     const dates = view.weeks.flat().map((d) => d.date);
     expect(new Set(dates).size).toBe(dates.length);
     expect(dates).toContain("2026-03-29"); // clocks go forward in the UK
+  });
+});
+
+describe("done shading, drafts and course colours", () => {
+  const base = { year: 2026, month: 11, timezone: "Asia/Dubai", now: NOW, focus: [], revision: [], deadlines: [] };
+  const task = (id: string, startsAt: string, minutes: number, status: "todo" | "completed" = "completed", courseId = "c1") => ({
+    id, title: `Block ${id}`, courseId, startsAt, endsAt: new Date(Date.parse(startsAt) + minutes * 60_000).toISOString(), durationMinutes: minutes, status,
+  });
+
+  it("sums completed block minutes per local day and maps them to fixed shading levels", () => {
+    expect([0, 1, 29, 30, 59, 60, 119, 120, 400].map(doneLevel)).toEqual([0, 1, 1, 2, 2, 3, 3, 4, 4]);
+    const view = buildMonthView({
+      ...base,
+      tasks: [task("t1", "2026-11-03T06:00:00Z", 30), task("t2", "2026-11-03T08:00:00Z", 45), task("t3", "2026-11-03T10:00:00Z", 60, "todo"), task("t4", "2026-11-04T06:00:00Z", 20)],
+    });
+    const day = (d: string) => view.weeks.flat().find((x) => x.date === d)!;
+    expect(day("2026-11-03")).toMatchObject({ doneMinutes: 75, level: 3 });
+    expect(day("2026-11-03").doneLabel).toBe("Tuesday 3 November: 75 minutes of study done");
+    expect(day("2026-11-04")).toMatchObject({ doneMinutes: 20, level: 1 });
+    expect(day("2026-11-05")).toMatchObject({ doneMinutes: 0, level: 0, doneLabel: "Thursday 5 November: no study done" });
+    expect(view.totals.doneMinutes).toBe(95);
+  });
+
+  it("shows draft blocks on their day as not approved, outside the totals", () => {
+    const view = buildMonthView({
+      ...base,
+      tasks: [],
+      drafts: [task("d1", "2026-11-12T21:00:00Z", 40, "todo"), task("d2", "2026-11-12T05:00:00Z", 30, "todo")], // 01:00 Dubai on the 13th; 09:00 on the 12th
+    });
+    const day = (d: string) => view.weeks.flat().find((x) => x.date === d)!;
+    expect(day("2026-11-13").drafts.map((b) => b.id)).toEqual(["d1"]);
+    expect(day("2026-11-12").drafts.map((b) => b.id)).toEqual(["d2"]);
+    expect(day("2026-11-12").label).toBe("Thursday 12 November: 1 draft block awaiting approval");
+    expect(view.totals).toMatchObject({ blocks: 0, drafts: 2 });
+  });
+
+  it("gives each course a stable colour slot in the order given, wrapping after six", () => {
+    const colors = courseColors(["c1", "c2", "c3", "c4", "c5", "c6", "c7"]);
+    expect([colors.c1, colors.c2, colors.c6, colors.c7]).toEqual([0, 1, 5, 0]);
   });
 });

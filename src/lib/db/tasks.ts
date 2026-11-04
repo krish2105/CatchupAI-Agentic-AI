@@ -57,3 +57,27 @@ export async function setTaskStatus(supabase: ServerSupabase, id: string, status
   if (error) throw fromDbError(error, "Task not found.");
   return toTask(data);
 }
+
+export type DraftBlock = { id: string; title: string; courseId: string; startsAt: string; endsAt: string; durationMinutes: number };
+
+/**
+ * Blocks of the student's pending (not yet approved, not expired) draft plan, for the calendar's dotted "draft"
+ * marks. Read-only: the draft is accepted only through the Recovery lab's approval dialog.
+ */
+export async function getPendingDraft(supabase: ServerSupabase, now: number): Promise<{ proposalId: string; blocks: DraftBlock[] } | null> {
+  const { data, error } = await supabase
+    .from("action_proposals")
+    .select("id, payload")
+    .eq("status", "pending")
+    .gt("expires_at", new Date(now).toISOString())
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw fromDbError(error);
+  if (!data) return null;
+  const tasks = ((data.payload as { tasks?: { title: string; courseId: string; startsAt: string; endsAt: string; minutes: number }[] } | null)?.tasks ?? []);
+  return {
+    proposalId: data.id,
+    blocks: tasks.map((t, i) => ({ id: `${data.id}:${i}`, title: t.title, courseId: t.courseId, startsAt: t.startsAt, endsAt: t.endsAt, durationMinutes: t.minutes })),
+  };
+}

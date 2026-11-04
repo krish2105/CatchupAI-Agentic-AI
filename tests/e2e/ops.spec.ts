@@ -44,7 +44,7 @@ test("the owner sees AI spend, uptime and open errors, and can resolve an error 
       await s.page.emulateMedia({ colorScheme: scheme });
       await s.page.reload(); // scan the settled theme, not a colour transition
       await expect(s.page.getByRole("heading", { level: 1, name: "Operations" })).toBeVisible();
-      const axe = await new AxeBuilder({ page: s.page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+      const axe = await new AxeBuilder({ page: s.page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
       expect(axe.violations, `${scheme}: ${axe.violations.map((v) => v.id).join(", ")}`).toEqual([]);
     }
 

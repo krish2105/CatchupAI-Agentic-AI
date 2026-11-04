@@ -14,10 +14,28 @@ export type MonthDay = {
   blocks: (Omit<MonthTask, "status"> & { state: "done" | "todo" | "missed" })[];
   focusMinutes: number;
   revisionDue: number;
+  /** Blocks of the pending draft plan (not approved, so not in the schedule yet). */
+  drafts: Omit<MonthTask, "status">[];
+  /** Minutes of completed study blocks, and its shading level 0–4 for the "done" view. */
+  doneMinutes: number;
+  level: 0 | 1 | 2 | 3 | 4;
   /** Full screen-reader label for the day's button. */
   label: string;
+  /** Label for the "done" view: what was studied that day. */
+  doneLabel: string;
 };
-export type MonthView = { year: number; month: number; label: string; weeks: MonthDay[][]; totals: { blocks: number; done: number; missed: number; deadlines: number } };
+export type MonthView = { year: number; month: number; label: string; weeks: MonthDay[][]; totals: { blocks: number; done: number; missed: number; deadlines: number; doneMinutes: number; drafts: number } };
+
+/** Fixed shading steps for completed study minutes (not relative to the student's best day): 0, <30, <60, <120, 120+. */
+export function doneLevel(minutes: number): MonthDay["level"] {
+  return minutes <= 0 ? 0 : minutes < 30 ? 1 : minutes < 60 ? 2 : minutes < 120 ? 3 : 4;
+}
+
+/** Number of course colour slots (--course-0 … --course-5); colour marks the course, the icon marks the status. */
+export const COURSE_COLORS = 6;
+export function courseColors(courseIds: string[]): Record<string, number> {
+  return Object.fromEntries(courseIds.map((id, i) => [id, i % COURSE_COLORS]));
+}
 
 const DAY = 86_400_000;
 const pad = (n: number) => String(n).padStart(2, "0");
@@ -68,6 +86,7 @@ export function buildMonthView(input: {
   deadlines: MonthDeadline[];
   focus: { startedAt: string; focusedMinutes: number }[];
   revision: { dueAt: string }[];
+  drafts?: Omit<MonthTask, "status">[];
 }): MonthView {
   const today = localDate(input.now, input.timezone);
   const byDay = <T,>(items: T[], at: (x: T) => string) => {
@@ -82,6 +101,7 @@ export function buildMonthView(input: {
   const deadlines = byDay(input.deadlines, (d) => d.dueAt);
   const focus = byDay(input.focus, (f) => f.startedAt);
   const revision = byDay(input.revision, (r) => r.dueAt);
+  const drafts = byDay(input.drafts ?? [], (t) => t.startsAt);
 
   const weeks = monthGrid(input.year, input.month).map((week) =>
     week.map(({ date, inMonth }): MonthDay => {
@@ -93,15 +113,19 @@ export function buildMonthView(input: {
         .map((d) => ({ ...d, overdue: d.status !== "completed" && Date.parse(d.dueAt) <= input.now }));
       const focusMinutes = (focus.get(date) ?? []).reduce((s, f) => s + f.focusedMinutes, 0);
       const revisionDue = (revision.get(date) ?? []).length;
+      const dayDrafts = (drafts.get(date) ?? []).sort((x, y) => Date.parse(x.startsAt) - Date.parse(y.startsAt));
+      const doneMinutes = blocks.filter((b) => b.state === "done").reduce((s, b) => s + b.durationMinutes, 0);
       const isToday = date === today;
       const parts = [
         due.length ? `${plural(due.length, "deadline")}${due.some((d) => d.overdue) ? ` (${due.filter((d) => d.overdue).length} overdue)` : ""}` : null,
         blocks.length ? `${plural(blocks.length, "study block")}${blockDetail(blocks)}` : null,
         focusMinutes ? `${focusMinutes} focus minutes` : null,
         revisionDue ? `${plural(revisionDue, "revision item")} due` : null,
+        dayDrafts.length ? `${plural(dayDrafts.length, "draft block")} awaiting approval` : null,
       ].filter(Boolean);
       const label = `${isToday ? "Today, " : ""}${longDay(date)}: ${parts.length ? parts.join(", ") : "nothing planned"}`;
-      return { date, inMonth, isToday, deadlines: due, blocks, focusMinutes, revisionDue, label };
+      const doneLabel = `${isToday ? "Today, " : ""}${longDay(date)}: ${doneMinutes ? `${doneMinutes} minutes of study done` : "no study done"}`;
+      return { date, inMonth, isToday, deadlines: due, blocks, focusMinutes, revisionDue, drafts: dayDrafts, doneMinutes, level: doneLevel(doneMinutes), label, doneLabel };
     }),
   );
   const inMonth = weeks.flat().filter((d) => d.inMonth);
@@ -111,6 +135,13 @@ export function buildMonthView(input: {
     month: input.month,
     label: new Intl.DateTimeFormat("en-GB", { month: "long", year: "numeric", timeZone: "UTC" }).format(new Date(Date.UTC(input.year, input.month - 1, 15))),
     weeks,
-    totals: { blocks: allBlocks.length, done: allBlocks.filter((b) => b.state === "done").length, missed: allBlocks.filter((b) => b.state === "missed").length, deadlines: inMonth.reduce((s, d) => s + d.deadlines.length, 0) },
+    totals: {
+      blocks: allBlocks.length,
+      done: allBlocks.filter((b) => b.state === "done").length,
+      missed: allBlocks.filter((b) => b.state === "missed").length,
+      deadlines: inMonth.reduce((s, d) => s + d.deadlines.length, 0),
+      doneMinutes: inMonth.reduce((s, d) => s + d.doneMinutes, 0),
+      drafts: inMonth.reduce((s, d) => s + d.drafts.length, 0),
+    },
   };
 }

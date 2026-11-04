@@ -10,7 +10,7 @@ import { ButtonLink, EmptyCard, Notice } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
 import { listCourses } from "@/lib/db/courses";
 import { getProfile } from "@/lib/db/profiles";
-import { getActivePlan } from "@/lib/db/tasks";
+import { getActivePlan, getPendingDraft } from "@/lib/db/tasks";
 import { TZDate } from "@date-fns/tz";
 import { listAssignments } from "@/lib/db/assignments";
 import { listFocusSessions } from "@/lib/db/focus";
@@ -22,15 +22,17 @@ export const metadata: Metadata = { title: "Study schedule" };
 export default async function PlannerPage({ searchParams }: { searchParams: Promise<{ approved?: string; week?: string; view?: string }> }) {
   const { supabase, user } = await requirePageUser("/planner");
   const now = await renderTime();
-  const [plan, profile, courses, params, assignments, feed, focus, practice] = await Promise.all([
+  const [plan, profile, courses, params, assignments, feed, focus, practice, draft] = await Promise.all([
     getActivePlan(supabase), getProfile(supabase, user.id), listCourses(supabase), searchParams, listAssignments(supabase), supabase.from("calendar_feeds").select("created_at").maybeSingle(),
-    listFocusSessions(supabase, new Date(now - 180 * 86400_000).toISOString()), getPracticeEvidence(supabase, now),
+    listFocusSessions(supabase, new Date(now - 180 * 86400_000).toISOString()), getPracticeEvidence(supabase, now), getPendingDraft(supabase, now),
   ]);
   const initialView = params.view === "month" || params.view === "list" ? params.view : "week";
   const month = {
     deadlines: assignments.map((a) => ({ id: a.id, title: a.title, courseId: a.courseId, dueAt: a.dueAt, required: a.required, status: a.status })),
     focus: focus.map((f) => ({ startedAt: f.startedAt, focusedMinutes: f.focusedMinutes })),
     revision: practice.revision.map((r) => ({ dueAt: r.dueAt })),
+    drafts: draft?.blocks ?? [],
+    draftHref: draft ? `/recovery?proposal=${draft.proposalId}` : undefined,
   };
   const courseNames = Object.fromEntries(courses.map((c) => [c.id, c.title]));
   const weekOffset = Math.max(-52, Math.min(52, Number.parseInt(params.week ?? "0", 10) || 0));
@@ -59,7 +61,7 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
             Review and approve a recovery route in the lab to populate your schedule. Rejected proposals never create tasks.
           </EmptyCard>
           {/* Deadlines, focus time and revision still show on the calendar before any plan exists. */}
-          {assignments.length ? <div className="section-space"><MonthCalendar timezone={profile.timezone} now={now} tasks={[]} deadlines={month.deadlines} focus={month.focus} revision={month.revision} courseNames={courseNames} /></div> : null}
+          {assignments.length || month.drafts.length ? <div className="section-space"><MonthCalendar timezone={profile.timezone} now={now} tasks={[]} deadlines={month.deadlines} focus={month.focus} revision={month.revision} drafts={month.drafts} draftHref={month.draftHref} courseNames={courseNames} /></div> : null}
         </>
       )}
     </>

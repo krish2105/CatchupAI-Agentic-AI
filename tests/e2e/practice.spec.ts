@@ -33,7 +33,7 @@ test("generate a knowledge check, answer it, see sourced results, and real insig
     const { data: attempt } = await s.db.from("quiz_attempts").select("score_percent").eq("owner_id", s.userId).single();
     await expect(s.page.getByText(`${Math.round(Number(attempt!.score_percent))}%`).first()).toBeVisible();
     await expect(s.page.getByText("Whole course").first()).toBeVisible();
-    await expect(s.page.getByRole("img", { name: /Completed study minutes per day/ })).toBeVisible();
+    await expect(s.page.getByRole("group", { name: /Completed study minutes per day/ })).toBeVisible();
   } finally {
     await s.cleanup();
   }

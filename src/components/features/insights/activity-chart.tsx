@@ -20,7 +20,7 @@ export default function ActivityChart({ days }: { days: DayBucket[] }) {
 
   return (
     <div style={{ position: "relative" }}>
-      <svg className="bar-chart" viewBox={`0 0 ${W} ${H}`} role="img" aria-label={`Completed study minutes per day, last 14 days. Total ${formatMinutes(days.reduce((s, d) => s + d.minutes, 0))}. Table below.`}>
+      <svg className="bar-chart" viewBox={`0 0 ${W} ${H}`} role="group" aria-label={`Completed study minutes per day, last 14 days. Total ${formatMinutes(days.reduce((s, d) => s + d.minutes, 0))}. Table below.`}>
         {ticks.map((t) => (
           <g key={t}>
             <line className="chart-gridline" x1={pad.left} x2={W - pad.right} y1={y(t)} y2={y(t)} strokeDasharray={t === 0 ? undefined : "2 4"} />
@@ -31,7 +31,7 @@ export default function ActivityChart({ days }: { days: DayBucket[] }) {
           const x = pad.left + i * slot + (slot - barW) / 2;
           const h = y(0) - y(d.minutes);
           return (
-            <g key={d.date} tabIndex={0} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)} aria-label={`${label(d)}: ${formatMinutes(d.minutes)}`}>
+            <g key={d.date} tabIndex={0} onMouseEnter={() => setHover(i)} onMouseLeave={() => setHover(null)} onFocus={() => setHover(i)} onBlur={() => setHover(null)} role="img" aria-label={`${label(d)}: ${formatMinutes(d.minutes)}`}>
               <rect className="hit" x={pad.left + i * slot} y={pad.top} width={slot} height={H - pad.top - pad.bottom} />
               {d.minutes > 0 ? <path className="bar" d={`M${x},${y(0)} v${-(h - 4)} q0,-4 4,-4 h${barW - 8} q4,0 4,4 v${h - 4} z`} /> : null}
               {i % 2 === 1 || days.length <= 7 ? <text className="chart-label" x={x + barW / 2} y={H - 8} textAnchor="middle">{label(d)}</text> : null}

@@ -996,7 +996,48 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
   .month-items > li > :last-child:not(div) { grid-column: 2; justify-self: start; }
 }
 
+/* Month calendar: draft blocks, course key, "done" shading (fixed steps; minutes are always printed too). */
+html[data-theme="light"] { --course-0: #1e8a66; --course-1: #3f6787; --course-2: #935610; --course-3: #8a3f86; --course-4: #5f6b1e; --course-5: #55606b; }
+html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: #e9b872; --course-3: #d6a2d2; --course-4: #c3cf7a; --course-5: #b3bcc6; }
+.course-swatch { display: inline-block; width: 9px; height: 9px; border-radius: 3px; margin-right: 5px; vertical-align: 0; background: var(--course-0); }
+.course-swatch[data-course="1"] { background: var(--course-1); }
+.course-swatch[data-course="2"] { background: var(--course-2); }
+.course-swatch[data-course="3"] { background: var(--course-3); }
+.course-swatch[data-course="4"] { background: var(--course-4); }
+.course-swatch[data-course="5"] { background: var(--course-5); }
+.month-cal .draft { color: var(--muted); }
+.month-items > li[data-kind="draft"] { border-style: dashed; border-color: var(--stroke-strong); }
+.month-cal-done-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.month-grid[data-mode="done"] .month-day[data-level="1"] { background: color-mix(in srgb, var(--chart-1) 15%, var(--surface)); }
+.month-grid[data-mode="done"] .month-day[data-level="2"] { background: color-mix(in srgb, var(--chart-1) 30%, var(--surface)); }
+.month-grid[data-mode="done"] .month-day[data-level="3"] { background: color-mix(in srgb, var(--chart-1) 48%, var(--surface)); }
+.month-grid[data-mode="done"] .month-day[data-level="4"] { background: color-mix(in srgb, var(--chart-1) 68%, var(--surface)); }
+.month-grid[data-mode="done"] .month-day[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--accent); }
+.month-cal .mark.minutes { font-size: 11px; color: var(--text); }
+.level-swatch { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--stroke-strong); background: var(--surface); }
+.level-swatch[data-level="1"] { background: color-mix(in srgb, var(--chart-1) 15%, var(--surface)); }
+.level-swatch[data-level="2"] { background: color-mix(in srgb, var(--chart-1) 30%, var(--surface)); }
+.level-swatch[data-level="3"] { background: color-mix(in srgb, var(--chart-1) 48%, var(--surface)); }
+.level-swatch[data-level="4"] { background: color-mix(in srgb, var(--chart-1) 68%, var(--surface)); }
+.month-done-table { width: 100%; margin-top: 10px; }
+/* Windows High Contrast / forced colours: backgrounds are replaced, so keep borders, the selection and icons visible. */
+@media (forced-colors: active) {
+  .month-day { border: 1px solid CanvasText; }
+  .month-day[aria-pressed="true"] { outline: 3px solid Highlight; outline-offset: -3px; }
+  .month-day[data-today] { border-width: 2px; }
+  .month-day[data-in-month="false"] { border-style: dotted; color: GrayText; }
+  .month-day-marks .ic, .month-legend .ic, .month-items .ic { color: CanvasText; }
+  .course-swatch, .level-swatch { forced-color-adjust: none; border: 1px solid CanvasText; }
+  .month-items > li[data-kind="draft"] { border: 1px dashed CanvasText; }
+}
+
 /* Recovery tracker (Insights) and its Mission Control glance. */
+.days-studied { margin-top: 10px; display: grid; gap: 8px; justify-items: start; }
+.days-studied-list { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.days-studied-list li { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border: 1px solid var(--stroke); border-radius: 999px; font-size: 12px; color: var(--muted); }
+.days-studied-list li[data-studied="true"] { color: var(--text); border-color: color-mix(in srgb, var(--chart-1) 50%, var(--stroke)); }
+.days-studied-list .ic { width: 13px; height: 13px; }
+.days-studied-list li[data-studied="true"] .ic { color: var(--good); }
 .tracker p { font-size: 13.5px; margin: 6px 0; }
 .tracker-week { padding: 10px 12px; border-radius: 12px; background: var(--surface2); color: var(--text); }
 .tracker-rows { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }

@@ -1,5 +1,6 @@
 import { AlertTriangle, ArrowRight, CheckCircle2, CircleAlert, CircleDashed, Target } from "lucide-react";
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { Chip } from "@/components/ui/primitives";
 import type { TrackerData } from "@/lib/db/tracker";
 import type { TrackerRow, TrackerStatus } from "@/lib/insights/tracker";
@@ -25,7 +26,7 @@ function action(row: TrackerRow) {
  * the next step. No streaks, points or rankings (see docs/DECISIONS.md ADR-065): one goal at a time, a fresh
  * week every Monday, and missed work leads to a replan, not a penalty.
  */
-export default function RecoveryTracker({ data, timezone }: { data: TrackerData; timezone: string }) {
+export default function RecoveryTracker({ data, timezone, extra }: { data: TrackerData; timezone: string; extra?: ReactNode }) {
   const { rows, week, courseNames } = data;
   const open = rows.filter((r) => r.status !== "done");
   const count = (s: TrackerStatus) => rows.filter((r) => r.status === s).length;
@@ -42,6 +43,7 @@ export default function RecoveryTracker({ data, timezone }: { data: TrackerData;
         {week.missedBlocks ? <> · {week.missedBlocks} block{week.missedBlocks === 1 ? "" : "s"} not done yet, <Link href="/recovery?replan=1">replan around {week.missedBlocks === 1 ? "it" : "them"}</Link></> : null}
         . Each Monday starts a fresh week.
       </p>
+      {extra}
       {rows.length === 0 ? (
         <p className="muted">No assignments yet. <Link href="/courses">Add one in the Knowledge vault</Link> to track it here.</p>
       ) : (

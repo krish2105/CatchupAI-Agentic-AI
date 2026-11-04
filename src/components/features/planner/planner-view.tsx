@@ -8,7 +8,7 @@ import { api, ClientApiError } from "@/lib/client/api";
 import type { ActivePlan, StudyTask } from "@/lib/db/tasks";
 import { formatMinutes } from "@/lib/time";
 import { Segmented } from "@/components/ui/controls";
-import type { MonthDeadline } from "@/lib/planner/month";
+import type { MonthDeadline, MonthTask } from "@/lib/planner/month";
 import MonthCalendar from "./month-calendar";
 import WeekGrid from "./week-grid";
 
@@ -43,7 +43,7 @@ export default function PlannerView({
   deadlines: { id: string; title: string; dueAt: string }[];
   initialView?: View;
   /** Everything the month view shows beyond the plan's blocks. */
-  month: { deadlines: MonthDeadline[]; focus: { startedAt: string; focusedMinutes: number }[]; revision: { dueAt: string }[] };
+  month: { deadlines: MonthDeadline[]; focus: { startedAt: string; focusedMinutes: number }[]; revision: { dueAt: string }[]; drafts?: Omit<MonthTask, "status">[]; draftHref?: string };
 }) {
   const [view, setViewState] = useState<View>(initialView);
   // The chosen view is kept in the URL (?view=month) so it survives reloads and can be shared.
@@ -113,6 +113,8 @@ export default function PlannerView({
           deadlines={month.deadlines}
           focus={month.focus}
           revision={month.revision}
+          drafts={month.drafts}
+          draftHref={month.draftHref}
           courseNames={courseNames}
           pending={pending}
           onToggle={(id) => { const t = plan.tasks.find((x) => x.id === id); if (t) void toggle(t); }}

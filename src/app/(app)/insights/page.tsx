@@ -1,4 +1,9 @@
+import DaysStudied from "@/components/features/insights/days-studied";
 import RecoveryTracker from "@/components/features/insights/recovery-tracker";
+import MonthCalendar from "@/components/features/planner/month-calendar";
+import { listCourses } from "@/lib/db/courses";
+import { listFocusSessions } from "@/lib/db/focus";
+import { getActivePlan } from "@/lib/db/tasks";
 import { getTracker } from "@/lib/db/tracker";
 import type { Metadata } from "next";
 import { TrendingUp } from "lucide-react";
@@ -19,7 +24,11 @@ export const metadata: Metadata = { title: "Your momentum" };
 export default async function InsightsPage() {
   const { supabase, user } = await requirePageUser("/insights");
   const [profile, now] = await Promise.all([getProfile(supabase, user.id), renderTime()]);
-  const [data, review, tracker] = await Promise.all([getInsights(supabase, profile.timezone, now), getWeekReview(supabase, profile.timezone, now), getTracker(supabase, profile.timezone, now)]);
+  const [data, review, tracker, plan, courses, focus] = await Promise.all([
+    getInsights(supabase, profile.timezone, now), getWeekReview(supabase, profile.timezone, now), getTracker(supabase, profile.timezone, now),
+    getActivePlan(supabase), listCourses(supabase), listFocusSessions(supabase, new Date(now - 180 * 86400_000).toISOString()),
+  ]);
+  const courseNames = Object.fromEntries(courses.map((c) => [c.id, c.title]));
   const hasActivity = data.tasksCompleted > 0 || data.quizAttempts > 0 || data.focusSessions14d > 0;
   return (
     <>
@@ -30,7 +39,12 @@ export default async function InsightsPage() {
         actions={<ButtonLink href="/quizzes" small>Take a knowledge check</ButtonLink>}
       />
       <WeekReview review={review} />
-      <RecoveryTracker data={tracker} timezone={profile.timezone} />
+      <RecoveryTracker data={tracker} timezone={profile.timezone} extra={<DaysStudied days={data.days} />} />
+      {plan?.tasks.some((t) => t.status === "completed") ? (
+        <div className="section-space" id="done-calendar">
+          <MonthCalendar mode="done" timezone={profile.timezone} now={now} tasks={plan.tasks} deadlines={[]} focus={focus.map((f) => ({ startedAt: f.startedAt, focusedMinutes: f.focusedMinutes }))} revision={[]} courseNames={courseNames} />
+        </div>
+      ) : null}
       <div className="stat-row">
         <StatCard label="Latest quiz" value={data.latestQuiz ? `${Math.round(data.latestQuiz.score)}%` : null} caption={data.latestQuiz ? data.latestQuiz.topic : "No graded attempts yet"} />
         <StatCard label="Blocks finished" value={data.tasksCompleted ? String(data.tasksCompleted) : null} caption="Across all approved plans" />

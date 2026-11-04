@@ -124,7 +124,7 @@ test.describe("accessibility (axe)", () => {
       for (const path of ["/", "/quality", "/status", "/privacy", "/terms", ...APP_PATHS]) {
         await page.goto(path);
         await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
-        const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa"]).analyze();
+        const results = await new AxeBuilder({ page }).withTags(["wcag2a", "wcag2aa", "wcag21aa", "wcag22aa"]).analyze();
         const serious = results.violations.filter((v) => v.impact === "serious" || v.impact === "critical");
         found.push(...serious.map((v) => `${path}: ${v.id} (${v.nodes.length}) ${v.nodes.map((n) => n.target).slice(0, 4).join(" | ")}`));
       }
