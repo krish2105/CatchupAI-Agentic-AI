@@ -1,3 +1,5 @@
+import { TrackerGlance } from "@/components/features/insights/recovery-tracker";
+import { getTracker } from "@/lib/db/tracker";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen, CalendarDays, Check, Clock3, Leaf, Play, RefreshCcw, Sparkles, Target } from "lucide-react";
@@ -20,13 +22,15 @@ export const metadata: Metadata = { title: "Mission control" };
 export default async function DashboardPage() {
   const { supabase, user } = await requirePageUser("/dashboard");
   const now = await renderTime();
-  const [overview, profile, plan, active, runs, practice] = await Promise.all([
+  // The glance only uses per-assignment states, which don't depend on the time zone.
+  const [overview, profile, plan, active, runs, practice, tracker] = await Promise.all([
     getOverview(supabase),
     getProfile(supabase, user.id),
     computePlan(supabase, user.id, { now }),
     getActivePlan(supabase),
     listAgentRuns(supabase, 1),
     getPracticeEvidence(supabase, now),
+    getTracker(supabase, "UTC", now),
   ]);
   const tz = profile.timezone;
   const firstName = (profile.displayName ?? "").split(" ")[0] || "there";
@@ -98,6 +102,8 @@ export default async function DashboardPage() {
           icon={<Leaf className="ic" />}
         />
       </ul>
+
+      <TrackerGlance rows={tracker.rows} />
 
       <div className="nf-panels">
         <section className="card nf-panel" aria-labelledby="routes-head">

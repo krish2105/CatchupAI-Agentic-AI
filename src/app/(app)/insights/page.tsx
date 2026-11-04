@@ -1,3 +1,5 @@
+import RecoveryTracker from "@/components/features/insights/recovery-tracker";
+import { getTracker } from "@/lib/db/tracker";
 import type { Metadata } from "next";
 import { TrendingUp } from "lucide-react";
 import ActivityChart from "@/components/features/insights/activity-chart";
@@ -17,7 +19,7 @@ export const metadata: Metadata = { title: "Your momentum" };
 export default async function InsightsPage() {
   const { supabase, user } = await requirePageUser("/insights");
   const [profile, now] = await Promise.all([getProfile(supabase, user.id), renderTime()]);
-  const [data, review] = await Promise.all([getInsights(supabase, profile.timezone, now), getWeekReview(supabase, profile.timezone, now)]);
+  const [data, review, tracker] = await Promise.all([getInsights(supabase, profile.timezone, now), getWeekReview(supabase, profile.timezone, now), getTracker(supabase, profile.timezone, now)]);
   const hasActivity = data.tasksCompleted > 0 || data.quizAttempts > 0 || data.focusSessions14d > 0;
   return (
     <>
@@ -28,6 +30,7 @@ export default async function InsightsPage() {
         actions={<ButtonLink href="/quizzes" small>Take a knowledge check</ButtonLink>}
       />
       <WeekReview review={review} />
+      <RecoveryTracker data={tracker} timezone={profile.timezone} />
       <div className="stat-row">
         <StatCard label="Latest quiz" value={data.latestQuiz ? `${Math.round(data.latestQuiz.score)}%` : null} caption={data.latestQuiz ? data.latestQuiz.topic : "No graded attempts yet"} />
         <StatCard label="Blocks finished" value={data.tasksCompleted ? String(data.tasksCompleted) : null} caption="Across all approved plans" />

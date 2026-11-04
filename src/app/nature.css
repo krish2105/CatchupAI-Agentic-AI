@@ -942,3 +942,69 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .status-incidents > li { border: 1px solid var(--stroke); border-radius: 12px; padding: 12px 14px; overflow-wrap: anywhere; }
 @media (max-width: 480px) { .status-components > li { grid-template-columns: 20px minmax(0, 1fr); } .status-components > li .chip { grid-column: 2; justify-self: start; } }
 .lp-foot-links { display: inline-flex; flex-wrap: wrap; gap: 14px; }
+
+/* Month calendar (Study schedule › Month). Native table, one button per day; status = glyph + colour. */
+.month-cal { padding: 18px; }
+.month-cal-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.month-cal-head h3 { margin: 0; font-size: 20px; }
+.month-cal-nav { display: flex; gap: 6px; }
+.month-cal-nav .icon-only { padding: 8px; min-width: 36px; min-height: 36px; justify-content: center; }
+.month-cal-summary { font-size: 12.5px; margin: 6px 0 12px; }
+.month-grid { width: 100%; table-layout: fixed; border-collapse: separate; border-spacing: 4px; }
+.month-grid th { font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; padding: 2px 0 6px; text-align: center; }
+.month-grid td { padding: 0; vertical-align: top; }
+.month-day { width: 100%; min-height: 74px; display: flex; flex-direction: column; align-items: flex-start; gap: 6px; padding: 7px; border-radius: 10px; border: 1px solid var(--stroke); background: var(--surface); color: var(--text); font: inherit; cursor: pointer; text-align: left; }
+.month-day[data-in-month="false"] { background: transparent; color: var(--faint); }
+.month-day[data-today] { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.month-day[aria-pressed="true"] { background: color-mix(in srgb, var(--accent), transparent 78%); border-color: var(--accent); }
+.month-day:hover { border-color: var(--stroke-strong); }
+.month-day:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+.month-day-num { font-size: 13px; font-weight: 700; }
+.month-day-marks { display: flex; flex-wrap: wrap; gap: 3px 5px; font-size: 10.5px; font-weight: 700; }
+.month-day-marks .mark { display: inline-flex; align-items: center; gap: 1px; }
+.month-day-marks .ic, .month-legend .ic, .month-items .ic { width: 13px; height: 13px; flex: none; }
+.month-cal .deadline { color: var(--coral); }
+.month-cal .deadline.overdue, .month-cal .mark.deadline.overdue { color: var(--danger); }
+.month-cal .done { color: var(--good); }
+.month-cal .missed { color: var(--warn); }
+.month-cal .todo { color: var(--muted); }
+.month-cal .revision { color: var(--violet); }
+.month-legend { list-style: none; margin: 10px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted); }
+.month-legend li { display: inline-flex; align-items: center; gap: 5px; }
+.month-day-detail { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--stroke); }
+.month-day-detail h4 { margin: 0 0 8px; font-size: 15px; }
+.month-day-detail p { font-size: 13px; margin: 2px 0; }
+.month-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.month-items > li { display: grid; grid-template-columns: 16px minmax(0, 1fr) auto; gap: 10px; align-items: center; padding: 9px 10px; border: 1px solid var(--stroke); border-radius: 10px; overflow-wrap: anywhere; font-size: 13px; }
+.month-items > li > .ic { margin-top: 1px; }
+@media (max-width: 640px) {
+  .month-cal { padding: 12px; }
+  .month-grid { border-spacing: 2px; }
+  .month-day { min-height: 46px; padding: 4px 3px; gap: 3px; align-items: center; }
+  .month-day-marks { justify-content: center; gap: 1px 2px; font-size: 9px; }
+  .month-day-marks .ic { width: 10px; height: 10px; }
+  .month-items > li { grid-template-columns: 16px minmax(0, 1fr); }
+  .month-items > li > :last-child:not(div) { grid-column: 2; justify-self: start; }
+}
+
+/* Recovery tracker (Insights) and its Mission Control glance. */
+.tracker p { font-size: 13.5px; margin: 6px 0; }
+.tracker-week { padding: 10px 12px; border-radius: 12px; background: var(--surface2); color: var(--text); }
+.tracker-rows { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+.tracker-rows > li { border: 1px solid var(--stroke); border-radius: 12px; padding: 12px 14px; overflow-wrap: anywhere; }
+.tracker-row-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.tracker-row-head strong { font-size: 14px; }
+.tracker-row-head .chip { margin-left: auto; }
+.tracker-icon { width: 16px; height: 16px; flex: none; }
+.tracker-icon.overdue { color: var(--danger); }
+.tracker-icon.at_risk { color: var(--warn); }
+.tracker-icon.unplanned { color: var(--muted); }
+.tracker-icon.on_track, .tracker-icon.done { color: var(--good); }
+.tracker progress { width: 100%; height: 8px; margin: 6px 0 2px; appearance: none; border: 1px solid var(--stroke-strong); border-radius: 999px; background: var(--surface2); overflow: hidden; }
+.tracker progress::-webkit-progress-bar { background: var(--surface2); border-radius: 999px; }
+.tracker progress::-webkit-progress-value { background: var(--good); border-radius: 999px; }
+.tracker progress::-moz-progress-bar { background: var(--good); border-radius: 999px; }
+.tracker-next { display: inline-flex; align-items: center; gap: 4px; padding: 0; font-size: 13px; }
+.tracker-glance { margin-top: 14px; }
+.tracker-glance ul { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; }
+.tracker-glance li { display: inline-flex; align-items: center; gap: 5px; }

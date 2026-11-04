@@ -8,7 +8,11 @@ import { api, ClientApiError } from "@/lib/client/api";
 import type { ActivePlan, StudyTask } from "@/lib/db/tasks";
 import { formatMinutes } from "@/lib/time";
 import { Segmented } from "@/components/ui/controls";
+import type { MonthDeadline } from "@/lib/planner/month";
+import MonthCalendar from "./month-calendar";
 import WeekGrid from "./week-grid";
+
+export type View = "week" | "month" | "list";
 
 function dayKey(iso: string, tz: string) {
   return new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(iso));
@@ -27,6 +31,8 @@ export default function PlannerView({
   weekStart,
   weekOffset,
   deadlines,
+  initialView = "week",
+  month,
 }: {
   plan: ActivePlan;
   timezone: string;
@@ -35,8 +41,19 @@ export default function PlannerView({
   weekStart: string;
   weekOffset: number;
   deadlines: { id: string; title: string; dueAt: string }[];
+  initialView?: View;
+  /** Everything the month view shows beyond the plan's blocks. */
+  month: { deadlines: MonthDeadline[]; focus: { startedAt: string; focusedMinutes: number }[]; revision: { dueAt: string }[] };
 }) {
-  const [view, setView] = useState<"week" | "list">("week");
+  const [view, setViewState] = useState<View>(initialView);
+  // The chosen view is kept in the URL (?view=month) so it survives reloads and can be shared.
+  const setView = (v: View) => {
+    setViewState(v);
+    const url = new URL(window.location.href);
+    if (v === "week") url.searchParams.delete("view");
+    else url.searchParams.set("view", v);
+    window.history.replaceState(null, "", url);
+  };
   const router = useRouter();
   const [pending, setPending] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -79,10 +96,31 @@ export default function PlannerView({
 
   const toolbar = (
     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 10, flexWrap: "wrap", marginBottom: 14 }}>
-      <Segmented<"week" | "list"> label="Schedule view" value={view} onChange={setView} options={[{ value: "week", label: "Week" }, { value: "list", label: "List" }]} />
+      <Segmented<View> label="Schedule view" value={view} onChange={setView} options={[{ value: "week", label: "Week" }, { value: "month", label: "Month" }, { value: "list", label: "List" }]} />
       <span className="muted" style={{ fontSize: 12 }}>Need different times? Adjust your availability in Preferences, then approve a new route in the lab.</span>
     </div>
   );
+
+  if (view === "month") {
+    return (
+      <>
+        {toolbar}
+        {error ? <div style={{ marginBottom: 12 }}><Notice tone="danger" title={error} /></div> : null}
+        <MonthCalendar
+          timezone={timezone}
+          now={now}
+          tasks={plan.tasks}
+          deadlines={month.deadlines}
+          focus={month.focus}
+          revision={month.revision}
+          courseNames={courseNames}
+          pending={pending}
+          onToggle={(id) => { const t = plan.tasks.find((x) => x.id === id); if (t) void toggle(t); }}
+        />
+        <div className="section-space">{progressCard}</div>
+      </>
+    );
+  }
 
   if (view === "week") {
     return (
