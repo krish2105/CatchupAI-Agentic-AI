@@ -32,6 +32,8 @@ const ERROR_TEXT: Record<string, string> = {
   max_turns: "The copilot hit its step limit. Nothing was changed; try a more specific question.",
   invalid_output: "The copilot returned an answer we couldn't verify, so it was discarded.",
   model_error: "The AI service failed. Nothing was changed. Try again in a moment.",
+  model_busy: "The free AI model is at its rate limit right now. Nothing was changed. Wait a minute and try again.",
+  model_quota: "Today's free AI quota is used up, so the copilot is paused until it resets. Nothing was changed, and everything else still works.",
 };
 
 function Timeline({ events, running }: { events: ToolEvent[]; running: boolean }) {

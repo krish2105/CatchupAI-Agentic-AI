@@ -23,6 +23,15 @@ describe("AI runtime selection", () => {
     expect(runtimeInfo()).toEqual({ kind: "scripted", model: "scripted-test-model" });
   });
 
+  it("lets the explicit local test flag win over a real key, so tests never spend model quota", () => {
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
+    vi.stubEnv("CATCHUP_TEST_MODEL", "scripted");
+    vi.stubEnv("GEMINI_API_KEY", "test-not-real");
+    expect(runtimeInfo()).toEqual({ kind: "scripted", model: "scripted-test-model" });
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abcd.supabase.co");
+    expect(runtimeInfo().kind).toBe("gemini");
+  });
+
   it("prefers a configured OpenAI model, which needs both key and model", () => {
     vi.stubEnv("OPENAI_API_KEY", "sk-test-not-real");
     vi.stubEnv("OPENAI_MODEL", "");

@@ -41,6 +41,6 @@ export async function assertAiAvailable(admin: AdminSupabase, userId: string, no
   if ((await tokensUsedToday(admin, now)) >= flags.dailyTokenBudget) {
     throw new ApiError(503, "ai_budget_reached", "The copilot has reached today's usage limit. It will be back tomorrow; everything else still works.");
   }
-  const { data: running } = await admin.from("agent_runs").select("id").eq("owner_id", userId).eq("status", "running").gte("created_at", new Date(now - 2 * 60_000).toISOString()).limit(1);
+  const { data: running } = await admin.from("agent_runs").select("id").eq("owner_id", userId).eq("status", "running").gte("created_at", new Date(now - 4 * 60_000).toISOString()).limit(1);
   if (running?.length) throw new ApiError(429, "run_in_progress", "The copilot is still working on your last request. Wait for it to finish.");
 }

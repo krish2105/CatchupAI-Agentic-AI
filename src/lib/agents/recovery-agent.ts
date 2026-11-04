@@ -1,5 +1,6 @@
 import "server-only";
 import { Agent, OpenAIProvider, Runner, type ModelProvider } from "@openai/agents";
+import OpenAI from "openai";
 import { z } from "zod";
 import type { Embedder } from "@/lib/rag/embed";
 import type { AdminSupabase } from "@/lib/supabase/admin";
@@ -8,9 +9,11 @@ import type { ServerSupabase } from "@/lib/supabase/server";
 import type { AgentContext, SourceRef, ToolEvent } from "./context";
 import { logEvent } from "@/lib/observability/log";
 import { claimSupport } from "@/lib/rag/claim-support";
+import { geminiFetch } from "./gemini-fetch";
 import { RECOVERY_TOOLS } from "./tools";
 
-export const AGENT_LIMITS = { maxTurns: 8, maxMessageChars: 1000, timeoutMs: 90_000 } as const;
+// The free Gemini tier can take 10–30 s per step, so a full run gets up to 170 s (route maxDuration is 200 s).
+export const AGENT_LIMITS = { maxTurns: 8, maxMessageChars: 1000, timeoutMs: 170_000 } as const;
 
 /** Structured answer: verified facts (each must cite retrieved sources) are kept apart from suggestions. */
 export const AgentAnswer = z.object({
@@ -29,7 +32,7 @@ Rules:
 4. "suggestions" are your advice and priorities, clearly separate from facts.
 5. To plan, call draft_recovery_plan. It only drafts: the deterministic planner computes every number, and the student must approve the draft in the Recovery lab. Never claim a plan was saved or approved. Report the planner's numbers exactly, including any shortfall.
 6. If a deadline or detail the student mentions is not in their data, ask a clarifying question instead of assuming.
-7. Call get_student_memory early to personalise advice. If the student states a lasting study habit, goal or constraint, you may call suggest_memory once; the student decides whether to keep it.
+7. When drafting a plan or giving study advice, you may call get_student_memory to personalise it. If the student states a lasting study habit, goal or constraint, you may call suggest_memory once; the student decides whether to keep it.
 8. Be concise and kind.`;
 
 export function buildRecoveryAgent(model: string) {
@@ -62,7 +65,10 @@ export function modelRuntime(): ModelRuntime | null {
   const gemini = (): ModelRuntime | null => {
     const apiKey = process.env.GEMINI_API_KEY;
     const model = process.env.GEMINI_MODEL?.trim() || GEMINI_DEFAULT_MODEL;
-    return apiKey ? { provider: new OpenAIProvider({ apiKey, baseURL: GEMINI_BASE_URL, useResponses: false }), model, kind: "gemini" } : null;
+    if (!apiKey) return null;
+    // geminiFetch keeps Gemini 3 "thought signatures" across tool calls and sets the thinking level.
+    const client = new OpenAI({ apiKey, baseURL: GEMINI_BASE_URL, fetch: geminiFetch(), timeout: 150_000, maxRetries: 0 });
+    return { provider: new OpenAIProvider({ openAIClient: client, useResponses: false }), model, kind: "gemini" };
   };
   const preferred = process.env.AI_PROVIDER?.trim().toLowerCase();
   if (preferred === "gemini") return gemini();
@@ -171,8 +177,8 @@ export async function runRecoveryAgent(deps: {
     return { runId: run.id, status: "completed", answer: verified.answer, citations: verified.citations, events: context.events, proposalId: context.proposalId, removedUnsupportedFacts: verified.removed };
   } catch (e) {
     const code =
-      signal.aborted ? (timeout.aborted ? "timeout" : "cancelled") : (e as { name?: string }).name === "MaxTurnsExceededError" ? "max_turns" : ((e as { code?: string }).code ?? "model_error");
-    logEvent("error", "agent.run", { runId: run.id, status: "failed", code, model: deps.runtime.model, ms: Date.now() - deps.now, tools: context.events.length, error: e instanceof Error ? e.name : "unknown" });
+      signal.aborted ? (timeout.aborted ? "timeout" : "cancelled") : (e as { name?: string }).name === "MaxTurnsExceededError" ? "max_turns" : (e as { status?: number }).status === 429 ? (/PerDay/i.test(String((e as { message?: string }).message)) ? "model_quota" : "model_busy") : ((e as { code?: string }).code ?? "model_error");
+    logEvent("error", "agent.run", { runId: run.id, status: "failed", code, model: deps.runtime.model, ms: Date.now() - deps.now, tools: context.events.length, error: e instanceof Error ? `${e.name}: ${e.message}`.slice(0, 240) : "unknown" });
     // A failed run must not leave an actionable draft behind.
     if (context.proposalId) await admin.from("action_proposals").update({ status: "expired", decided_at: new Date().toISOString() }).eq("id", context.proposalId).eq("owner_id", userId).eq("status", "pending");
     await admin

@@ -12,7 +12,7 @@ import { getEmbedder } from "@/lib/rag/embed";
 import { adminClient } from "@/lib/supabase/admin";
 import { uuid } from "@/lib/validation/common";
 
-export const maxDuration = 120;
+export const maxDuration = 200;
 
 const body = z.object({ message: z.string().trim().min(3).max(AGENT_LIMITS.maxMessageChars), courseId: uuid.nullable() }).strict();
 

@@ -13,13 +13,17 @@ export function scriptedRuntimeAllowed() {
 
 export type RuntimeInfo = { kind: "openai" | "gemini"; model: string } | { kind: "scripted"; model: string } | { kind: "none" };
 
+/**
+ * An explicit local test request (CATCHUP_TEST_MODEL=scripted on a local stack) wins over a real key in
+ * .env.local, so automated tests never spend the model quota. Deployed environments can't enable it.
+ */
 export function runtimeInfo(): RuntimeInfo {
+  if (scriptedRuntimeAllowed()) return { kind: "scripted", model: "scripted-test-model" };
   const real = modelRuntime();
   if (real) return { kind: real.kind, model: real.model };
-  if (scriptedRuntimeAllowed()) return { kind: "scripted", model: "scripted-test-model" };
   return { kind: "none" };
 }
 
 export function resolveRuntime(courseId: string | null, message: string) {
-  return modelRuntime() ?? (scriptedRuntimeAllowed() ? scriptedRuntime(courseId, message) : null);
+  return scriptedRuntimeAllowed() ? scriptedRuntime(courseId, message) : modelRuntime();
 }
