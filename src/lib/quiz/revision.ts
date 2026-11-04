@@ -1,12 +1,32 @@
 /**
- * Evidence-based spaced revision (Leitner-style, deterministic). Every graded answer moves a concept between
- * boxes: a miss resets it to box 0 (review in 1 day); each later correct answer promotes it (3, 7, 14 days).
- * Only persisted, server-graded answers are used.
+ * Evidence-based spaced revision with FSRS (Free Spaced Repetition Scheduler, ts-fsrs, default FSRS-5 weights).
+ * Every graded answer to a concept is replayed in order as a review: a miss is "Again", a correct answer "Good".
+ * FSRS keeps a memory model per concept (stability, difficulty) and schedules the next review when recall is
+ * predicted to drop to 90%. Deterministic: no interval fuzz, whole days only (short-term learning steps off), and
+ * only persisted, server-graded answers are used, so the same history always gives the same dates.
  */
-export type GradedAnswer = { term: string; correct: boolean; at: string; courseId: string };
-export type RevisionItem = { term: string; courseId: string; box: number; lastSeen: string; dueAt: string; due: boolean; misses: number; attempts: number };
+import { createEmptyCard, fsrs, generatorParameters, Rating, type Card } from "ts-fsrs";
 
-export const INTERVAL_DAYS = [1, 3, 7, 14] as const;
+export type GradedAnswer = { term: string; correct: boolean; at: string; courseId: string };
+export type RevisionItem = {
+  term: string;
+  courseId: string;
+  lastSeen: string;
+  dueAt: string;
+  due: boolean;
+  misses: number;
+  attempts: number;
+  /** Days until recall is predicted to fall to 90%. */
+  stability: number;
+  /** FSRS difficulty, 1 (easy) to 10 (hard). */
+  difficulty: number;
+  intervalDays: number;
+  /** Predicted probability of recalling it now, 0–1. */
+  recall: number;
+};
+
+const scheduler = fsrs(generatorParameters({ enable_fuzz: false, enable_short_term: false, request_retention: 0.9, maximum_interval: 365 }));
+const round = (n: number, digits = 2) => Math.round(n * 10 ** digits) / 10 ** digits;
 
 export function revisionSchedule(answers: GradedAnswer[], now: number): RevisionItem[] {
   const byTerm = new Map<string, GradedAnswer[]>();
@@ -19,19 +39,22 @@ export function revisionSchedule(answers: GradedAnswer[], now: number): Revision
     const sorted = [...list].sort((x, y) => x.at.localeCompare(y.at));
     // Concepts never missed are not scheduled: there is no evidence they need revision.
     if (!sorted.some((a) => !a.correct)) continue;
-    let box = 0;
-    for (const a of sorted) box = a.correct ? Math.min(box + 1, INTERVAL_DAYS.length - 1) : 0;
+    let card: Card = createEmptyCard(new Date(sorted[0].at));
+    for (const a of sorted) card = scheduler.next(card, new Date(a.at), a.correct ? Rating.Good : Rating.Again).card;
     const last = sorted[sorted.length - 1];
-    const dueAt = Date.parse(last.at) + INTERVAL_DAYS[box] * 86400_000;
+    const dueAt = card.due.getTime();
     items.push({
       term: last.term,
       courseId: last.courseId,
-      box,
       lastSeen: last.at,
       dueAt: new Date(dueAt).toISOString(),
       due: dueAt <= now,
       misses: sorted.filter((a) => !a.correct).length,
       attempts: sorted.length,
+      stability: round(card.stability),
+      difficulty: round(card.difficulty),
+      intervalDays: card.scheduled_days,
+      recall: round(scheduler.get_retrievability(card, new Date(Math.max(now, Date.parse(last.at))), false) as number, 3),
     });
   }
   return items.sort((a, b) => Number(b.due) - Number(a.due) || a.dueAt.localeCompare(b.dueAt));

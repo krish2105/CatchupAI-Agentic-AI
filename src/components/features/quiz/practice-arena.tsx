@@ -190,7 +190,7 @@ export default function PracticeArena({
       <section className="card card-inner" aria-labelledby="due-head">
         <div className="split-head"><h3 id="due-head">Due for revision</h3><Chip tone={due.length ? "warn" : undefined}>{due.length} due</Chip></div>
         {revision.length === 0 ? (
-          <p className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>Concepts you miss in a check come back here: tomorrow, then after 3, 7 and 14 days as you get them right.</p>
+          <p className="muted" style={{ fontSize: 12, lineHeight: 1.7 }}>Concepts you miss in a check come back here the next day, then at growing gaps (about 3, 8 and 22 days) while you keep getting them right. The dates come from a memory model (FSRS) fitted to your own graded answers.</p>
         ) : (
           <>
             {dueByCourse.map((c) => (
@@ -204,7 +204,7 @@ export default function PracticeArena({
             ))}
             {upcoming.length ? (
               <p className="muted" style={{ fontSize: 11.5, marginTop: 10 }}>
-                Coming up: {upcoming.map((u) => `${u.term} (${new Date(u.dueAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })})`).join(", ")}
+                Coming up: {upcoming.map((u) => `${u.term} (${new Date(u.dueAt).toLocaleDateString("en-GB", { day: "numeric", month: "short" })}, ${Math.round(u.recall * 100)}% recall now)`).join(", ")}
               </p>
             ) : null}
           </>

@@ -73,7 +73,7 @@ describe("knowledge checks", () => {
     const evidence = await getPracticeEvidence(asServer(a.db), Date.now() + 2 * 86400_000);
     expect(evidence.revision.length).toBe(1);
     const missed = evidence.revision[0];
-    expect(missed).toMatchObject({ box: 0, due: true, misses: 1 });
+    expect(missed).toMatchObject({ intervalDays: 1, due: true, misses: 1 }); // FSRS: a first miss comes back the next day
     expect(evidence.progress[0]).toMatchObject({ topic: "Whole course", attempts: 1 });
 
     const retest = await createQuiz({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: courseA, topic: null, focusTerms: [missed.term] });
