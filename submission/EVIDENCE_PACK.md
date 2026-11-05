@@ -12,10 +12,10 @@ One page for judges. Every line links to something you can open or rerun.
 | Reports | [reports/FINAL_PROJECT_REPORT.pdf](reports/FINAL_PROJECT_REPORT.pdf) · [reports/AGENTIC_AI_TECHNICAL_BRIEF.pdf](reports/AGENTIC_AI_TECHNICAL_BRIEF.pdf) (DOCX alongside) | Ready |
 | Day 1 template | [completed_templates/Day_1_Idea_Submission_CatchUp_AI_Krishna_Mathur.pdf](completed_templates/Day_1_Idea_Submission_CatchUp_AI_Krishna_Mathur.pdf) (official template filled; DOCX alongside; **local only**, DDS copyright) | Ready; instructor review pending |
 | What is agentic | [AGENTIC_AI_AUDIT.md](../AGENTIC_AI_AUDIT.md): 1 agent, 7 tools, model-chosen order, approval-gated | Ready |
-| Agent traces | [docs/evidence/agent-traces](../docs/evidence/agent-traces): live S1 (recovery), S3 (malicious document), S4 (provider failure) on gemini-3.6-flash | ✅ Live; S2 still to run |
-| Tests | 110 unit · 99 integration · 65 end-to-end (production build), all passing; CI on every push | Verified |
-| Agent evaluation | [evals/REPORT.md](../evals/REPORT.md): 38 cases, **33 pass / 1 fail (provider timeout) / 4 not yet run** with the live model | Mostly done |
-| RAG evaluation | [RAG_QUALITY_REPORT.md](../RAG_QUALITY_REPORT.md): with live embeddings Recall@3 100%, MRR 0.939, abstention 4/4, 0 cross-user leaks, deleted docs 0 results; claim checker precision 0.94 | Verified |
+| Agent traces | [docs/evidence/agent-traces](../docs/evidence/agent-traces): live S1 (recovery), S3 (malicious document), S4 (provider failure) pass; S2 (overloaded week) fails, fix shipped, not yet re-run live | ✅ Live, all 4 run |
+| Tests | 231 unit · 173 integration · 81 end-to-end (production build), all passing locally on 5 Nov; CI on every push | Verified |
+| Agent evaluation | [evals/REPORT.md](../evals/REPORT.md): 38 cases, **38 pass** on each case's latest real result; live tool selection 8/8 (4–5 Nov); every attempt, including quota failures, in [LIVE_AGENT_EVALUATION_REPORT.md](../LIVE_AGENT_EVALUATION_REPORT.md) | Verified (one run per case) |
+| RAG evaluation | [evals/RAG_REPORT.md](../evals/RAG_REPORT.md): 51 questions over 3 synthetic courses, live embeddings, Recall@3 100%, Recall@1 94.1%, MRR 0.971, abstention 7/7 with no false abstentions; claim checker precision 1.0 / recall 1.0 on 30 labelled claims; cross-user isolation in [RAG_QUALITY_REPORT.md](../RAG_QUALITY_REPORT.md) | Verified |
 | Security | [SECURITY_AUDIT.md](../SECURITY_AUDIT.md), [AI_SECURITY_RED_TEAM_REPORT.md](../AI_SECURITY_RED_TEAM_REPORT.md): no open Critical or High findings | Verified |
 | Operations | [OBSERVABILITY_REPORT.md](../OBSERVABILITY_REPORT.md), [INCIDENT_RESPONSE_RUNBOOK.md](../INCIDENT_RESPONSE_RUNBOOK.md) | Ready |
 | Usability pilot | [USER_VALIDATION_REPORT.md](../USER_VALIDATION_REPORT.md) + [docs/VOLUNTEER_KIT.md](../docs/VOLUNTEER_KIT.md) | **Not conducted** |

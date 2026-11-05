@@ -185,6 +185,37 @@ describe("LearningRecoveryAgent", () => {
     expect(outcome.proposalId).toBeNull();
   });
 
+  it("tells the model how to recover from a refused draft, and a draft of the assignments alone then works", async () => {
+    const seen: string[] = [];
+    const invented = { scenario: "balanced", studyItems: [{ title: "Review regression", courseId: courseA, minutes: 45, sourceIds: ["S1"] }] };
+    const outcome = await agentRun(a, [
+      { call: "draft_recovery_plan", args: invented },
+      { call: "draft_recovery_plan", args: { scenario: "balanced", studyItems: [] } },
+      { answer: (v: { lastToolOutput: string }) => (seen.push(v.lastToolOutput), answer()) },
+    ]).run;
+    expect(outcome.events.map((e) => e.status)).toEqual(["denied", "completed"]);
+    expect(outcome.proposalId).not.toBeNull();
+    const refusal = outcome.events[0].outcome;
+    expect(refusal).toMatch(/no sources were retrieved/i);
+    expect(refusal).toMatch(/studyItems: \[\]/);
+    expect(seen[0]).toMatch(/draft_pending_student_approval/);
+  });
+
+  it("stops the model drafting after two refused drafts, so it answers instead of looping to the turn limit", async () => {
+    const invented = { scenario: "balanced", studyItems: [{ title: "Review regression", courseId: courseA, minutes: 45, sourceIds: ["S7"] }] };
+    const outcome = await agentRun(a, [
+      { call: "draft_recovery_plan", args: invented },
+      { call: "draft_recovery_plan", args: invented },
+      { call: "draft_recovery_plan", args: { scenario: "balanced", studyItems: [] } },
+      { answer: answer() },
+    ]).run;
+    expect(outcome.status).toBe("completed");
+    expect(outcome.events.map((e) => e.status)).toEqual(["denied", "denied", "denied"]);
+    expect(outcome.events[1].outcome).toMatch(/don't call draft_recovery_plan again/i);
+    expect(outcome.events[2].outcome).toMatch(/two drafts were already refused/i);
+    expect(outcome.proposalId).toBeNull();
+  });
+
   it("treats injected instructions in PDFs as data: nothing is deleted or approved", async () => {
     const before = await a.db.from("assignments").select("id, status");
     const outcome = await agentRun(a, [

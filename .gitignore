@@ -31,3 +31,5 @@ submission/completed_templates/
 
 # offline (non-live) eval results; the committed evals/results/latest.json is live evidence
 evals/results/offline-latest.json
+evals/results/rag-offline-latest.json
+evals/results/RAG_REPORT_OFFLINE.md

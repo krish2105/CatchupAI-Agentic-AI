@@ -3,10 +3,12 @@
  * fixtures in tests/fixtures/rag and the gold set in evals/rag/gold.json. Also measures the claim-support
  * checker against evals/rag/claims.json. Writes evals/results/rag-latest.json and evals/RAG_REPORT.md; a run without an
  * embedding key (lexical only) writes evals/results/rag-lexical-latest.json and evals/RAG_REPORT_LEXICAL.md instead, so it
- * never replaces the recorded live-embedding report.
+ * never replaces the recorded live-embedding report. With embeddings, the committed report is rewritten only with
+ * EVAL_LIVE=1 (or LIVE_CASES); otherwise the results go to git-ignored offline files.
  *   npm run db:start && npm run eval
  */
 import { readFileSync, writeFileSync } from "node:fs";
+import { liveRequested } from "./live-history";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import claims from "./rag/claims.json";
 import gold from "./rag/gold.json";
@@ -134,7 +136,13 @@ describe("RAG quality", () => {
         const rs = rows.filter((r) => r[key] === g);
         return `| ${g} | ${rs.length} | ${rs.filter((r) => r.correct).length}/${rs.length} |`;
       });
-    const [jsonPath, reportPath] = embedder ? ["evals/results/rag-latest.json", "evals/RAG_REPORT.md"] : ["evals/results/rag-lexical-latest.json", "evals/RAG_REPORT_LEXICAL.md"];
+    // The committed live-embedding report is rewritten only on request (EVAL_LIVE=1 or LIVE_CASES); a routine local run
+    // with the key in .env.local writes git-ignored offline files instead of churning the evidence.
+    const [jsonPath, reportPath] = !embedder
+      ? ["evals/results/rag-lexical-latest.json", "evals/RAG_REPORT_LEXICAL.md"]
+      : liveRequested()
+        ? ["evals/results/rag-latest.json", "evals/RAG_REPORT.md"]
+        : ["evals/results/rag-offline-latest.json", "evals/results/RAG_REPORT_OFFLINE.md"];
     writeFileSync(jsonPath, JSON.stringify({ metrics, rows }, null, 2));
     writeFileSync(
       reportPath,

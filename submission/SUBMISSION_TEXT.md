@@ -26,8 +26,8 @@ actually supports it; text that tries to instruct the AI is flagged and ignored.
 Time is never guessed. A deterministic planner schedules the work into the student's real free time and shows three routes, with any
 shortfall in minutes. The AI can only draft: the student reviews the exact changes and approves once, in a locked transaction.
 
-It's live with a one-click demo on synthetic data, backed by 267 automated tests, a 38-case agent evaluation (30 passed, 0 failed,
-8 waiting on the live model), a RAG evaluation with page-level ground truth and a security review.
+It's live with a one-click demo on synthetic data, backed by 485 automated tests, a 38-case agent evaluation (all passing; the 12 live-model cases each ran at least once
+on Gemini, 11 passed on their latest run), a 51-question RAG evaluation with page-level ground truth and a security review.
 
 ## What makes it agentic (≈ 80 words)
 The model plans its own steps: it chooses which tools to call, in what order and with what arguments, what to search for, and which

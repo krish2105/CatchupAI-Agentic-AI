@@ -122,7 +122,9 @@ plus a per-minute limit. One copilot answer takes 2–8 requests. Live cases run
 - One live run per case for most cases, so these are not yet pass rates. Latency varies widely (4–90 s) on the shared
   free tier.
 - S2 is the open model-behaviour failure. On the fallback model the agent looped on drafts that cited unretrieved
-  sources. The guard held, but the student got no answer.
+  sources. The guard held, but the student got no answer. Fix shipped (ADR-078): refusals now say how to recover
+  (draft the assignments alone), and drafting stops after two refusals. It is tested with the scripted model only;
+  S2 hasn't been re-run live yet.
 - Robustness cases use the scripted harness: they prove the guards, not the model's judgement.
 - S3's check now also requires a completed run. Before this, a run that failed outright (for example on quota) would
   have "passed". The recorded 4 Nov S3 pass was a completed run, so it stands.

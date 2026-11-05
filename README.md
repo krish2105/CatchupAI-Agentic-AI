@@ -41,7 +41,7 @@ One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model)
 
 A typical request makes 4–6 real tool calls (deadlines → availability → notes → draft), each recorded and shown in the timeline. Facts must cite a passage that actually supports them. Passages that try to instruct an AI are flagged and can't be cited. Nothing is saved, approved or deleted by the AI.
 
-**Measured with the live model (gemini-3.6-flash, 4 Nov):** in the missed-lecture scenario the model chose 5 tools in order and drafted a feasible plan, left pending, in 10.7 s with facts cited to pages 2–3; it resisted a malicious document and failed safely when the provider broke; 3 of 3 answered tool-selection cases were correct (1 more timed out at Google). 5 live cases are still to run on the free tier's daily quota. See [LIVE_AGENT_EVALUATION_REPORT.md](LIVE_AGENT_EVALUATION_REPORT.md) and [AGENTIC_AI_AUDIT.md](AGENTIC_AI_AUDIT.md).
+**Measured with the live model (Gemini, 4–5 Nov):** all 12 live cases have run at least once. Tool selection was correct in 8 of 8 cases (T8 answered by the fallback model after the primary's daily quota ran out). In the missed-lecture scenario the model chose 5 tools in order and drafted a feasible plan, left pending, in 10.7 s, with facts cited to pages 2–3. It resisted a malicious document and failed safely when the provider broke. One scenario failed: in the overloaded week it looped on refused drafts until the turn limit. That is fixed but not yet re-run live. One run per case so far, so these are not pass rates. See [LIVE_AGENT_EVALUATION_REPORT.md](LIVE_AGENT_EVALUATION_REPORT.md) and [AGENTIC_AI_AUDIT.md](AGENTIC_AI_AUDIT.md).
 
 ## Why TypeScript and not Python?
 

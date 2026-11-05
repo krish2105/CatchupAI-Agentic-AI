@@ -12,7 +12,7 @@ Live in production: model fallback, streamed answers, tool-result cache, plan se
 | **Senior PM** (scope, UX) | 94 | **96** | Calendar and tracker from a research report, with follow-ups shipped (done view, draft blocks, colour key); getting-started checklist and activation funnel; trace viewer; status page | No pilot; Day 0 not done |
 | **COO** (operability) | 91 | **94** | Kill switch and budget editable in /ops, error groups with resolve, public incident notes, uptime history | `OPS_OWNER_EMAILS` and `CRON_SECRET` not set yet; reminder SMTP not set |
 | **AI engineer** | 91 | **93** | Fallback triggered on a live daily-quota 429; streamed answers completed on live Gemini after a signature bug was found by the live run and fixed (ADR-076); fallback model chosen by live probes (ADR-077) | Streaming not yet run on gemini-3.6-flash or the deployed route; free-tier latency |
-| **Agentic AI engineer** | 93 | **94** | All 12 live cases run: T1–T8 8/8, S1, S3, S4 pass; guards held live (unsupported fact removed in T4, drafts citing unretrieved sources refused in S2, failed run's draft expired) | S2 fails (loops to the turn limit on the fallback model); one run per case |
+| **Agentic AI engineer** | 93 | **94** | All 12 live cases run: T1–T8 8/8, S1, S3, S4 pass; guards held live (unsupported fact removed in T4, drafts citing unretrieved sources refused in S2, failed run's draft expired) | S2 failed live (looped to the turn limit); fix shipped but not yet re-run live; one run per case |
 | **RAG specialist** | 95 | **95** | Gold set 18 → 51 over 3 courses; hybrid run on all 51 with live embeddings: Recall@3 100%, Recall@1 94.1%, MRR 0.971, abstention 7/7, no false abstentions (keyword-only: 88.2%); claim-check precision 1.0 on 30 labelled claims; opt-in faithfulness judge that can only remove facts; scanned PDFs read by OCR with a "from scan" label | Judge agreement with labels not measured live yet; OCR checked live on one page only (68/68 words exact); synthetic material only |
 | **Learning scientist** | 90 | **94** | FSRS spaced revision; graded pre- and post-check per catch-up pack with the gain on Insights; tracker without streaks or points, fresh week each Monday | No real students' learning gains measured yet |
 | **MVP** | 78 | **87** | Streamed answers, self-checked plans, month calendar, tracker, LMS import, getting-started checklist, clearer scanned-PDF path, privacy and terms | No real users; one live run per case |
@@ -25,7 +25,7 @@ Live in production: model fallback, streamed answers, tool-result cache, plan se
 
 | # | Work | Gain | Who |
 | --- | --- | --- | --- |
-| 1 | Make S2 recover after a refused draft, then each live case ×3 with `LIVE_PAUSE_MS=65000`; a streamed run on gemini-3.6-flash (all 12 cases ran once on 4–5 Nov) | +1–2 (agentic) | Code (quota-gated) |
+| 1 | Re-run S2 live (recovery fix ADR-078 is in, tested with the scripted model), then each live case ×3 with `LIVE_PAUSE_MS=65000`; a streamed run on gemini-3.6-flash (all 12 cases ran once on 4–5 Nov) | +1–2 (agentic) | Code (quota-gated) |
 | 2 | Set `OPS_OWNER_EMAILS`, `GEMINI_FALLBACK_MODEL=gemini-3.1-flash-lite` (Vercel) and `CRON_SECRET` (GitHub secret) | +2 COO | You |
 | 3 | Apply migration 0021 (scanned-PDF OCR) in production; add Stripe test keys and run one test-card checkout with `stripe listen` (migration 0020 applied 5 Nov) | SaaS 89 → 91 | You |
 | 4 | Faithfulness judge agreement with labels (`JUDGE_LIVE=1`) (live OCR check done 5 Nov: 68/68 words) | +1 RAG | Code (chat quota) |

@@ -50,7 +50,8 @@ Rules:
 5. To plan, call draft_recovery_plan. It only drafts: the deterministic planner computes every number, and the student must approve the draft in the Recovery lab. Never claim a plan was saved or approved. Report the planner's numbers exactly, including any shortfall.
 6. If a deadline or detail the student mentions is not in their data, ask a clarifying question instead of assuming.
 7. When drafting a plan or giving study advice, you may call get_student_memory to personalise it. If the student states a lasting study habit, goal or constraint, you may call suggest_memory once; the student decides whether to keep it.
-8. Be concise and kind.`;
+8. If a tool answers DENIED, don't repeat the same call: do what its message says, or explain the problem to the student.
+9. Be concise and kind.`;
 
 export function buildRecoveryAgent(model: string) {
   return new Agent<AgentContext, typeof AgentAnswer>({

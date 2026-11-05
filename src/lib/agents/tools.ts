@@ -13,7 +13,7 @@ import { searchCourseMaterial } from "@/lib/rag/retrieve";
 import { shortId, type AgentContext, type ToolEvent } from "./context";
 import { cachedRead, invalidateStudent } from "./tool-cache";
 
-const LIMITS = { maxSearches: 4, maxStudyItems: 6, maxDrafts: 1, maxMemorySuggestions: 1 } as const;
+const LIMITS = { maxSearches: 4, maxStudyItems: 6, maxDrafts: 1, maxRefusedDrafts: 2, maxMemorySuggestions: 1 } as const;
 
 class ToolDenied extends Error {}
 
@@ -158,7 +158,7 @@ export const getLearningProgress = tool({
 export const draftRecoveryPlan = tool({
   name: "draft_recovery_plan",
   description:
-    "Draft (NOT save) a recovery plan. The deterministic planner schedules the student's assignments plus up to 6 study items you propose; it computes all numbers. Each study item must cite source ids returned by search_course_material. The student must approve the draft in the Recovery lab before anything is saved.",
+    "Draft (NOT save) a recovery plan. The deterministic planner schedules the student's assignments plus up to 6 study items you propose; it computes all numbers. Each study item must cite source ids returned by search_course_material; if the search found no supporting evidence, pass studyItems: [] (every assignment is still scheduled). The student must approve the draft in the Recovery lab before anything is saved.",
   parameters: z.object({
     scenario: z.enum(["essential", "balanced", "full"]),
     studyItems: z
@@ -175,13 +175,21 @@ export const draftRecoveryPlan = tool({
   execute: (input, ctx?: RunContext<AgentContext>) =>
     traced(ctx, "draft_recovery_plan", { scenario: input.scenario, studyItems: input.studyItems.length }, async (c) => {
       if (c.proposalId) throw new ToolDenied("A draft was already created in this request.");
+      // A model that keeps citing sources it never retrieved would otherwise loop until the turn limit (live S2, 5 Nov).
+      const refused = c.events.filter((e) => e.tool === "draft_recovery_plan" && e.status === "denied" && (e.attempt ?? 1) === c.attempt).length;
+      if (refused >= LIMITS.maxRefusedDrafts) throw new ToolDenied("Two drafts were already refused in this request. Don't draft again: answer the student, say what is missing and what they can do.");
+      const citable = [...c.sources].filter(([, s]) => !s.suspicious).map(([id]) => id);
+      const recover = () =>
+        `${citable.length ? `Cite only these retrieved source ids: ${citable.join(", ")}.` : "No sources were retrieved in this request."}${
+          refused + 1 >= LIMITS.maxRefusedDrafts ? " Don't call draft_recovery_plan again in this request; answer the student instead." : " Retry with studyItems: [] (every assignment is still scheduled), or search first and cite what it returns."
+        }`;
       const assignments = await listAssignments(c.supabase);
       const extraItems: WorkItem[] = [];
       for (const [i, item] of input.studyItems.entries()) {
         await assertCourse(c, item.courseId);
         const evidence = item.sourceIds.map((id) => c.sources.get(id)).filter((s) => s !== undefined);
-        if (evidence.length !== item.sourceIds.length) throw new ToolDenied(`Study item "${item.title}" cites sources that were not retrieved in this request.`);
-        if (evidence.some((e) => e.suspicious)) throw new ToolDenied(`Study item "${item.title}" cites a passage flagged as instructions aimed at an AI.`);
+        if (evidence.length !== item.sourceIds.length) throw new ToolDenied(`Study item "${item.title}" cites sources that were not retrieved in this request. ${recover()}`);
+        if (evidence.some((e) => e.suspicious)) throw new ToolDenied(`Study item "${item.title}" cites a passage flagged as instructions aimed at an AI. ${recover()}`);
         const nextDue = assignments
           .filter((a) => a.courseId === item.courseId && a.required && a.status !== "completed" && Date.parse(a.dueAt) > c.now)
           .sort((x, y) => Date.parse(x.dueAt) - Date.parse(y.dueAt))[0];

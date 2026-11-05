@@ -42,10 +42,11 @@ flowchart LR
 ## 4. Evaluation summary (real counts)
 | Suite | Result |
 | --- | --- |
-| Unit / integration / E2E (production build) | 103 / 99 / 65 passed |
-| Agent eval (38 cases) | 30 passed · 0 failed · **8 skipped (live model not configured)** |
-| RAG eval (18 questions, synthetic) | Recall@3 90.9%, abstention 4/4, cross-user 0 leaks, deleted docs 0 results; 2 documented misses |
-| Claim checker (24 labelled claims) | precision 0.938, recall 1.0 |
+| Unit / integration / E2E (production build) | 231 / 173 / 81 passed (5 Nov) |
+| Agent eval (38 cases) | 38 passed on each case's latest real result; live tool selection 8/8 (Gemini, 4–5 Nov) |
+| RAG eval (51 questions, synthetic, live embeddings) | Recall@3 100%, Recall@1 94.1%, MRR 0.971, abstention 7/7, no false abstentions |
+| Claim checker (30 labelled claims) | precision 1.0, recall 1.0 |
+| Live scenarios (Gemini) | S1 missed lecture, S3 malicious document, S4 provider failure pass; S2 overloaded week failed (fix shipped, not yet re-run live) |
 
 ## 5. Security and privacy
 RLS on every student table, tested with two students. Nonce CSP, Origin checks, hash-only tokens, signed unsubscribe
@@ -55,8 +56,8 @@ demo data, deleted after 24 h. Details: SECURITY_AUDIT.md and AI_SECURITY_RED_TE
 ## 6. Judge Q&A
 - **What's agentic?** The model chooses which tools to call and with what arguments; every call is real and logged. It can
   draft but never commit.
-- **How reliable is it?** Deterministic parts are tested (planner, approval, retrieval, security). Live-model behaviour is
-  **not yet measured**; the report says so.
+- **How reliable is it?** Deterministic parts are tested (planner, approval, retrieval, security). Live, all 12 model cases
+  ran at least once on 4–5 Nov: tool selection 8 of 8, 3 of 4 scenarios. These are single runs, not pass rates, and the reports say so.
 - **How much autonomy?** Read and propose only. Saving, approving and deleting always need the student.
 - **Privacy?** Each student sees only their own data (RLS), documents are private, and logs carry no content.
 - **What if the AI is wrong?** Unsupported facts are removed, suggestions are labelled as advice, and the trust drawer
