@@ -1,3 +1,4 @@
+import { activationFunnel } from "@/lib/activation/service";
 import type { Metadata } from "next";
 import { AiControls, ResolveButton } from "@/components/features/ops/ops-controls";
 import PageHeading from "@/components/ui/page-heading";
@@ -17,7 +18,7 @@ const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { timeZone: 
 export default async function OpsPage() {
   await requireOpsOwnerPage();
   const now = await renderTime();
-  const [snap, uptime] = await Promise.all([opsSnapshot(adminClient(), now), uptimeHistory()]);
+  const [snap, uptime, funnel] = await Promise.all([opsSnapshot(adminClient(), now), uptimeHistory(), activationFunnel(adminClient(), { since: new Date(now - 30 * 86400_000).toISOString() })]);
   const used = snap.ai.budget > 0 ? Math.min(100, Math.round((snap.ai.tokensToday / snap.ai.budget) * 100)) : 100;
   const aiOn = snap.ai.enabled && !snap.ai.envKillSwitch;
   const okRuns = uptime?.filter((r) => r.conclusion === "success").length ?? 0;
@@ -51,6 +52,22 @@ export default async function OpsPage() {
               ))}
             </ol>
           )}
+        </section>
+
+        <section className="card card-inner ops-wide" aria-labelledby="ops-funnel">
+          <div className="split-head"><h2 id="ops-funnel" className="trace-h2">Activation, last 30 days</h2><Chip>{funnel.signups} new accounts</Chip></div>
+          <p className="muted">Full accounts only (demo accounts excluded), read from existing rows: no tracking scripts. Activated = an approved plan and at least one finished study block.</p>
+          <p>
+            <b>{funnel.activated}</b> activated{funnel.activationRate === null ? "" : ` (${funnel.activationRate}%)`} · median time from sign-up to the first approved plan:{" "}
+            <b>{funnel.medianMinutesToFirstPlan === null ? "no plans yet" : funnel.medianMinutesToFirstPlan < 120 ? `${funnel.medianMinutesToFirstPlan} min` : `${Math.round(funnel.medianMinutesToFirstPlan / 60)} h`}</b>
+          </p>
+          <table className="data-table">
+            <caption className="visually-hidden">Accounts reaching each getting-started step</caption>
+            <thead><tr><th scope="col">Step</th><th scope="col">Accounts</th><th scope="col">Share</th></tr></thead>
+            <tbody>
+              {funnel.steps.map((s) => <tr key={s.id}><td>{s.title}</td><td>{s.accounts}</td><td>{funnel.signups ? `${Math.round((s.accounts / funnel.signups) * 100)}%` : "—"}</td></tr>)}
+            </tbody>
+          </table>
         </section>
 
         <section className="card card-inner ops-wide" aria-labelledby="ops-errors">

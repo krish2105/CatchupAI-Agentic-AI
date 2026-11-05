@@ -562,3 +562,22 @@ test("catch-up pack: graded pre-check and post-check from the pack's document, w
     await s.cleanup();
   }
 });
+
+test("Mission Control: a getting-started checklist from real progress, pointing to the next step", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    await s.page.goto("/dashboard");
+    const card = s.page.getByRole("region", { name: "Getting started" });
+    await expect(card).toContainText("0 of 7 done");
+    await expect(card.getByRole("link", { name: "Next: Add a course" })).toHaveAttribute("href", "/courses");
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Worksheet", dueAt: new Date(Date.now() + 4 * 86400_000).toISOString(), estimatedMinutes: 60 } });
+    await s.page.reload();
+    await expect(card).toContainText("2 of 7 done");
+    await expect(card.getByRole("progressbar", { name: "2 of 7 getting-started steps done" })).toBeVisible();
+    await expect(card.getByRole("listitem").filter({ hasText: "Add a course" })).toContainText("(done)");
+    await expect(card.getByRole("link", { name: "Next: Upload lecture notes" })).toBeVisible();
+  } finally {
+    await s.cleanup();
+  }
+});

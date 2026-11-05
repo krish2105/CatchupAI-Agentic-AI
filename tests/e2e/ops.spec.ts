@@ -31,6 +31,8 @@ test("the owner sees AI spend, uptime and open errors, and can resolve an error 
   try {
     await s.page.goto("/ops");
     await expect(s.page.getByRole("heading", { level: 1, name: "Operations" })).toBeVisible();
+    await expect(s.page.getByRole("heading", { name: "Activation, last 30 days" })).toBeVisible();
+    await expect(s.page.getByRole("table", { name: "Accounts reaching each getting-started step" }).getByRole("row")).toHaveCount(8);
     await expect(s.page.getByText(/tokens used today/)).toBeVisible();
     await expect(s.page.getByRole("meter", { name: "Share of today's token budget used" })).toBeVisible();
     await expect(s.page.getByRole("heading", { name: "Uptime checks" })).toBeVisible();

@@ -1,4 +1,6 @@
+import GettingStarted from "@/components/features/activation/getting-started";
 import { TrackerGlance } from "@/components/features/insights/recovery-tracker";
+import { getActivationFacts } from "@/lib/activation/service";
 import { getTracker } from "@/lib/db/tracker";
 import type { Metadata } from "next";
 import Link from "next/link";
@@ -23,7 +25,7 @@ export default async function DashboardPage() {
   const { supabase, user } = await requirePageUser("/dashboard");
   const now = await renderTime();
   // The glance only uses per-assignment states, which don't depend on the time zone.
-  const [overview, profile, plan, active, runs, practice, tracker] = await Promise.all([
+  const [overview, profile, plan, active, runs, practice, tracker, activation] = await Promise.all([
     getOverview(supabase),
     getProfile(supabase, user.id),
     computePlan(supabase, user.id, { now }),
@@ -31,6 +33,7 @@ export default async function DashboardPage() {
     listAgentRuns(supabase, 1),
     getPracticeEvidence(supabase, now),
     getTracker(supabase, "UTC", now),
+    getActivationFacts(supabase),
   ]);
   const tz = profile.timezone;
   const firstName = (profile.displayName ?? "").split(" ")[0] || "there";
@@ -79,6 +82,7 @@ export default async function DashboardPage() {
           />
         </div>
       </PhotoHero>
+      <GettingStarted facts={activation} />
 
       {missed.length ? (
         <section className="card nf-replan" aria-labelledby="replan-head">
