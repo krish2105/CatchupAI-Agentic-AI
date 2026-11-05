@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { requireApiUser } from "@/lib/auth/session";
-import { fromDbError, route } from "@/lib/http/errors";
+import { fromDbError, isMissingSchema, route } from "@/lib/http/errors";
 import { enforceRateLimit } from "@/lib/http/rate-limit";
 
 const TABLES = [
@@ -38,8 +38,8 @@ export const GET = route(async () => {
   }
   // Own memberships only (staff can see their organisation's roster through RLS; that isn't the student's data).
   const memberships = await supabase.from("memberships").select("org_id, role, share_progress, created_at, organizations(name)").eq("user_id", user.id);
-  if (memberships.error) throw fromDbError(memberships.error);
-  out.memberships = memberships.data;
+  if (memberships.error && !isMissingSchema(memberships.error)) throw fromDbError(memberships.error);
+  out.memberships = memberships.data ?? [];
   return new NextResponse(JSON.stringify(out, null, 2), {
     headers: { "content-type": "application/json", "content-disposition": `attachment; filename="catchup-ai-export-${new Date().toISOString().slice(0, 10)}.json"` },
   });

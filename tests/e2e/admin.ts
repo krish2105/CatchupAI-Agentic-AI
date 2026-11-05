@@ -23,6 +23,15 @@ export async function createOtherTenant() {
 }
 
 /**
+ * Daily study window for test students: 2 hours from 00:30 UTC, unless the run happens between 00:00 and 03:00 UTC,
+ * when today's window would be partly used up and plans would split differently. Then the window starts at 04:00,
+ * so today's window is always either fully past or fully ahead and the expected block counts hold at any hour.
+ */
+function defaultStudyStart(now = new Date()) {
+  return now.getUTCHours() < 3 ? "04:00" : "00:30";
+}
+
+/**
  * A brand-new, onboarded student signed in through the real /auth/confirm magic-link route
  * (token from the local admin API). Isolated data per test.
  */
@@ -38,7 +47,7 @@ export async function freshStudent(
   const userId = created.user.id;
   await db
     .from("profiles")
-    .update({ display_name: "Fresh Student", timezone: "UTC", weekly_minutes: [120, 120, 120, 120, 120, 120, 120], study_start_time: "00:30", onboarded_at: new Date().toISOString(), ...profile })
+    .update({ display_name: "Fresh Student", timezone: "UTC", weekly_minutes: [120, 120, 120, 120, 120, 120, 120], study_start_time: defaultStudyStart(), onboarded_at: new Date().toISOString(), ...profile })
     .eq("id", userId);
   const { data: link, error: linkError } = await db.auth.admin.generateLink({ type: "magiclink", email });
   if (linkError || !link.properties) throw linkError ?? new Error("generateLink returned no token");

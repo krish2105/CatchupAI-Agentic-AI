@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import OrgPanel from "@/components/features/org/org-panel";
 import PageHeading from "@/components/ui/page-heading";
+import { Notice } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
 import { listMyOrganizations } from "@/lib/org/service";
 import { renderTime } from "@/lib/server/clock";
@@ -20,7 +21,11 @@ export default async function OrgPage() {
         accent="keep your notes private."
         description="Join your class with the code your teacher gives you. Teachers see class totals only, never your notes, answers or plans, and only if you choose to share."
       />
-      <OrgPanel orgs={orgs} anonymous={anonymous} />
+      {orgs === null ? (
+        <Notice tone="info" title="Organisations are coming soon.">This part of CatchUp AI isn&apos;t switched on yet. Everything else works as usual.</Notice>
+      ) : (
+        <OrgPanel orgs={orgs} anonymous={anonymous} />
+      )}
     </>
   );
 }

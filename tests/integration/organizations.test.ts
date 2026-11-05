@@ -16,7 +16,9 @@ const users = () => [owner, teacher, s1, s2, s3, s4, outsider].filter(Boolean);
 const days = (n: number) => new Date(Date.now() + n * 86400_000).toISOString();
 
 async function withDeadline(u: User, title: string) {
-  const course = (await u.db.from("courses").insert({ title: "Statistics" }).select("id").single()).data!.id;
+  const res = await u.db.from("courses").insert({ title: "Statistics" }).select("id").single();
+  if (res.error) throw new Error(JSON.stringify(res.error));
+  const course = res.data.id;
   await u.db.from("assignments").insert({ course_id: course, title, due_at: days(3), estimated_minutes: 60 });
 }
 
@@ -109,5 +111,16 @@ describe("organisations and memberships", () => {
     } finally {
       await deleteUser(signedIn.data.user!.id);
     }
+  });
+});
+
+describe("before migration 0018 reaches a database", () => {
+  it("PostgREST reports a missing table or function with the codes the app treats as 'not set up yet'", async () => {
+    const { isMissingSchema } = await import("@/lib/http/errors");
+    const table = await owner.db.from("no_such_table_xyz" as "memberships").select("org_id");
+    const fn = await owner.db.rpc("no_such_function_xyz" as "org_role", { p_org: orgA });
+    expect(isMissingSchema(table.error)).toBe(true);
+    expect(isMissingSchema(fn.error)).toBe(true);
+    expect(isMissingSchema({ code: "42501" })).toBe(false);
   });
 });

@@ -1,6 +1,6 @@
 import "server-only";
 import { z } from "zod";
-import { ApiError, fromDbError } from "@/lib/http/errors";
+import { ApiError, fromDbError, isMissingSchema } from "@/lib/http/errors";
 import type { ServerSupabase } from "@/lib/supabase/server";
 
 /**
@@ -14,6 +14,7 @@ export const shareBody = z.object({ share: z.boolean() }).strict();
 export const roleBody = z.object({ userId: z.uuid(), role: z.enum(["student", "teacher", "admin"]) }).strict();
 
 function rpcError(error: { code?: string; message?: string }): ApiError {
+  if (isMissingSchema(error)) return new ApiError(503, "not_available", "Organisations aren't available yet. Please try again later.");
   if (error.code === "P0002") return new ApiError(404, "not_found", error.message === "invalid join code" ? "That code doesn't match an organisation." : "Not found.");
   if (error.code === "23514") return new ApiError(409, "conflict", error.message === "make another member admin before leaving" ? "Make another member an admin before you leave." : error.message === "an organisation needs an admin" ? "An organisation needs at least one admin." : "You've reached the limit of 5 organisations.");
   if (error.code === "42501") return new ApiError(403, "forbidden", /demo accounts/.test(error.message ?? "") ? "Demo accounts can't join organisations. Sign in with your email first." : "You don't have access to that.");
@@ -42,9 +43,13 @@ export type OrgView = {
   staff: null | { joinCode: string; roster: RosterEntry[]; summary: OrgSummary };
 };
 
-/** The signed-in user's organisations, with the staff view (code, roster, last-7-day aggregates) where they're staff. */
-export async function listMyOrganizations(supabase: ServerSupabase, userId: string, now: number): Promise<OrgView[]> {
+/**
+ * The signed-in user's organisations, with the staff view (code, roster, last-7-day aggregates) where they're
+ * staff. null when this database doesn't have the organisation tables yet (migration 0018 not applied).
+ */
+export async function listMyOrganizations(supabase: ServerSupabase, userId: string, now: number): Promise<OrgView[] | null> {
   const { data, error } = await supabase.from("memberships").select("org_id, role, share_progress, organizations(name)").eq("user_id", userId).order("created_at");
+  if (isMissingSchema(error)) return null;
   if (error) throw fromDbError(error);
   const since = new Date(now - 7 * 86400_000).toISOString();
   return Promise.all(

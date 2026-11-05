@@ -109,3 +109,11 @@ export async function readJson(request: Request, maxBytes = 64 * 1024): Promise<
     throw new ApiError(400, "invalid_json", "Request body must be valid JSON.");
   }
 }
+
+/**
+ * True when PostgREST or Postgres reports that a table or function doesn't exist (yet): code is deployed before
+ * its migration reaches that database. Callers treat the feature as "not set up yet" instead of failing.
+ */
+export function isMissingSchema(error: { code?: string } | null | undefined): boolean {
+  return Boolean(error?.code && ["PGRST205", "PGRST202", "42P01", "42883"].includes(error.code));
+}
