@@ -54,6 +54,7 @@ export default async function PricingPage() {
             </li>
           ))}
         </ul>
+        <p className="muted">Larger institutions: single sign-on (SAML/OIDC), automatic provisioning (SCIM) and audit-log streaming are available on request; they aren&apos;t self-serve yet.</p>
         <p className="muted">Teachers: create an organisation in <Link href="/org">Organisations</Link> (sign in first); the admin upgrades from there. See the <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link> for how payments work.</p>
       </main>
     </div>

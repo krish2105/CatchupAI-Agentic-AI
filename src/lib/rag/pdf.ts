@@ -17,7 +17,7 @@ export const PDF_ERROR_MESSAGES: Record<PdfErrorCode, string> = {
   encrypted: "Password-protected PDFs aren't supported.",
   malformed: "This PDF couldn't be read. It may be damaged.",
   too_many_pages: "PDFs can have at most 50 pages.",
-  no_text: "No selectable text found. Scanned PDFs aren't supported yet — export a text-based PDF.",
+  no_text: "No selectable text found: this looks like a scan. To fix it, open the file in Google Drive with Google Docs (it reads the text), then download it as PDF; or export the slides as PDF from PowerPoint, Keynote or Google Slides.",
 };
 
 /** Cheap structural checks before handing bytes to the parser. */

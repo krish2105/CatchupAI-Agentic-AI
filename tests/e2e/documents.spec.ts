@@ -38,6 +38,7 @@ test.describe("documents and evidence search", () => {
     await page.waitForLoadState("networkidle");
     await page.locator('input[type="file"]').setInputFiles("tests/fixtures/no_text.pdf");
     await expect(page.getByText(/No selectable text found/)).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/Google Docs/)).toBeVisible(); // the message says how to fix it
     await expect(page.getByText("Failed", { exact: true })).toBeVisible();
   });
 
