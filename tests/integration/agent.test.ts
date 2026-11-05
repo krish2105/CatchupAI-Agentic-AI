@@ -236,6 +236,23 @@ describe("LearningRecoveryAgent", () => {
     expect(stored).toEqual({ status: "completed", model: "scripted-fallback-model", fallback_from: "scripted-test-model", fallback_reason: "model_quota" });
   });
 
+  it.each([["", false], [" (streamed)", true]])("counts the tokens a failed first attempt used, so the run and the daily budget include them%s", async (_label, streamed) => {
+    const outcome = await agentRun(a, [{ call: "get_study_preferences", args: {}, usage: { input: 300, output: 20 } }, { fail: "Quota exceeded: GenerateRequestsPerDayPerProjectPerModel", status: 429 }], {
+      fallback: [{ call: "list_assignments", args: { courseId: null, includeCompleted: false }, usage: { input: 100, output: 10 } }, { answer: answer(), usage: { input: 50, output: 5 } }],
+      ...(streamed ? { onAnswer: () => undefined } : {}),
+    }).run;
+    expect(outcome).toMatchObject({ status: "completed", fallbackReason: "model_quota" });
+    const { data: stored } = await a.db.from("agent_runs").select("input_tokens, output_tokens").eq("id", outcome.runId).single();
+    expect(stored).toEqual({ input_tokens: 450, output_tokens: 35 });
+  });
+
+  it("records the tokens a failed run used before it failed", async () => {
+    const outcome = await agentRun(a, [{ call: "get_study_preferences", args: {}, usage: { input: 200, output: 12 } }, { fail: "Invalid request", status: 400 }]).run;
+    expect(outcome).toMatchObject({ status: "failed", errorCode: "model_error" });
+    const { data: stored } = await a.db.from("agent_runs").select("input_tokens, output_tokens").eq("id", outcome.runId).single();
+    expect(stored).toEqual({ input_tokens: 200, output_tokens: 12 });
+  });
+
   it("expires the primary attempt's draft before the fallback drafts again, so only one draft stays actionable", async () => {
     const draft = { call: "draft_recovery_plan", args: { scenario: "essential", studyItems: [] } } as const;
     const outcome = await agentRun(a, [draft, { fail: "The model is overloaded", status: 503 }], { fallback: [draft, { answer: answer() }] }).run;

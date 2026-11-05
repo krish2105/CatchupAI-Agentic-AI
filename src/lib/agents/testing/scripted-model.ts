@@ -5,9 +5,11 @@ import { Usage, type Model, type ModelProvider, type ModelRequest, type ModelRes
  * enabled outside production). It speaks the real Agents SDK protocol, so the SDK run loop, tool execution,
  * database access and persistence all run for real; only the language model is replaced.
  */
+/** `usage` makes a step report tokens as a real model would (default: none), to test token accounting. */
+type StepUsage = { usage?: { input: number; output: number } };
 export type ScriptStep =
-  | { call: string; args: Record<string, unknown> | ((ctx: ScriptView) => Record<string, unknown>) }
-  | { answer: unknown | ((ctx: ScriptView) => unknown) }
+  | ({ call: string; args: Record<string, unknown> | ((ctx: ScriptView) => Record<string, unknown>) } & StepUsage)
+  | ({ answer: unknown | ((ctx: ScriptView) => unknown) } & StepUsage)
   | { fail: string; status?: number };
 
 export type ScriptView = { turn: number; lastToolOutput: string; toolOutputs: string[]; input: string };
@@ -41,8 +43,10 @@ export class ScriptedModel implements Model {
     if (!step) throw new Error("Script exhausted");
     // `status` mimics an HTTP error from the provider (429 quota, 503 overload) so fallback paths can be tested.
     if ("fail" in step) throw Object.assign(new Error(step.fail), { code: "model_error", ...(step.status ? { status: step.status } : {}) });
-    // No language model runs, so no tokens are used (the UI then shows no token count).
-    const usage = new Usage({ requests: 1, inputTokens: 0, outputTokens: 0, totalTokens: 0 });
+    // No language model runs, so no tokens are used (the UI then shows no token count) unless the step says so.
+    const input = step.usage?.input ?? 0;
+    const output = step.usage?.output ?? 0;
+    const usage = new Usage({ requests: 1, inputTokens: input, outputTokens: output, totalTokens: input + output });
     if ("call" in step) {
       const args = typeof step.args === "function" ? step.args(ctx) : step.args;
       return {

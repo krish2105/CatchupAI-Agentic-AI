@@ -1,5 +1,5 @@
 import "server-only";
-import { Agent, OpenAIProvider, Runner, type ModelProvider } from "@openai/agents";
+import { Agent, OpenAIProvider, RunContext, Runner, type ModelProvider } from "@openai/agents";
 import OpenAI from "openai";
 import { z } from "zod";
 import type { Embedder } from "@/lib/rag/embed";
@@ -286,6 +286,8 @@ export async function runRecoveryAgent(deps: {
   let current: ModelChoice = deps.runtime;
   let fallbackReason: string | undefined;
   const fallbackInfo = () => (fallbackReason ? { fallbackFrom: deps.runtime.model, fallbackReason } : {});
+  // Tokens of every model call in this run, including turns of an attempt that later failed (they were billed).
+  const spent = { input: 0, output: 0 };
 
   /** One attempt on one model. The primary attempt gets a shorter budget when a fallback is waiting. */
   const attempt = async (choice: ModelChoice, budgetMs: number | null) => {
@@ -294,10 +296,12 @@ export async function runRecoveryAgent(deps: {
     const runner = new Runner({ modelProvider: choice.provider, tracingDisabled: true, workflowName: "catchup-recovery" });
     const agent = buildRecoveryAgent(choice.model);
     const input = `${deps.message}${courseNote}`;
+    // Our own RunContext, so its usage (added after each model response) is still readable if the attempt fails.
+    const runContext = new RunContext<AgentContext>(context);
     try {
-      if (!deps.onAnswer || !streamingEnabled()) return await runner.run(agent, input, { context, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal });
+      if (!deps.onAnswer || !streamingEnabled()) return await runner.run(agent, input, { context: runContext, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal });
       const streamer = createAnswerStreamer(context.sources, deps.onAnswer, { holdFacts: Boolean(judge) });
-      const streamed = await runner.run(agent, input, { context, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal, stream: true });
+      const streamed = await runner.run(agent, input, { context: runContext, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal, stream: true });
       for await (const event of streamed) {
         if (event.type !== "raw_model_stream_event") continue;
         const data = event.data as { type: string; delta?: string };
@@ -311,6 +315,9 @@ export async function runRecoveryAgent(deps: {
     } catch (e) {
       const code = signal.aborted ? (timeout.aborted ? "timeout" : "cancelled") : attemptTimeout?.aborted ? "attempt_timeout" : classifyRunError(e);
       throw Object.assign(e instanceof Error ? e : new Error("model failure"), { runCode: code });
+    } finally {
+      spent.input += runContext.usage.inputTokens;
+      spent.output += runContext.usage.outputTokens;
     }
   };
 
@@ -338,9 +345,8 @@ export async function runRecoveryAgent(deps: {
     if (!parsed.success) throw Object.assign(new Error("invalid model output"), { code: "invalid_output" });
     const judged = await judgeAnswer(verifyAnswer(parsed.data, context.sources), context.sources, judge);
     const verified = judged.verified;
-    const modelUsage = result.rawResponses.reduce((acc, r) => ({ input: acc.input + (r.usage?.inputTokens ?? 0), output: acc.output + (r.usage?.outputTokens ?? 0) }), { input: 0, output: 0 });
     // Judge tokens count towards the run (and so towards the daily token budget).
-    const usage = { input: modelUsage.input + (judged.judge?.usage.inputTokens ?? 0), output: modelUsage.output + (judged.judge?.usage.outputTokens ?? 0) };
+    const usage = { input: spent.input + (judged.judge?.usage.inputTokens ?? 0), output: spent.output + (judged.judge?.usage.outputTokens ?? 0) };
     await admin
       .from("agent_runs")
       .update({
@@ -362,12 +368,12 @@ export async function runRecoveryAgent(deps: {
     return { runId: run.id, status: "completed", answer: verified.answer, citations: verified.citations, events: context.events, proposalId: context.proposalId, removedUnsupportedFacts: verified.removed, model: current.model, ...fallbackInfo() };
   } catch (e) {
     const code = (e as { runCode?: string }).runCode ?? classifyRunError(e);
-    logEvent("error", "agent.run", { runId: run.id, status: "failed", code, model: current.model, fallbackReason, ms: Date.now() - deps.now, tools: context.events.length, error: e instanceof Error ? `${e.name}: ${e.message}`.slice(0, 240) : "unknown" });
+    logEvent("error", "agent.run", { runId: run.id, status: "failed", code, model: current.model, fallbackReason, ms: Date.now() - deps.now, inputTokens: spent.input, outputTokens: spent.output, tools: context.events.length, error: e instanceof Error ? `${e.name}: ${e.message}`.slice(0, 240) : "unknown" });
     // A failed run must not leave an actionable draft behind.
     if (context.proposalId) await admin.from("action_proposals").update({ status: "expired", decided_at: new Date().toISOString() }).eq("id", context.proposalId).eq("owner_id", userId).eq("status", "pending");
     await admin
       .from("agent_runs")
-      .update({ status: "failed", error_code: code, tool_events: context.events as unknown as Json, completed_at: new Date().toISOString() })
+      .update({ status: "failed", error_code: code, tool_events: context.events as unknown as Json, input_tokens: spent.input, output_tokens: spent.output, completed_at: new Date().toISOString() })
       .eq("id", run.id)
       .eq("owner_id", userId);
     return { runId: run.id, status: "failed", answer: null, citations: [], events: context.events, proposalId: null, removedUnsupportedFacts: 0, errorCode: code, model: current.model, ...fallbackInfo() };
