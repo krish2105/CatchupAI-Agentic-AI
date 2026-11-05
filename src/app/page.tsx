@@ -88,6 +88,7 @@ export default function Home() {
         <span className="lp-foot-links">
           <Link href="/quality">Quality and trust: tests, evaluation</Link>
           <Link href="/status">System status</Link>
+          <Link href="/pricing">Plans</Link>
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
         </span>

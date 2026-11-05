@@ -10,7 +10,7 @@ const sections: PolicySection[] = [
     title: "Who runs CatchUp AI",
     body: (
       <>
-        <p>CatchUp AI is a student project by Krishna Mathur, built for the Decoding Data Science Agentic AI Challenge (November 2026). It is not a company product and has no paid plans. For any privacy question or request, use <strong>Send feedback</strong> in Preferences: only the operator reads it.</p>
+        <p>CatchUp AI is a student project by Krishna Mathur, built for the Decoding Data Science Agentic AI Challenge (November 2026). It is not a company product. Students never pay; organisations can choose an optional paid plan (handled by Stripe). For any privacy question or request, use <strong>Send feedback</strong> in Preferences: only the operator reads it.</p>
         <p>This page is a plain-language summary written by the developer. It has not been reviewed by a lawyer.</p>
       </>
     ),
@@ -49,6 +49,7 @@ const sections: PolicySection[] = [
           <li><strong>Google Gemini API</strong> (the AI model and the search embeddings): your question and the passages from your notes that the copilot retrieves are sent to Google to produce an answer. Uploaded notes are also sent in pieces to create search embeddings. This project uses Gemini&apos;s free tier; under Google&apos;s terms for unpaid use, Google may use that content to improve its products, and people may review it. <strong>Don&apos;t upload anything sensitive</strong>, such as health or financial details.</li>
           <li><strong>Email delivery</strong> (Gmail SMTP): sign-in codes and, only if you turn them on, study reminder emails.</li>
           <li><strong>Cloudflare Turnstile</strong>: the bot check on the sign-in and demo buttons.</li>
+          <li><strong>Stripe</strong> (only for organisations on a paid plan): the admin&apos;s email, the organisation&apos;s id and the payment details they enter at checkout. Card numbers stay with Stripe; CatchUp AI stores only the Stripe customer and subscription ids, the plan and the seat limit.</li>
         </ul>
         <p>Because these services run outside the UAE and the EU, your data is transferred abroad when you use the app.</p>
       </>

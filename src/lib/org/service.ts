@@ -2,6 +2,7 @@ import "server-only";
 import { z } from "zod";
 import { ApiError, fromDbError, isMissingSchema } from "@/lib/http/errors";
 import type { ServerSupabase } from "@/lib/supabase/server";
+import { orgBilling, type OrgBilling } from "@/lib/billing/service";
 
 /**
  * Organisations (institutions/classes). Every write is a database function that checks the caller's role
@@ -40,7 +41,7 @@ export type OrgView = {
   name: string;
   role: "student" | "teacher" | "admin";
   shareProgress: boolean;
-  staff: null | { joinCode: string; roster: RosterEntry[]; summary: OrgSummary };
+  staff: null | { joinCode: string; roster: RosterEntry[]; summary: OrgSummary; billing: OrgBilling | null };
 };
 
 /**
@@ -62,7 +63,9 @@ export async function listMyOrganizations(supabase: ServerSupabase, userId: stri
         call(supabase.rpc("org_members", { p_org: m.org_id })),
         call(supabase.rpc("org_class_summary", { p_org: m.org_id, p_since: since })),
       ]);
-      return { ...base, staff: { joinCode: joinCode as string, roster: roster as RosterEntry[], summary: (summary as OrgSummary[])[0] } };
+      // Plan, seats and renewal for admins only (org_billing refuses everyone else).
+      const billing = role === "admin" ? await orgBilling(supabase, m.org_id).catch(() => null) : null;
+      return { ...base, staff: { joinCode: joinCode as string, roster: roster as RosterEntry[], summary: (summary as OrgSummary[])[0], billing } };
     }),
   );
 }

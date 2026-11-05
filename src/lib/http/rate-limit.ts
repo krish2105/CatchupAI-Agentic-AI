@@ -27,8 +27,11 @@ export const DEMO_LIMITS: Partial<Record<keyof typeof LIMITS, Limit>> = {
 };
 
 /** Per-student fixed-window limit stored in Postgres (works across serverless instances). */
-export async function enforceRateLimit(supabase: ServerSupabase, kind: keyof typeof LIMITS, user?: { isAnonymous: boolean }) {
-  const { bucket, limit, windowSeconds } = (user?.isAnonymous ? DEMO_LIMITS[kind] : undefined) ?? LIMITS[kind];
+export async function enforceRateLimit(supabase: ServerSupabase, kind: keyof typeof LIMITS, user?: { isAnonymous: boolean }, opts: { limit?: number } = {}) {
+  const base = (user?.isAnonymous ? DEMO_LIMITS[kind] : undefined) ?? LIMITS[kind];
+  // A plan may raise a full account's limit (never a demo account's); the window stays the allowlisted one.
+  const { bucket, windowSeconds } = base;
+  const limit = !user?.isAnonymous && opts.limit ? Math.min(1000, opts.limit) : base.limit;
   const { data, error } = await supabase.rpc("consume_rate_limit", { p_bucket: bucket, p_limit: limit, p_window_seconds: windowSeconds });
   if (error) throw new ApiError(500, "rate_limit_unavailable", "Please try again.", error.message);
   if (data !== true) {

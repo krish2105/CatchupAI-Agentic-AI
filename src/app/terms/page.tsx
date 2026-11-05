@@ -9,7 +9,7 @@ const sections: PolicySection[] = [
     id: "service",
     title: "What CatchUp AI is",
     body: (
-      <p>CatchUp AI is a free study-recovery tool built as a student project by Krishna Mathur for the Decoding Data Science Agentic AI Challenge (November 2026). It helps you plan around missed classes and answers questions from the notes you upload. There are no paid plans and no charges. By creating an account or trying the demo, you agree to these terms.</p>
+      <p>CatchUp AI is a free study-recovery tool built as a student project by Krishna Mathur for the Decoding Data Science Agentic AI Challenge (November 2026). It helps you plan around missed classes and answers questions from the notes you upload. Students never pay. Schools and classes can choose an optional paid organisation plan (see below). By creating an account or trying the demo, you agree to these terms.</p>
     ),
   },
   {
@@ -56,6 +56,16 @@ const sections: PolicySection[] = [
     title: "Responsibility",
     body: (
       <p>As far as the law allows, the developer isn&apos;t liable for missed deadlines, grades or other losses from relying on the app&apos;s answers or plans. Nothing in these terms limits rights you have under the consumer law where you live.</p>
+    ),
+  },
+  {
+    id: "paid-plans",
+    title: "Paid organisation plans",
+    body: (
+      <>
+        <p>An organisation (a school or class) can stay on the free plan (up to 40 members) or move to the Class plan, which raises the member limit. Only that organisation&apos;s admins can start, change or cancel it. Students never pay, and a student&apos;s own study data is the same on every plan.</p>
+        <p>Payment is handled by <strong>Stripe</strong>: card details go to Stripe and never reach CatchUp AI. The admin can change the card, see invoices or cancel at any time in <strong>Manage billing</strong>; a cancelled plan returns to the free limits at the end of the paid period. At the time of writing, payments run in Stripe&apos;s test mode only, so no real money is charged.</p>
+      </>
     ),
   },
   {

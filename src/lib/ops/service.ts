@@ -12,10 +12,10 @@ import type { AdminSupabase } from "@/lib/supabase/admin";
  * separated, plain config). Anonymous demo users are never owners. Everyone else gets a not-found, so the
  * page's existence isn't revealed.
  */
-export function isOpsOwner(user: { email?: string | null; is_anonymous?: boolean | null }) {
+export function isOpsOwner(user: { email?: string | null; isAnonymous?: boolean | null; is_anonymous?: boolean | null }) {
   const owners = (process.env.OPS_OWNER_EMAILS ?? "").split(",").map((e) => e.trim().toLowerCase()).filter(Boolean);
   const email = user.email?.trim().toLowerCase();
-  return Boolean(email) && !user.is_anonymous && owners.includes(email!);
+  return Boolean(email) && !user.isAnonymous && !user.is_anonymous && owners.includes(email!);
 }
 
 export async function requireOpsOwnerPage() {

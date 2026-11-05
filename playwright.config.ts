@@ -26,7 +26,16 @@ export default defineConfig({
   webServer: {
     command: "npm run build && npx next start -p 3100",
     // OPS_OWNER_EMAILS makes one fixed test account the operator for the /ops tests.
-    env: { CATCHUP_TEST_MODEL: "scripted", OPS_OWNER_EMAILS: "ops-owner@test.catchup.local" },
+    // Fake Stripe test-mode settings (not real keys): billing UI shows as enabled and the webhook verifies
+    // events the tests sign with this secret. Nothing here can reach a real Stripe account.
+    env: {
+      CATCHUP_TEST_MODEL: "scripted",
+      OPS_OWNER_EMAILS: "ops-owner@test.catchup.local",
+      STRIPE_SECRET_KEY: "sk_test_e2e_not_a_real_key",
+      STRIPE_WEBHOOK_SECRET: "whsec_e2e_not_a_real_secret",
+      STRIPE_PRICE_CLASS: "price_e2e_not_real",
+      STRIPE_CLASS_SEATS: "300",
+    },
     url: `${baseURL}/api/health`,
     reuseExistingServer: !process.env.CI,
     timeout: 300_000,

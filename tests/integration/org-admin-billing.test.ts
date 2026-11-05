@@ -20,6 +20,8 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  // Organisations outlive their members' accounts, so remove this run's (its Stripe ids are unique).
+  await admin().from("organizations").delete().eq("id", org);
   await Promise.all([owner, teacher, student, late].filter(Boolean).map((u) => deleteUser(u.id)));
 });
 
@@ -63,7 +65,7 @@ describe("billing state from Stripe webhooks (service role only)", () => {
   // Stripe event ids are global in stripe_events, so each run uses its own.
   const run = crypto.randomUUID().slice(0, 8);
   const apply = (id: string, at: string, plan: string, status: string, seats: number) =>
-    admin().rpc("apply_org_subscription", { p_event_id: `${id}_${run}`, p_event_type: "customer.subscription.updated", p_event_at: at, p_org: org, p_plan: plan, p_status: status, p_seats: seats, p_period_end: "2026-12-05T00:00:00Z", p_customer: "cus_test_1", p_subscription: "sub_test_1" });
+    admin().rpc("apply_org_subscription", { p_event_id: `${id}_${run}`, p_event_type: "customer.subscription.updated", p_event_at: at, p_org: org, p_plan: plan, p_status: status, p_seats: seats, p_period_end: "2026-12-05T00:00:00Z", p_customer: `cus_test_${run}`, p_subscription: `sub_test_${run}` });
 
   it("can't be called by a signed-in user, even the admin", async () => {
     const r = await owner.db.rpc("apply_org_subscription", { p_event_id: "evt_x", p_event_type: "x", p_event_at: "2026-11-05T00:00:00Z", p_org: org, p_plan: "class", p_status: "active", p_seats: 999, p_period_end: null as unknown as string, p_customer: null as unknown as string, p_subscription: null as unknown as string });
@@ -76,7 +78,7 @@ describe("billing state from Stripe webhooks (service role only)", () => {
     // An older "canceled" event arriving late must not undo the newer active subscription.
     expect((await apply("evt_0", "2026-11-05T09:00:00Z", "free", "canceled", 40)).data).toBe(false);
     const row = (await admin().from("organizations").select("plan, plan_status, seat_limit, stripe_customer_id").eq("id", org).single()).data;
-    expect(row).toEqual({ plan: "class", plan_status: "active", seat_limit: 300, stripe_customer_id: "cus_test_1" });
+    expect(row).toEqual({ plan: "class", plan_status: "active", seat_limit: 300, stripe_customer_id: `cus_test_${run}` });
     expect((await audit()).at(-1)).toBe("plan.changed");
     // With seats available again, the late student can join.
     expect((await late.db.rpc("join_organization", { p_code: code })).error).toBeNull();

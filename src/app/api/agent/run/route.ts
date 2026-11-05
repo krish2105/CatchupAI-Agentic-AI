@@ -2,6 +2,7 @@ import { z } from "zod";
 import { AGENT_LIMITS, runRecoveryAgent } from "@/lib/agents/recovery-agent";
 import { resolveRuntime } from "@/lib/agents/runtime";
 import { assertAiAvailable } from "@/lib/ai/guard";
+import { agentDailyLimit } from "@/lib/billing/plan-limits";
 import { recordAppError } from "@/lib/observability/app-errors";
 import { logEvent } from "@/lib/observability/log";
 import { requireApiUser } from "@/lib/auth/session";
@@ -30,7 +31,8 @@ export const POST = route(async (request: Request) => {
   if (!runtime) throw new ApiError(503, "ai_not_configured", "The AI runtime isn't configured on this server (GEMINI_API_KEY, or OPENAI_API_KEY and OPENAI_MODEL).");
   // Kill switch, daily token budget and one-run-at-a-time are checked before any quota is spent.
   await assertAiAvailable(adminClient(), user.id);
-  await enforceRateLimit(supabase, "agent", user);
+  // Members of a Class-plan organisation get a higher daily copilot limit.
+  await enforceRateLimit(supabase, "agent", user, { limit: await agentDailyLimit(supabase, user.id) });
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({

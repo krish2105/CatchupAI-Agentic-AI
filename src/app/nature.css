@@ -1082,3 +1082,16 @@ html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: 
 .tracker-glance { margin-top: 14px; }
 .tracker-glance ul { list-style: none; margin: 8px 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 13.5px; }
 .tracker-glance li { display: inline-flex; align-items: center; gap: 5px; }
+
+/* Plans page (/pricing) and the admin billing card on /org. */
+.pricing-grid { list-style: none; margin: 18px 0; padding: 0; display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.pricing-grid > li { display: grid; gap: 6px; align-content: start; }
+.pricing-icon { width: 22px; height: 22px; color: var(--accent); }
+.pricing-price { font-size: 22px; font-weight: 800; margin: 2px 0; color: var(--heading, var(--text)); }
+.pricing-items { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 6px; font-size: 13.5px; }
+.pricing-items li { display: flex; gap: 6px; align-items: flex-start; }
+.pricing-items .ic { width: 14px; height: 14px; margin-top: 2px; color: var(--good); flex: none; }
+.org-billing { margin: 12px 0; padding: 12px 14px; border: 1px solid var(--stroke-strong); border-radius: 12px; display: grid; gap: 6px; font-size: 13.5px; }
+.org-billing p { margin: 0; }
+.org-billing strong { display: inline-flex; align-items: center; gap: 6px; }
+.org-billing meter { width: 100%; height: 10px; }

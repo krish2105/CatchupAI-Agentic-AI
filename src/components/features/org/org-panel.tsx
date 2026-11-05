@@ -1,6 +1,6 @@
 "use client";
 
-import { Building2, LogIn, Plus, Users } from "lucide-react";
+import { Building2, CreditCard, LogIn, Plus, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
@@ -9,9 +9,12 @@ import type { OrgView } from "@/lib/org/service";
 
 const ROLE = { student: "Student", teacher: "Teacher", admin: "Admin" } as const;
 
-export default function OrgPanel({ orgs, anonymous }: { orgs: OrgView[]; anonymous: boolean }) {
+export type BillingInfo = { enabled: boolean; mode: "test" | "live" | "off"; classSeats: number; priceLabel: string | null };
+
+export default function OrgPanel({ orgs, anonymous, billing, initialCode = "" }: { orgs: OrgView[]; anonymous: boolean; billing: BillingInfo; initialCode?: string }) {
   const router = useRouter();
-  const [code, setCode] = useState("");
+  // An invite link (/org?join=CODE) fills the code in; joining still needs the student to confirm.
+  const [code, setCode] = useState(initialCode);
   const [name, setName] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -91,6 +94,7 @@ export default function OrgPanel({ orgs, anonymous }: { orgs: OrgView[]; anonymo
                 ) : null}
               </div>
               {!o.staff.summary.shown ? <p className="muted">Class totals appear once at least 3 students share them (now {o.staff.summary.sharing}), so no one&apos;s numbers can be worked out from a total.</p> : null}
+              {o.role === "admin" && o.staff.billing ? <BillingCard orgId={o.id} billing={o.staff.billing} info={billing} onError={setError} /> : null}
               <h3 className="org-roster-title"><Users className="ic" aria-hidden="true" /> Members</h3>
               <table className="data-table">
                 <caption className="visually-hidden">Members of {o.name}</caption>
@@ -119,3 +123,42 @@ export default function OrgPanel({ orgs, anonymous }: { orgs: OrgView[]; anonymo
     </div>
   );
 }
+
+const STATUS: Record<string, string> = { none: "", active: "active", trialing: "trial", past_due: "payment overdue", canceled: "cancelled", incomplete: "payment not finished" };
+
+/** Admin-only plan card: plan, seats used, renewal, and Upgrade (Checkout) or Manage billing (portal). */
+function BillingCard({ orgId, billing, info, onError }: { orgId: string; billing: NonNullable<NonNullable<OrgView["staff"]>["billing"]>; info: BillingInfo; onError: (m: string | null) => void }) {
+  const [busy, setBusy] = useState(false);
+  const paid = billing.plan === "class" && billing.planStatus !== "canceled";
+  const used = Math.min(100, Math.round((billing.members / Math.max(1, billing.seatLimit)) * 100));
+  async function go(path: string) {
+    setBusy(true);
+    onError(null);
+    try {
+      const { url } = await api<{ url: string }>(path, { method: "POST", body: { orgId } });
+      window.location.assign(url);
+    } catch (e) {
+      onError(e instanceof ClientApiError ? e.message : "Couldn't open billing.");
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="org-billing" aria-label="Plan and seats">
+      <div className="split-head">
+        <strong><CreditCard className="ic" aria-hidden="true" /> {paid ? "Class plan" : "Free plan"}{STATUS[billing.planStatus] ? ` · ${STATUS[billing.planStatus]}` : ""}</strong>
+        {info.mode === "test" ? <Chip tone="warn">Stripe test mode</Chip> : null}
+      </div>
+      <p>{billing.members} of {billing.seatLimit} seats used{billing.periodEnd && paid ? ` · renews ${new Date(billing.periodEnd).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" })}` : ""}</p>
+      <meter min={0} max={billing.seatLimit} value={billing.members} aria-label={`Seats used: ${billing.members} of ${billing.seatLimit}`} />
+      {used >= 90 ? <p className="muted">Almost full: new members can&apos;t join once every seat is taken.</p> : null}
+      {!info.enabled ? (
+        <p className="muted">Paid plans are coming soon. Students never pay. <a href="/pricing">See plans</a></p>
+      ) : paid || billing.hasCustomer ? (
+        <button type="button" className="btn small" disabled={busy} onClick={() => go("/api/billing/portal")}>Manage billing</button>
+      ) : (
+        <button type="button" className="btn small primary" disabled={busy} onClick={() => go("/api/billing/checkout")}>Upgrade to Class ({info.classSeats} seats)</button>
+      )}
+    </section>
+  );
+}
+
