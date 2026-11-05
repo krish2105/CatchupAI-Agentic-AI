@@ -32,3 +32,16 @@ describe("embeddings", () => {
     expect(vectorThreshold(null)).toBe(0.5);
   });
 });
+
+describe("embeddings in local test runs", () => {
+  it("are off when the scripted test model is on against a local stack, even with a real key in .env.local", () => {
+    vi.stubEnv("GEMINI_API_KEY", "test-not-real");
+    vi.stubEnv("AI_PROVIDER", "gemini");
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "http://127.0.0.1:54321");
+    vi.stubEnv("CATCHUP_TEST_MODEL", "scripted");
+    expect(getEmbedder()).toBeNull();
+    vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", "https://abcd.supabase.co"); // never applies to a deployment
+    expect(getEmbedder()).not.toBeNull();
+    vi.unstubAllEnvs();
+  });
+});

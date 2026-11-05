@@ -39,6 +39,9 @@ function openAiCompatible(provider: Embedder["provider"], client: OpenAI, model:
  * retrieval uses lexical search only. Query and documents must use the same provider (stored per document).
  */
 export function getEmbedder(): Embedder | null {
+  // Local automated tests (scripted model on a local stack) never call a real embeddings API: it would spend
+  // the free quota and make tests flaky. Same rule as the chat model (agents/runtime.ts); never true in a deployment.
+  if (process.env.CATCHUP_TEST_MODEL === "scripted" && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")) return null;
   const openaiKey = process.env.OPENAI_API_KEY;
   const geminiKey = process.env.GEMINI_API_KEY;
   const preferGemini = process.env.AI_PROVIDER === "gemini";
