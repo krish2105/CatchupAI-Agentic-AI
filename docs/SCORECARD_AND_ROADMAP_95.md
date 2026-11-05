@@ -8,7 +8,7 @@ Live in production: model fallback, streamed answers, tool-result cache, plan se
 | Role | Before | Now | What earns points | What costs points |
 | --- | --- | --- | --- | --- |
 | **CEO** (problem, story, market) | 86 | **88** | Clear problem, catch-up pack, approval story; status page; plain-language privacy and terms; LMS export import lowers switching cost | No users, pricing or outcome evidence |
-| **CTO** (architecture, security) | 96 | **98** | Error tracking without a third party (redacted at source, grouped, server-only table), owner-only /ops (everyone else gets not-found), readiness shared by /status and uptime, self-check enforced before approval, 21 migrations with RLS (0021, scanned-PDF OCR, waits for production; until then the app behaves as before) | Alerts not active until the `CRON_SECRET` repo secret is set |
+| **CTO** (architecture, security) | 96 | **98** | Error tracking without a third party (redacted at source, grouped, server-only table), owner-only /ops (everyone else gets not-found), readiness shared by /status and uptime, self-check enforced before approval, 21 migrations with RLS, all applied in production (0021, scanned-PDF OCR, on 5 Nov) | Alerts not active until the `CRON_SECRET` repo secret is set |
 | **Senior PM** (scope, UX) | 94 | **96** | Calendar and tracker from a research report, with follow-ups shipped (done view, draft blocks, colour key); getting-started checklist and activation funnel; trace viewer; status page | No pilot; Day 0 not done |
 | **COO** (operability) | 91 | **94** | Kill switch and budget editable in /ops, error groups with resolve, public incident notes, uptime history | `OPS_OWNER_EMAILS` and `CRON_SECRET` not set yet; reminder SMTP not set |
 | **AI engineer** | 91 | **93** | Fallback triggered on a live daily-quota 429; streamed answers completed on live Gemini after a signature bug was found by the live run and fixed (ADR-076); fallback model chosen by live probes (ADR-077) | Streaming not yet run on gemini-3.6-flash or the deployed route; free-tier latency |
@@ -27,7 +27,7 @@ Live in production: model fallback, streamed answers, tool-result cache, plan se
 | --- | --- | --- | --- |
 | 1 | Re-run S2 live (recovery fix ADR-078 is in, tested with the scripted model), then each live case ×3 with `LIVE_PAUSE_MS=65000`; a streamed run on gemini-3.6-flash (all 12 cases ran once on 4–5 Nov) | +1–2 (agentic) | Code (quota-gated) |
 | 2 | Set `OPS_OWNER_EMAILS`, `GEMINI_FALLBACK_MODEL=gemini-3.1-flash-lite` (Vercel) and `CRON_SECRET` (GitHub secret) | +2 COO | You |
-| 3 | Apply migration 0021 (scanned-PDF OCR) in production; add Stripe test keys and run one test-card checkout with `stripe listen` (migration 0020 applied 5 Nov) | SaaS 89 → 91 | You |
+| 3 | Add Stripe test keys and run one test-card checkout with `stripe listen` (migrations through 0021 applied 5 Nov); upload one scanned PDF on the live site to see OCR end to end | SaaS 89 → 91 | You |
 | 4 | Faithfulness judge agreement with labels (`JUDGE_LIVE=1`) (live OCR check done 5 Nov: 68/68 words) | +1 RAG | Code (chat quota) |
 | 5 | Pitch deck from real numbers; record the live-model demo (shot list and narration exist) | +2–3 presentation | Code drafts, you record |
 | 6 | Day 0, daily checkpoints, pilot, video, LinkedIn, final submission | participation 20 + evidence | You |
