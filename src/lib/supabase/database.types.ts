@@ -680,7 +680,6 @@ export type Database = {
           share_progress: boolean
           user_id: string
         }
-        ComputedFields: never
         Insert: {
           created_at?: string
           org_id: string
@@ -763,7 +762,6 @@ export type Database = {
           org_id: string
           target_user: string | null
         }
-        ComputedFields: never
         Insert: {
           action: string
           actor_id?: string | null
@@ -792,6 +790,59 @@ export type Database = {
           },
         ]
       }
+      org_invites: {
+        Row: {
+          accepted_at: string | null
+          accepted_by: string | null
+          created_at: string
+          created_by: string | null
+          email_hash: string
+          email_hint: string
+          expires_at: string
+          id: string
+          org_id: string
+          revoked_at: string | null
+          role: string
+          token_hash: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          email_hash: string
+          email_hint: string
+          expires_at: string
+          id?: string
+          org_id: string
+          revoked_at?: string | null
+          role?: string
+          token_hash: string
+        }
+        Update: {
+          accepted_at?: string | null
+          accepted_by?: string | null
+          created_at?: string
+          created_by?: string | null
+          email_hash?: string
+          email_hint?: string
+          expires_at?: string
+          id?: string
+          org_id?: string
+          revoked_at?: string | null
+          role?: string
+          token_hash?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_invites_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       organizations: {
         Row: {
           billing_event_at: string | null
@@ -807,7 +858,6 @@ export type Database = {
           stripe_customer_id: string | null
           stripe_subscription_id: string | null
         }
-        ComputedFields: never
         Insert: {
           billing_event_at?: string | null
           created_at?: string
@@ -1010,7 +1060,6 @@ export type Database = {
           received_at: string
           type: string
         }
-        ComputedFields: never
         Insert: {
           id: string
           org_id?: string | null
@@ -1235,6 +1284,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      accept_org_invite: { Args: { p_token: string }; Returns: string }
       apply_org_subscription: {
         Args: {
           p_customer: string
@@ -1271,11 +1321,23 @@ export type Database = {
         Args: { p_bucket: string; p_limit: number; p_window_seconds: number }
         Returns: boolean
       }
+      create_org_invite: {
+        Args: { p_email: string; p_org: string; p_role: string }
+        Returns: {
+          invite_id: string
+          token: string
+        }[]
+      }
       create_organization: { Args: { p_name: string }; Returns: string }
+      delete_organization: {
+        Args: { p_confirm_name: string; p_org: string }
+        Returns: undefined
+      }
       is_org_member: { Args: { p_org: string }; Returns: boolean }
       join_organization: { Args: { p_code: string }; Returns: string }
       leave_organization: { Args: { p_org: string }; Returns: undefined }
-      new_join_code: { Args: Record<PropertyKey, never>; Returns: string }
+      mask_email: { Args: { p: string }; Returns: string }
+      new_join_code: { Args: never; Returns: string }
       org_billing: {
         Args: { p_org: string }
         Returns: {
@@ -1301,6 +1363,18 @@ export type Database = {
           students: number
         }[]
       }
+      org_invite_list: {
+        Args: { p_org: string }
+        Returns: {
+          accepted_at: string
+          created_at: string
+          email_hint: string
+          expires_at: string
+          id: string
+          revoked_at: string
+          role: string
+        }[]
+      }
       org_members: {
         Args: { p_org: string }
         Returns: {
@@ -1312,6 +1386,7 @@ export type Database = {
         }[]
       }
       org_role: { Args: { p_org: string }; Returns: string }
+      org_sha256: { Args: { p: string }; Returns: string }
       organization_join_code: { Args: { p_org: string }; Returns: string }
       record_app_error: {
         Args: {
@@ -1326,10 +1401,17 @@ export type Database = {
         Returns: undefined
       }
       reject_proposal: { Args: { p_proposal_id: string }; Returns: Json }
-      require_full_account: {
-        Args: Record<PropertyKey, never>
+      remove_org_member: {
+        Args: { p_org: string; p_user: string }
         Returns: undefined
       }
+      rename_organization: {
+        Args: { p_name: string; p_org: string }
+        Returns: undefined
+      }
+      require_full_account: { Args: never; Returns: undefined }
+      resend_org_invite: { Args: { p_invite: string }; Returns: string }
+      revoke_org_invite: { Args: { p_invite: string }; Returns: undefined }
       rotate_join_code: { Args: { p_org: string }; Returns: string }
       search_course_chunks: {
         Args: {

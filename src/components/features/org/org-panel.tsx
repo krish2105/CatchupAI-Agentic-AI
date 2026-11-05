@@ -6,12 +6,13 @@ import { useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
 import { api, ClientApiError } from "@/lib/client/api";
 import type { OrgView } from "@/lib/org/service";
+import OrgAdmin from "./org-admin";
 
 const ROLE = { student: "Student", teacher: "Teacher", admin: "Admin" } as const;
 
 export type BillingInfo = { enabled: boolean; mode: "test" | "live" | "off"; classSeats: number; priceLabel: string | null };
 
-export default function OrgPanel({ orgs, anonymous, billing, initialCode = "" }: { orgs: OrgView[]; anonymous: boolean; billing: BillingInfo; initialCode?: string }) {
+export default function OrgPanel({ orgs, anonymous, billing, initialCode = "", inviteToken = "", selfId }: { orgs: OrgView[]; anonymous: boolean; billing: BillingInfo; initialCode?: string; inviteToken?: string; selfId: string }) {
   const router = useRouter();
   // An invite link (/org?join=CODE) fills the code in; joining still needs the student to confirm.
   const [code, setCode] = useState(initialCode);
@@ -39,6 +40,15 @@ export default function OrgPanel({ orgs, anonymous, billing, initialCode = "" }:
   return (
     <div style={{ display: "grid", gap: 18 }}>
       {error ? <Notice tone="danger" title={error} /> : null}
+      {inviteToken ? (
+        <section className="card card-inner org-invite-accept" aria-labelledby="invite-accept-title">
+          <h2 id="invite-accept-title" className="trace-h2">You&apos;ve been invited to an organisation</h2>
+          <p>Accept to join with the role the admin chose. Teachers only ever see class totals from students who choose to share them, never your notes, answers or plans.</p>
+          <button type="button" className="btn small primary" disabled={busy !== null} onClick={async () => {
+            if (await run("accept", "/api/org/invites/accept", { token: inviteToken })) window.history.replaceState(null, "", "/org");
+          }}>Accept invite</button>
+        </section>
+      ) : null}
       <div className="two-column">
         <form className="card card-inner org-form" onSubmit={async (e) => { e.preventDefault(); if (await run("join", "/api/org/join", { code: code.trim() })) setCode(""); }}>
           <h2 className="trace-h2"><LogIn className="ic" aria-hidden="true" /> Join with a code</h2>
@@ -117,6 +127,7 @@ export default function OrgPanel({ orgs, anonymous, billing, initialCode = "" }:
               </table>
             </>
           ) : null}
+          {o.role === "admin" && o.staff ? <OrgAdmin orgId={o.id} orgName={o.name} staff={o.staff} selfId={selfId} /> : null}
           <div><button type="button" className="btn small ghost" disabled={busy !== null} onClick={() => run(`leave-${o.id}`, `/api/org/${o.id}/leave`)}>Leave {o.name}</button></div>
         </section>
       ))}

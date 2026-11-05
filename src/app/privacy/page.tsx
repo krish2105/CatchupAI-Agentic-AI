@@ -25,7 +25,8 @@ const sections: PolicySection[] = [
         <li><strong>Copilot runs:</strong> your question, the tools the copilot used, its answer and the pages it cited, and token counts. You can open each run in its trace view.</li>
         <li><strong>Organisations (optional):</strong> the schools or classes you join, your role, and whether you share class totals. Teachers and admins of that organisation see your display name, your role and whether you share; nothing else. If you share, your completed study minutes, open deadlines and latest check score are added to class totals, which are shown only when at least 3 students share.</li>
         <li><strong>Error reports:</strong> grouped error messages with emails, ids, numbers and secrets removed before they are stored.</li>
-      </ul>
+        <li><strong>Organisation invites</strong>: a one-way hash of the invited email address, a masked hint (such as j•••@example.com) for the admin&apos;s list, the role and the dates. The full address is never stored; invite links expire after 7 days.</li>
+          </ul>
     ),
   },
   {

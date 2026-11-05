@@ -10,7 +10,7 @@ import { billingConfig } from "@/lib/billing/stripe";
 export const metadata: Metadata = { title: "Organisations" };
 
 /** Schools and classes: join with a code, choose whether to count in class totals, and (staff) see aggregates. */
-export default async function OrgPage({ searchParams }: { searchParams: Promise<{ billing?: string; join?: string }> }) {
+export default async function OrgPage({ searchParams }: { searchParams: Promise<{ billing?: string; join?: string; invite?: string }> }) {
   const { supabase, user } = await requirePageUser("/org");
   const params = await searchParams;
   const cfg = billingConfig();
@@ -30,7 +30,7 @@ export default async function OrgPage({ searchParams }: { searchParams: Promise<
       {orgs === null ? (
         <Notice tone="info" title="Organisations are coming soon.">This part of CatchUp AI isn&apos;t switched on yet. Everything else works as usual.</Notice>
       ) : (
-        <OrgPanel orgs={orgs} anonymous={anonymous} billing={billing} initialCode={/^[A-Za-z0-9]{10}$/.test(params.join ?? "") ? params.join! : ""} />
+        <OrgPanel orgs={orgs} anonymous={anonymous} billing={billing} initialCode={/^[A-Za-z0-9]{10}$/.test(params.join ?? "") ? params.join! : ""} inviteToken={/^[0-9a-f]{48}$/.test(params.invite ?? "") ? params.invite! : ""} selfId={user.id} />
       )}
     </>
   );
