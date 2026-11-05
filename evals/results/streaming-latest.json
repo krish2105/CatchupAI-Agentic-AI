@@ -1,0 +1,18 @@
+{
+  "at": "2026-11-05T08:23:58.114Z",
+  "model": "gemini:gemini-3.1-flash-lite",
+  "status": "completed",
+  "errorCode": null,
+  "totalMs": 3890,
+  "firstEventMs": 3279,
+  "events": {
+    "fact": 2,
+    "text": 5,
+    "reset": 0
+  },
+  "tools": [
+    "search_course_material"
+  ],
+  "finalFacts": 2,
+  "streamedFactsMatchFinal": true
+}

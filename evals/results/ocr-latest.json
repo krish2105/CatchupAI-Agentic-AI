@@ -1,0 +1,22 @@
+{
+  "at": "2026-11-05T08:10:58.264Z",
+  "model": "gemini-3.5-flash",
+  "ms": 8537,
+  "usage": {
+    "inputTokens": 631,
+    "outputTokens": 1206
+  },
+  "pages": 1,
+  "chars": 360,
+  "expected": 9,
+  "found": 9,
+  "accuracy": {
+    "referenceWords": 68,
+    "edits": 0,
+    "wer": 0
+  },
+  "missing": [],
+  "text": [
+    "Applied Statistics · Module 4 · PAGE 1 — OVERVIEW\nSimple linear regression models the relationship between a predictor X and an outcome Y. The equation is Y_hat = beta_0 + beta_1 * X. The intercept beta_0 is the predicted Y when X is zero; the slope beta_1 is the expected change in Y for a one-unit increase in X. A prediction is an estimate, not a guarantee."
+  ]
+}

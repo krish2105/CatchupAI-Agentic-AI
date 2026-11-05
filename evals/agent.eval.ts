@@ -20,7 +20,7 @@ import { searchCourseMaterial } from "@/lib/rag/retrieve";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { admin, anon, deleteUser, signedInUser, type Db } from "../tests/integration/helpers";
-import { recordLiveRun } from "./live-history";
+import { livePause, liveRequested, recordLiveRun } from "./live-history";
 
 type Category = "retrieval" | "schedule" | "tool_selection" | "approval" | "security" | "robustness";
 type Outcome = { id: string; category: Category; name: string; status: "pass" | "fail" | "skipped"; detail: string; ms: number };
@@ -77,13 +77,19 @@ afterAll(async () => {
     const r = results.filter((x) => x.category === c);
     return { category: c, total: r.length, pass: r.filter((x) => x.status === "pass").length, fail: r.filter((x) => x.status === "fail").length, skipped: r.filter((x) => x.status === "skipped").length };
   });
-  const runtime = openAiRuntime();
+  const runtime = liveRequested() ? openAiRuntime() : null;
   const meta = {
     ranAt: new Date().toISOString(),
     retrievalMode: embedder ? `hybrid (${embedder.model})` : "lexical only (no OPENAI_API_KEY)",
-    agentModel: runtime ? `${runtime.kind}:${runtime.model}` : "not configured — tool-selection cases skipped",
+    agentModel: runtime ? `${runtime.kind}:${runtime.model}${runtime.fallback ? ` + fallback ${runtime.fallback.model}` : ""}` : "not configured — tool-selection cases skipped",
     totals: { cases: results.length, pass: results.filter((r) => r.status === "pass").length, fail: results.filter((r) => r.status === "fail").length, skipped: results.filter((r) => r.status === "skipped").length },
   };
+  // The committed report holds live evidence: only a live run rewrites it. Offline runs (CI, no EVAL_LIVE) still pass or
+  // fail this suite, and leave their results in a git-ignored file.
+  if (!runtime) {
+    writeFileSync("evals/results/offline-latest.json", JSON.stringify({ meta, summary, results }, null, 2));
+    return;
+  }
   writeFileSync("evals/results/latest.json", JSON.stringify({ meta, summary, results }, null, 2));
   // Live runs only: each tool-selection case that actually ran adds to the per-case pass rate shown on /quality.
   if (runtime) {
@@ -188,18 +194,21 @@ describe("evaluation suite", () => {
     });
 
     // ---------------- Tool selection (5) — real LLM only ----------------
-    const runtime = openAiRuntime();
+    const runtime = liveRequested() ? openAiRuntime() : null;
     type Out = Awaited<ReturnType<typeof runRecoveryAgent>>;
     const toolCase = (id: string, prompt: string, expected: string[], forbid?: (out: Out, used: Set<string>) => void) =>
       record(id, "tool_selection", `"${prompt}" uses ${expected.join(" + ")}`, async () => {
-        if (!runtime) return { skipped: "no model key configured (GEMINI_API_KEY or OPENAI_API_KEY + OPENAI_MODEL)" };
+        if (!runtime) return { skipped: "live model not requested (EVAL_LIVE=1 or LIVE_CASES) or no model key configured" };
         // LIVE_CASES=T1,T2 runs only those live cases (the Gemini free tier allows 20 requests a day per model).
         if (process.env.LIVE_CASES && !process.env.LIVE_CASES.split(",").includes(id)) return { skipped: "not selected for this run (LIVE_CASES quota budget)" };
+        await livePause();
         const started = Date.now();
         const out = await runRecoveryAgent({ supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: courseA, message: prompt, runtime, embedder, now: Date.now() });
         const used = new Set(out.events.map((e) => e.tool));
         const { data: stored } = await admin().from("agent_runs").select("input_tokens, output_tokens").eq("id", out.runId).single();
-        const trace = `run ${out.runId.slice(0, 8)} · ${Date.now() - started} ms · ${stored?.input_tokens ?? 0}+${stored?.output_tokens ?? 0} tokens`;
+        // The model that produced the outcome: after a fallback it is the second model, not the configured one.
+        const answeredBy = out.fallbackFrom ? `model ${out.model} (fallback from ${out.fallbackFrom}: ${out.fallbackReason})` : `model ${out.model}`;
+        const trace = `run ${out.runId.slice(0, 8)} · ${answeredBy} · ${Date.now() - started} ms · ${stored?.input_tokens ?? 0}+${stored?.output_tokens ?? 0} tokens`;
         check(out.status === "completed", `run ${out.status} (${out.errorCode}) · ${trace}`);
         check(expected.every((t) => used.has(t)), `used: ${[...used].join(", ")} · ${trace}`);
         if (forbid) forbid(out, used);

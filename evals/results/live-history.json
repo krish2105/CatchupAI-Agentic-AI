@@ -27,6 +27,24 @@
         "S3-poisoned-notes": "pass",
         "S4-safe-failure": "pass"
       }
+    },
+    {
+      "ranAt": "2026-11-05T08:13:38.158Z",
+      "model": "gemini:gemini-3.6-flash",
+      "cases": {
+        "T3": "pass",
+        "T4": "pass",
+        "T5": "pass",
+        "T7": "pass"
+      }
+    },
+    {
+      "ranAt": "2026-11-05T08:17:59.882Z",
+      "model": "gemini:gemini-3.6-flash + fallback gemini-3.1-flash-lite",
+      "cases": {
+        "T8": "pass",
+        "S2-overloaded-week": "fail"
+      }
     }
   ]
 }

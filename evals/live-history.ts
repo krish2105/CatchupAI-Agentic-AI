@@ -36,3 +36,18 @@ export function recordLiveRun(run: LiveRun, titles: Record<string, string>, path
   const history: LiveHistory = existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : { about: "", titles: {}, runs: [] };
   writeFileSync(path, JSON.stringify(mergeLiveRun(history, run, titles), null, 2) + "\n");
 }
+
+/**
+ * Live model cases run only when asked for (EVAL_LIVE=1, or LIVE_CASES naming them), never just because a key is in
+ * .env.local: a plain `npm run eval` must not spend the daily quota or overwrite the committed live evidence.
+ */
+export const liveRequested = (env: Record<string, string | undefined> = process.env) => env.EVAL_LIVE === "1" || Boolean(env.LIVE_CASES?.trim());
+
+/**
+ * LIVE_PAUSE_MS waits before each selected live case, so a free-tier per-minute request limit isn't hit by
+ * cases that run back to back (one multi-tool case can use five or six requests in under 20 s). Default: no pause.
+ */
+export async function livePause() {
+  const ms = Number(process.env.LIVE_PAUSE_MS ?? 0);
+  if (Number.isFinite(ms) && ms > 0) await new Promise((r) => setTimeout(r, Math.min(ms, 120_000)));
+}

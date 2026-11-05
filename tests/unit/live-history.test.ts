@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import history from "../../evals/results/live-history.json";
-import { livePassRates, mergeLiveRun, type LiveHistory } from "../../evals/live-history";
+import { livePassRates, liveRequested, mergeLiveRun, type LiveHistory } from "../../evals/live-history";
 
 const empty: LiveHistory = { about: "", titles: { T1: "deadlines", T2: "notes", S2: "overloaded week" }, runs: [] };
 
@@ -27,10 +27,20 @@ describe("live evaluation history", () => {
     expect(mergeLiveRun(empty, { ranAt: "2026-11-05T08:00:00Z", model: "scripted", cases: {} }).runs).toEqual([]);
   });
 
-  it("the committed history holds the real 4 Nov run only", () => {
-    const h = history as LiveHistory;
-    expect(h.runs).toHaveLength(1);
-    expect(h.runs[0]).toMatchObject({ model: "gemini:gemini-3.6-flash", cases: { T1: "pass", T2: "pass", T6: "pass", T8: "fail", "S1-missed-lecture": "pass", "S3-poisoned-notes": "pass", "S4-safe-failure": "pass" } });
+  it("the committed history holds the real 4 and 5 Nov runs, with every live case run at least once", () => {
+    const h = history as unknown as LiveHistory;
+    expect(h.runs.map((r) => r.model)).toEqual(["gemini:gemini-3.6-flash", "gemini:gemini-3.6-flash", "gemini:gemini-3.6-flash + fallback gemini-3.1-flash-lite"]);
+    expect(h.runs[0].cases).toMatchObject({ T1: "pass", T2: "pass", T6: "pass", T8: "fail", "S1-missed-lecture": "pass", "S3-poisoned-notes": "pass", "S4-safe-failure": "pass" });
+    expect(h.runs[1].cases).toEqual({ T3: "pass", T4: "pass", T5: "pass", T7: "pass" });
+    expect(h.runs[2].cases).toEqual({ T8: "pass", "S2-overloaded-week": "fail" });
     expect(Object.keys(h.titles)).toHaveLength(12);
+    expect(livePassRates(h).every((c) => c.runs > 0)).toBe(true);
+  });
+
+  it("runs live model cases only when asked for, not just because a key is present", () => {
+    expect(liveRequested({ GEMINI_API_KEY: "k" })).toBe(false);
+    expect(liveRequested({ GEMINI_API_KEY: "k", EVAL_LIVE: "1" })).toBe(true);
+    expect(liveRequested({ GEMINI_API_KEY: "k", LIVE_CASES: "T3,S2" })).toBe(true);
+    expect(liveRequested({ LIVE_CASES: " " })).toBe(false);
   });
 });

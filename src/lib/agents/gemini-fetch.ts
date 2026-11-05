@@ -6,6 +6,8 @@
  * (`reasoning_effort`, default "minimal") because full thinking takes ~30 s per step on the free tier.
  * On the free tier Google also limits requests per minute: a 429/503 is retried after the delay Google asks for
  * (its `retryDelay`), within a total waiting budget, instead of failing the whole multi-step run.
+ * Newer Flash models reject "minimal" with a 400; such a request is retried once with "low", and that model then gets
+ * "low" from the start (so a newer fallback model works without its own setting).
  */
 type ToolCall = { id?: string; function?: { name?: string; arguments?: string }; extra_content?: unknown };
 type Message = { role?: string; tool_calls?: ToolCall[] };
@@ -32,8 +34,27 @@ export function patchRequestBody(body: Record<string, unknown>, reasoningEffort 
       if (found) call.extra_content = found;
     }
   }
-  if (reasoningEffort !== "default" && body.reasoning_effort === undefined) body.reasoning_effort = reasoningEffort;
+  if (reasoningEffort !== "default" && body.reasoning_effort === undefined) {
+    body.reasoning_effort = reasoningEffort === "minimal" && noMinimal.has(String(body.model)) ? "low" : reasoningEffort;
+  }
   return body;
+}
+
+/** Models that answered 400 "Thinking level MINIMAL is not supported" (newer Flash models); they get "low". */
+const noMinimal = new Set<string>();
+
+/** The request body to retry with "low" if `response` is that 400 for a "minimal" request we set; otherwise null. */
+async function lowerThinkingRetry(response: Response, bodyText: string): Promise<string | null> {
+  if (response.status !== 400) return null;
+  if (!/thinking level minimal is not supported/i.test(await response.clone().text())) return null;
+  try {
+    const body = JSON.parse(bodyText) as Record<string, unknown>;
+    if (body.reasoning_effort !== "minimal") return null;
+    noMinimal.add(String(body.model));
+    return JSON.stringify({ ...body, reasoning_effort: "low" });
+  } catch {
+    return null;
+  }
 }
 
 /** Records the signatures from a chat-completions response body. Exported for tests. */
@@ -51,6 +72,7 @@ type StreamedCall = { id?: string; name?: string; args: string; extra?: unknown 
 export function rememberStream(body: ReadableStream<Uint8Array>): ReadableStream<Uint8Array> {
   const decoder = new TextDecoder();
   const calls = new Map<number, StreamedCall>();
+  let latest = -1;
   let pending = "";
   const readLines = (final: boolean) => {
     const lines = pending.split("\n");
@@ -62,12 +84,18 @@ export function rememberStream(body: ReadableStream<Uint8Array>): ReadableStream
         const chunk = JSON.parse(data) as { choices?: { delta?: { tool_calls?: (ToolCall & { index?: number })[] } }[] };
         for (const choice of chunk.choices ?? []) {
           for (const tc of choice.delta?.tool_calls ?? []) {
-            const call = calls.get(tc.index ?? 0) ?? { args: "" };
+            // Google omits `index`: a new id starts a new call, a piece without an id continues the latest one.
+            const byId = tc.id ? [...calls].find(([, c]) => c.id === tc.id)?.[0] : undefined;
+            const slot = tc.index ?? byId ?? (tc.id ? calls.size : Math.max(latest, 0));
+            latest = slot;
+            const call = calls.get(slot) ?? { args: "" };
             if (tc.id) call.id = tc.id;
             if (tc.function?.name) call.name = tc.function.name;
             if (tc.function?.arguments) call.args += tc.function.arguments;
             if (tc.extra_content) call.extra = tc.extra_content;
-            calls.set(tc.index ?? 0, call);
+            calls.set(slot, call);
+            // Remember now, not when the stream closes: the SDK may send the next request before that.
+            if (call.extra) remember({ id: call.id, function: { name: call.name, arguments: call.args }, extra_content: call.extra });
           }
         }
       } catch {
@@ -115,6 +143,12 @@ export function geminiFetch(base: typeof fetch = fetch, opts: { maxAttempts?: nu
       }
     }
     let response = await base(input, nextInit);
+    // A fallback model may be newer than the primary and refuse "minimal": retry once with "low".
+    const lowered = isChat && typeof nextInit?.body === "string" && init?.body !== undefined ? await lowerThinkingRetry(response, nextInit.body) : null;
+    if (lowered) {
+      nextInit = { ...nextInit, body: lowered };
+      response = await base(input, nextInit);
+    }
     let waited = 0;
     for (let attempt = 1; isChat && RETRYABLE.has(response.status) && attempt < maxAttempts; attempt++) {
       const body = await response.clone().text();

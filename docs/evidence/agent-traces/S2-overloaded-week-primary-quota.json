@@ -1,0 +1,92 @@
+{
+  "scenario": "S2-overloaded-week",
+  "title": "Two deadlines, not enough time: report the shortfall honestly",
+  "model": "gemini:gemini-3.6-flash",
+  "answeredBy": "gemini-3.6-flash (no fallback configured); failed on its final answer with a daily-quota 429, so the draft was expired",
+  "ranAt": "2026-11-05T08:14:53.408Z",
+  "request": "Can I finish the regression worksheet and the group project report before they're due? Plan it for me.",
+  "latencyMs": 8412,
+  "tokens": {
+    "input": 4088,
+    "output": 168
+  },
+  "estimatedCostUsd": null,
+  "status": "failed",
+  "errorCode": "model_quota",
+  "steps": [
+    {
+      "step": 1,
+      "tool": "get_study_preferences",
+      "args": {},
+      "status": "completed",
+      "ms": 17,
+      "outcome": "5h per week, Asia/Dubai"
+    },
+    {
+      "step": 2,
+      "tool": "list_assignments",
+      "args": {
+        "courseId": "e68dff3b\u2026",
+        "includeCompleted": false
+      },
+      "status": "completed",
+      "ms": 35,
+      "outcome": "2 assignments"
+    },
+    {
+      "step": 3,
+      "tool": "search_course_material",
+      "args": {
+        "courseId": "e68dff3b\u2026",
+        "query": "regression worksheet group project report",
+        "topK": 5
+      },
+      "status": "completed",
+      "ms": 443,
+      "outcome": "No supporting evidence"
+    },
+    {
+      "step": 4,
+      "tool": "get_student_memory",
+      "args": {},
+      "status": "completed",
+      "ms": 15,
+      "outcome": "0 memories"
+    },
+    {
+      "step": 5,
+      "tool": "draft_recovery_plan",
+      "args": {
+        "scenario": "balanced",
+        "studyItems": 0
+      },
+      "status": "completed",
+      "ms": 48,
+      "outcome": "balanced draft: short by 420 min, 2 blocks (pending approval)"
+    }
+  ],
+  "answer": null,
+  "citations": [],
+  "removedUnsupportedFacts": 0,
+  "draft": null,
+  "measured": {
+    "expectedTools": [
+      "list_assignments",
+      "get_study_preferences",
+      "draft_recovery_plan"
+    ],
+    "usedTools": [
+      "get_study_preferences",
+      "list_assignments",
+      "search_course_material",
+      "get_student_memory",
+      "draft_recovery_plan"
+    ],
+    "toolRecall": 1,
+    "checksFailed": [
+      "run failed",
+      "no draft proposed",
+      "shortfall not communicated"
+    ]
+  }
+}

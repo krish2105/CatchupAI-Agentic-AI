@@ -37,6 +37,8 @@ jobs:
             echo "GEMINI_API_KEY=$GEMINI_API_KEY"
           } > .env.local
       - run: npm run eval
+        env:
+          EVAL_LIVE: "1"
         continue-on-error: true
       - uses: actions/upload-artifact@v7
         with:
