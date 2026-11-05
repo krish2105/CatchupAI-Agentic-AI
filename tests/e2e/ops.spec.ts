@@ -36,6 +36,9 @@ test("the owner sees AI spend, uptime and open errors, and can resolve an error 
     await expect(s.page.getByText(/tokens used today/)).toBeVisible();
     await expect(s.page.getByRole("meter", { name: "Share of today's token budget used" })).toBeVisible();
     await expect(s.page.getByRole("heading", { name: "Uptime checks" })).toBeVisible();
+    const billingSection = s.page.getByRole("region", { name: "Billing" });
+    await expect(billingSection).toContainText("Stripe test mode");
+    await expect(billingSection).toContainText(/Organisations: \d+ free/);
 
     const errors = s.page.getByRole("list", { name: "Open error groups, most recent first" });
     const row = errors.getByRole("listitem").filter({ hasText: name });

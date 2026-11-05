@@ -6,6 +6,8 @@ import { Chip } from "@/components/ui/primitives";
 import { opsSnapshot, requireOpsOwnerPage, uptimeHistory } from "@/lib/ops/service";
 import { renderTime } from "@/lib/server/clock";
 import { adminClient } from "@/lib/supabase/admin";
+import { billingOps } from "@/lib/billing/ops";
+import { billingConfig } from "@/lib/billing/stripe";
 
 export const metadata: Metadata = { title: "Operations", robots: { index: false, follow: false } };
 
@@ -18,7 +20,7 @@ const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { timeZone: 
 export default async function OpsPage() {
   await requireOpsOwnerPage();
   const now = await renderTime();
-  const [snap, uptime, funnel] = await Promise.all([opsSnapshot(adminClient(), now), uptimeHistory(), activationFunnel(adminClient(), { since: new Date(now - 30 * 86400_000).toISOString() })]);
+  const [snap, uptime, funnel, billing] = await Promise.all([opsSnapshot(adminClient(), now), uptimeHistory(), activationFunnel(adminClient(), { since: new Date(now - 30 * 86400_000).toISOString() }), billingOps(adminClient(), billingConfig())]);
   const used = snap.ai.budget > 0 ? Math.min(100, Math.round((snap.ai.tokensToday / snap.ai.budget) * 100)) : 100;
   const aiOn = snap.ai.enabled && !snap.ai.envKillSwitch;
   const okRuns = uptime?.filter((r) => r.conclusion === "success").length ?? 0;
@@ -68,6 +70,18 @@ export default async function OpsPage() {
               {funnel.steps.map((s) => <tr key={s.id}><td>{s.title}</td><td>{s.accounts}</td><td>{funnel.signups ? `${Math.round((s.accounts / funnel.signups) * 100)}%` : "—"}</td></tr>)}
             </tbody>
           </table>
+        </section>
+
+        <section className="card card-inner ops-wide" aria-labelledby="ops-billing">
+          <div className="split-head"><h2 id="ops-billing" className="trace-h2">Billing</h2><Chip tone={billing.mode === "off" ? undefined : billing.mode === "test" ? "warn" : "good"}>{billing.mode === "off" ? "Off" : billing.mode === "test" ? "Stripe test mode" : "Stripe live"}</Chip></div>
+          <p>Organisations: {billing.plans.free} free · {billing.plans.class} on the Class plan{billing.plans.pastDue ? ` · ${billing.plans.pastDue} payment overdue` : ""}. Last webhook: {billing.lastWebhookAt ? when(billing.lastWebhookAt) : "none received"}. Rejected webhooks (bad signatures) are logged as <code>billing.webhook_rejected</code>; route failures appear under error groups.</p>
+          {billing.recentEvents.length ? (
+            <table className="data-table">
+              <caption className="visually-hidden">Recent Stripe events, newest first</caption>
+              <thead><tr><th scope="col">Received</th><th scope="col">Event</th><th scope="col">Organisation</th></tr></thead>
+              <tbody>{billing.recentEvents.map((e) => <tr key={e.id}><td>{when(e.receivedAt)}</td><td><code>{e.type}</code></td><td>{e.orgName ?? "deleted"}</td></tr>)}</tbody>
+            </table>
+          ) : <p className="muted">No Stripe events processed yet.</p>}
         </section>
 
         <section className="card card-inner ops-wide" aria-labelledby="ops-errors">

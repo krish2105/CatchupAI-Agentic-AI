@@ -8,6 +8,9 @@ import { renderTime } from "@/lib/server/clock";
 import { INCIDENTS } from "@/lib/status/incidents";
 import { readiness } from "@/lib/status/readiness";
 import { uptimeHistory } from "@/lib/status/uptime";
+import { billingOps } from "@/lib/billing/ops";
+import { billingConfig } from "@/lib/billing/stripe";
+import { adminClient } from "@/lib/supabase/admin";
 
 export const metadata: Metadata = { title: "System status", description: "Live status of CatchUp AI: the app, the database and the AI copilot, with uptime checks and incident notes." };
 
@@ -20,7 +23,7 @@ const TONE = { up: "good", degraded: "warn", down: "danger", off: undefined } as
 
 /** Public, live status. Checked when the page is opened; uptime history comes from the scheduled Uptime workflow. */
 export default async function StatusPage() {
-  const [now, r, uptime] = await Promise.all([renderTime(), readiness(), uptimeHistory(48)]);
+  const [now, r, uptime, billing] = await Promise.all([renderTime(), readiness(), uptimeHistory(48), billingOps(adminClient(), billingConfig()).catch(() => null)]);
   const components: { name: string; state: State; text: string; note: string }[] = [
     { name: "Web app", state: "up", text: "Operational", note: "This page was served by the live deployment." },
     { name: "Database", state: r.database === "ok" ? "up" : "down", text: r.database === "ok" ? `Operational · ${r.databaseMs} ms` : "Unavailable", note: "Sign-in, courses, plans and documents." },
@@ -29,6 +32,12 @@ export default async function StatusPage() {
       state: r.ai === "enabled" ? "up" : r.ai === "paused" ? "degraded" : "off",
       text: r.ai === "enabled" ? "Operational" : r.ai === "paused" ? "Paused by the operator" : "Not configured",
       note: "Answers with citations and drafts plans. Everything else works without it.",
+    },
+    {
+      name: "Billing",
+      state: !billing || billing.mode === "off" ? "off" : "up",
+      text: !billing || billing.mode === "off" ? "Not offered yet" : billing.mode === "test" ? "Test mode" : "Operational",
+      note: !billing || billing.mode === "off" ? "Paid organisation plans aren't switched on. Students never pay." : `Organisation plans through Stripe. Last payment event received: ${billing.lastWebhookAt ? when(billing.lastWebhookAt) : "none yet"}.`,
     },
   ];
   const worst: State = components.some((c) => c.state === "down") ? "down" : components.some((c) => c.state === "degraded") ? "degraded" : "up";

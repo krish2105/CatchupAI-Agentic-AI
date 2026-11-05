@@ -28,5 +28,17 @@
 - A restore drill was done on the **local** stack only (full dump → scratch database, row counts identical). See SECURITY_AUDIT.md.
 - Deleted student data can stay in backups until they expire.
 
+## Billing (organisation plans, Stripe)
+| Symptom | What to do |
+| --- | --- |
+| A school paid but still shows Free | /ops → Billing: is the event in "Recent Stripe events"? If not, check the webhook endpoint and its signing secret in Stripe (Developers → Webhooks → the endpoint's recent deliveries). A 400 there means `STRIPE_WEBHOOK_SECRET` doesn't match; fix it on Vercel and use "Resend" in Stripe. Events are applied once and in order, so resending is safe. |
+| Webhook deliveries failing with 5xx | Error groups on /ops show the cause. Stripe retries for up to 3 days; fix forward and the retries apply. |
+| Wrong charges or a refund request | Refunds and cancellations happen in the Stripe dashboard (test mode until live payments are approved); the plan follows through the webhook. Nothing in the app moves money. |
+| Need to stop billing at once | Remove `STRIPE_SECRET_KEY` on Vercel and redeploy: checkout and the portal return "not available" (503), existing plans keep their current state. |
+
+## Backup retention (to confirm per plan)
+- Check Supabase → Database → Backups for the project's plan before promising any retention to a school. The figures aren't recorded here because they haven't been checked on this project.
+- Until then: a manual dump before every production migration (commands above), kept outside the repository, and the local restore drill as the tested procedure.
+
 ## After the incident
 Write what happened, when, the user impact, the root cause, the fix, and the regression test added. Link it from BUILD_STATUS.md.

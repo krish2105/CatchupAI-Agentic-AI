@@ -484,6 +484,8 @@ test("public status page reports the app, database and AI live, with uptime and 
     await expect(components.getByRole("listitem").filter({ hasText: "Web app" })).toContainText("Operational");
     await expect(components.getByRole("listitem").filter({ hasText: "Database" })).toContainText(/Operational · \d+ ms/);
     await expect(components.getByRole("listitem").filter({ hasText: "AI copilot" })).toContainText(/Operational|Paused|Not configured/);
+    // The E2E server runs with fake Stripe test settings, so billing shows as test mode; no organisation names.
+    await expect(components.getByRole("listitem").filter({ hasText: "Billing" })).toContainText("Test mode");
     await expect(page.getByRole("heading", { name: "Uptime checks" })).toBeVisible();
     const incidents = page.getByRole("list", { name: "Incident notes, newest first" });
     await expect(incidents.getByRole("listitem").first()).toContainText("Resolved");
