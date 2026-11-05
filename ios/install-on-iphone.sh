@@ -7,7 +7,7 @@ set -euo pipefail
 cd "$(dirname "$0")"
 : "${TEAM:?Set TEAM to your Apple team id (Xcode → Settings → Accounts → your team)}"
 BUNDLE="${BUNDLE:-com.$(whoami | tr -cd 'a-z0-9').catchupai}"
-DEVICE="$(xcrun devicectl list devices 2>/dev/null | awk '/physical/ && /connected/ {for (i=1;i<=NF;i++) if ($i ~ /^[0-9A-F]{8}-[0-9A-F]{16}$/) print $i}' | head -1)"
+DEVICE="$(xcrun devicectl list devices 2>/dev/null | awk '/physical/ && !/unavailable/ && (/connected/ || /available/) {for (i=1;i<=NF;i++) if ($i ~ /^[0-9A-F]{8}-[0-9A-F]{16}$/) print $i}' | head -1)"
 [ -n "$DEVICE" ] || { echo "No connected, unlocked iPhone found."; exit 1; }
 xcodegen generate >/dev/null
 xcodebuild -project CatchUpAI.xcodeproj -scheme CatchUpAI -destination "id=$DEVICE" -derivedDataPath build \
