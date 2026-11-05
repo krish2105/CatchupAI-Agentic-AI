@@ -753,28 +753,88 @@ export type Database = {
         }
         Relationships: []
       }
-      organizations: {
+      org_audit_events: {
         Row: {
+          action: string
+          actor_id: string | null
           created_at: string
-          created_by: string
-          id: string
-          join_code: string
-          name: string
+          detail: Json
+          id: number
+          org_id: string
+          target_user: string | null
         }
         ComputedFields: never
         Insert: {
+          action: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: never
+          org_id: string
+          target_user?: string | null
+        }
+        Update: {
+          action?: string
+          actor_id?: string | null
+          created_at?: string
+          detail?: Json
+          id?: never
+          org_id?: string
+          target_user?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "org_audit_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      organizations: {
+        Row: {
+          billing_event_at: string | null
+          created_at: string
+          created_by: string
+          current_period_end: string | null
+          id: string
+          join_code: string
+          name: string
+          plan: string
+          plan_status: string
+          seat_limit: number
+          stripe_customer_id: string | null
+          stripe_subscription_id: string | null
+        }
+        ComputedFields: never
+        Insert: {
+          billing_event_at?: string | null
           created_at?: string
           created_by: string
+          current_period_end?: string | null
           id?: string
           join_code: string
           name: string
+          plan?: string
+          plan_status?: string
+          seat_limit?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
         }
         Update: {
+          billing_event_at?: string | null
           created_at?: string
           created_by?: string
+          current_period_end?: string | null
           id?: string
           join_code?: string
           name?: string
+          plan?: string
+          plan_status?: string
+          seat_limit?: number
+          stripe_customer_id?: string | null
+          stripe_subscription_id?: string | null
         }
         Relationships: []
       }
@@ -942,6 +1002,36 @@ export type Database = {
           window_start?: string
         }
         Relationships: []
+      }
+      stripe_events: {
+        Row: {
+          id: string
+          org_id: string | null
+          received_at: string
+          type: string
+        }
+        ComputedFields: never
+        Insert: {
+          id: string
+          org_id?: string | null
+          received_at?: string
+          type: string
+        }
+        Update: {
+          id?: string
+          org_id?: string | null
+          received_at?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stripe_events_org_id_fkey"
+            columns: ["org_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       study_plans: {
         Row: {
@@ -1145,9 +1235,33 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      apply_org_subscription: {
+        Args: {
+          p_customer: string
+          p_event_at: string
+          p_event_id: string
+          p_event_type: string
+          p_org: string
+          p_period_end: string
+          p_plan: string
+          p_seats: number
+          p_status: string
+          p_subscription: string
+        }
+        Returns: boolean
+      }
       approve_proposal: {
         Args: { p_idempotency_key: string; p_proposal_id: string }
         Returns: Json
+      }
+      audit_org: {
+        Args: {
+          p_action: string
+          p_detail?: Json
+          p_org: string
+          p_target?: string
+        }
+        Returns: undefined
       }
       consume_mcp_quota: {
         Args: { p_limit: number; p_owner: string; p_window_seconds: number }
@@ -1162,6 +1276,17 @@ export type Database = {
       join_organization: { Args: { p_code: string }; Returns: string }
       leave_organization: { Args: { p_org: string }; Returns: undefined }
       new_join_code: { Args: Record<PropertyKey, never>; Returns: string }
+      org_billing: {
+        Args: { p_org: string }
+        Returns: {
+          current_period_end: string
+          has_customer: boolean
+          members: number
+          plan: string
+          plan_status: string
+          seat_limit: number
+        }[]
+      }
       org_class_summary: {
         Args: { p_org: string; p_since: string }
         Returns: {
@@ -1205,6 +1330,7 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: undefined
       }
+      rotate_join_code: { Args: { p_org: string }; Returns: string }
       search_course_chunks: {
         Args: {
           p_course_id: string
