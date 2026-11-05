@@ -1,6 +1,6 @@
 {
   "metrics": {
-    "ranAt": "2026-11-04T08:16:50.806Z",
+    "ranAt": "2026-11-05T06:27:54.160Z",
     "retrievalMode": "hybrid (gemini-embedding-001)",
     "k": 3,
     "evidenceThreshold": {
@@ -8,31 +8,29 @@
       "lexicalRank": 0.08,
       "vectorSimilarity": 0.3
     },
-    "cases": 18,
-    "recallAt1": 90.9,
+    "cases": 51,
+    "recallAt1": 94.1,
     "recallAtK": 100,
-    "precisionAtK": 0.774,
-    "mrr": 0.955,
-    "multiPageAndConflictAllRequiredInTopK": "3/3",
-    "abstentionAccuracy": "4/4",
+    "precisionAtK": 0.78,
+    "mrr": 0.971,
+    "multiPageAndConflictAllRequiredInTopK": "10/10",
+    "abstentionAccuracy": "7/7",
     "falseAbstentions": [],
     "latencyMs": {
-      "p50": 523,
-      "p95": 952
+      "p50": 494,
+      "p95": 1518
     },
     "tokensAndCost": "query embedding per search (see embedding provider pricing)",
     "claimChecker": {
       "threshold": 0.7,
-      "labelled": 24,
-      "tp": 15,
-      "fp": 1,
+      "labelled": 30,
+      "tp": 17,
+      "fp": 0,
       "fn": 0,
-      "tn": 8,
-      "precision": 0.938,
+      "tn": 13,
+      "precision": 1,
       "recall": 1,
-      "falseAccepts": [
-        "C20"
-      ]
+      "falseAccepts": []
     },
     "checks": [
       {
@@ -50,6 +48,7 @@
   "rows": [
     {
       "id": "G1",
+      "course": "biology",
       "type": "direct",
       "query": "What is the cell membrane made of?",
       "retrieved": [
@@ -63,10 +62,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 519
+      "ms": 424
     },
     {
       "id": "G2",
+      "course": "biology",
       "type": "direct",
       "query": "Where does the citric acid cycle happen?",
       "retrieved": [
@@ -79,10 +79,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 522
+      "ms": 716
     },
     {
       "id": "G3",
+      "course": "biology",
       "type": "direct",
       "query": "What do the light-dependent reactions release?",
       "retrieved": [
@@ -95,10 +96,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 525
+      "ms": 365
     },
     {
       "id": "G4",
+      "course": "biology",
       "type": "direct",
       "query": "What happens to chromosomes during metaphase?",
       "retrieved": [
@@ -111,10 +113,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 522
+      "ms": 648
     },
     {
       "id": "G5",
+      "course": "biology",
       "type": "direct",
       "query": "Why does a denatured enzyme stop working?",
       "retrieved": [
@@ -128,10 +131,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 529
+      "ms": 400
     },
     {
       "id": "G6",
+      "course": "biology",
       "type": "direct",
       "query": "How long does the unit test last?",
       "retrieved": [
@@ -145,10 +149,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 523
+      "ms": 600
     },
     {
       "id": "G7",
+      "course": "biology",
       "type": "direct",
       "query": "How does oxygen cross the cell membrane?",
       "retrieved": [
@@ -163,10 +168,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 523
+      "ms": 794
     },
     {
       "id": "G8",
+      "course": "biology",
       "type": "direct",
       "query": "What does the Calvin cycle fix carbon dioxide into?",
       "retrieved": [
@@ -179,10 +185,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 523
+      "ms": 878
     },
     {
       "id": "G9",
+      "course": "biology",
       "type": "paraphrase",
       "query": "Which organelle is the powerhouse that makes the cell's energy molecules?",
       "retrieved": [
@@ -197,10 +204,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 527
+      "ms": 402
     },
     {
       "id": "G10",
+      "course": "biology",
       "type": "paraphrase",
       "query": "How are sex cells different from ordinary body cell copies?",
       "retrieved": [
@@ -214,10 +222,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 519
+      "ms": 622
     },
     {
       "id": "G11",
+      "course": "biology",
       "type": "multi_page",
       "query": "Compare cellular respiration with photosynthesis",
       "retrieved": [
@@ -232,10 +241,11 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 524
+      "ms": 380
     },
     {
       "id": "G12",
+      "course": "biology",
       "type": "conflicting",
       "query": "How many ATP per glucose molecule does aerobic respiration yield?",
       "retrieved": [
@@ -249,10 +259,11 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 523
+      "ms": 645
     },
     {
       "id": "G13",
+      "course": "biology",
       "type": "conflicting",
       "query": "Which day is the unit test?",
       "retrieved": [
@@ -266,10 +277,11 @@
       "requiredAll": true,
       "abstained": false,
       "correct": true,
-      "ms": 417
+      "ms": 1124
     },
     {
       "id": "G14",
+      "course": "biology",
       "type": "ambiguous",
       "query": "membrane",
       "retrieved": [
@@ -284,10 +296,11 @@
       "requiredAll": null,
       "abstained": false,
       "correct": true,
-      "ms": 631
+      "ms": 391
     },
     {
       "id": "G15",
+      "course": "biology",
       "type": "abstain",
       "query": "What is the capital of Australia?",
       "retrieved": [],
@@ -298,10 +311,11 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 952
+      "ms": 633
     },
     {
       "id": "G16",
+      "course": "biology",
       "type": "abstain",
       "query": "Explain plate tectonics and earthquakes",
       "retrieved": [],
@@ -312,10 +326,11 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 467
+      "ms": 398
     },
     {
       "id": "G17",
+      "course": "biology",
       "type": "abstain",
       "query": "What is the half-life of carbon-14 in radiometric dating?",
       "retrieved": [],
@@ -326,10 +341,11 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 567
+      "ms": 626
     },
     {
       "id": "G18",
+      "course": "biology",
       "type": "abstain",
       "query": "What does a residual mean in regression?",
       "retrieved": [],
@@ -340,7 +356,592 @@
       "requiredAll": null,
       "abstained": true,
       "correct": true,
-      "ms": 403
+      "ms": 417
+    },
+    {
+      "id": "G19",
+      "course": "biology",
+      "type": "direct",
+      "query": "What do transport proteins move across the membrane?",
+      "retrieved": [
+        "biology_cells.pdf#1",
+        "biology_cells.pdf#6",
+        "biology_errata.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 609
+    },
+    {
+      "id": "G20",
+      "course": "biology",
+      "type": "direct",
+      "query": "What are the phases of mitosis?",
+      "retrieved": [
+        "biology_cells.pdf#4",
+        "biology_cells.pdf#6"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.5,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 375
+    },
+    {
+      "id": "G21",
+      "course": "biology",
+      "type": "direct",
+      "query": "What does an enzyme's active site bind?",
+      "retrieved": [
+        "biology_cells.pdf#5"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 578
+    },
+    {
+      "id": "G22",
+      "course": "biology",
+      "type": "paraphrase",
+      "query": "What green pigment do plants use to absorb sunlight?",
+      "retrieved": [
+        "biology_cells.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 375
+    },
+    {
+      "id": "G23",
+      "course": "biology",
+      "type": "paraphrase",
+      "query": "Where in the cell does sugar first get broken down?",
+      "retrieved": [
+        "biology_cells.pdf#2",
+        "biology_cells.pdf#1",
+        "biology_cells.pdf#4"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 615
+    },
+    {
+      "id": "G24",
+      "course": "biology",
+      "type": "paraphrase",
+      "query": "Why can't an enzyme work after it gets too hot?",
+      "retrieved": [
+        "biology_cells.pdf#5",
+        "biology_cells.pdf#6"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 430
+    },
+    {
+      "id": "G25",
+      "course": "biology",
+      "type": "multi_page",
+      "query": "What should I revise about enzymes before the unit test?",
+      "retrieved": [
+        "biology_cells.pdf#6",
+        "biology_cells.pdf#5",
+        "biology_errata.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.6666666666666666,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 1518
+    },
+    {
+      "id": "G26",
+      "course": "biology",
+      "type": "multi_page",
+      "query": "Which processes make or use ATP in the cell?",
+      "retrieved": [
+        "biology_cells.pdf#3",
+        "biology_cells.pdf#2",
+        "biology_cells.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.6666666666666666,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 1675
+    },
+    {
+      "id": "G27",
+      "course": "biology",
+      "type": "abstain",
+      "query": "How does DNA replication copy a chromosome?",
+      "retrieved": [],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": null,
+      "requiredAll": null,
+      "abstained": true,
+      "correct": true,
+      "ms": 475
+    },
+    {
+      "id": "G28",
+      "course": "statistics",
+      "type": "direct",
+      "query": "What does the slope mean in a regression equation?",
+      "retrieved": [
+        "statistics_module_4.pdf#1",
+        "statistics_module_4.pdf#4",
+        "statistics_module_4.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 469
+    },
+    {
+      "id": "G29",
+      "course": "statistics",
+      "type": "direct",
+      "query": "How is a residual calculated?",
+      "retrieved": [
+        "statistics_module_4.pdf#2",
+        "statistics_module_4.pdf#4",
+        "statistics_module_4.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 555
+    },
+    {
+      "id": "G30",
+      "course": "statistics",
+      "type": "direct",
+      "query": "What does ordinary least squares minimize?",
+      "retrieved": [
+        "statistics_module_4.pdf#2"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 380
+    },
+    {
+      "id": "G31",
+      "course": "statistics",
+      "type": "paraphrase",
+      "query": "If two variables move together, does one cause the other?",
+      "retrieved": [
+        "statistics_module_4.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 643
+    },
+    {
+      "id": "G32",
+      "course": "statistics",
+      "type": "paraphrase",
+      "query": "Is it safe to predict values far beyond the data I collected?",
+      "retrieved": [
+        "statistics_module_4.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 412
+    },
+    {
+      "id": "G33",
+      "course": "statistics",
+      "type": "direct",
+      "query": "How long should the assignment draft take in the suggested study sequence?",
+      "retrieved": [
+        "statistics_module_4.pdf#4"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 534
+    },
+    {
+      "id": "G34",
+      "course": "statistics",
+      "type": "multi_page",
+      "query": "How do residuals relate to the assumptions of linear regression?",
+      "retrieved": [
+        "statistics_module_4.pdf#2",
+        "statistics_module_4.pdf#3",
+        "statistics_module_4.pdf#1"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.6666666666666666,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 490
+    },
+    {
+      "id": "G35",
+      "course": "statistics",
+      "type": "abstain",
+      "query": "What is the boiling point of water at sea level?",
+      "retrieved": [],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": null,
+      "requiredAll": null,
+      "abstained": true,
+      "correct": true,
+      "ms": 494
+    },
+    {
+      "id": "G36",
+      "course": "chemistry",
+      "type": "direct",
+      "query": "What does the atomic number tell you?",
+      "retrieved": [
+        "chemistry_basics.pdf#1",
+        "chemistry_basics.pdf#2",
+        "chemistry_basics.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 485
+    },
+    {
+      "id": "G37",
+      "course": "chemistry",
+      "type": "direct",
+      "query": "Why are the noble gases unreactive?",
+      "retrieved": [
+        "chemistry_basics.pdf#2"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 451
+    },
+    {
+      "id": "G38",
+      "course": "chemistry",
+      "type": "direct",
+      "query": "How does an ionic bond form?",
+      "retrieved": [
+        "chemistry_basics.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 619
+    },
+    {
+      "id": "G39",
+      "course": "chemistry",
+      "type": "direct",
+      "query": "How many particles are in one mole?",
+      "retrieved": [
+        "chemistry_basics.pdf#4"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 392
+    },
+    {
+      "id": "G40",
+      "course": "chemistry",
+      "type": "direct",
+      "query": "How does a catalyst change the rate of a reaction?",
+      "retrieved": [
+        "chemistry_basics.pdf#5",
+        "chemistry_basics.pdf#8",
+        "chemistry_basics.pdf#9"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.6666666666666666,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 1326
+    },
+    {
+      "id": "G41",
+      "course": "chemistry",
+      "type": "direct",
+      "query": "What pH do acids have?",
+      "retrieved": [
+        "chemistry_basics.pdf#6"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 382
+    },
+    {
+      "id": "G42",
+      "course": "chemistry",
+      "type": "paraphrase",
+      "query": "What is it called when an atom gives up electrons?",
+      "retrieved": [
+        "chemistry_basics.pdf#3",
+        "chemistry_basics.pdf#7",
+        "chemistry_basics.pdf#1"
+      ],
+      "firstRelevantRank": 2,
+      "recall1": false,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 573
+    },
+    {
+      "id": "G43",
+      "course": "chemistry",
+      "type": "paraphrase",
+      "query": "Why does iron go rusty?",
+      "retrieved": [
+        "chemistry_basics.pdf#7"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 364
+    },
+    {
+      "id": "G44",
+      "course": "chemistry",
+      "type": "paraphrase",
+      "query": "What is going on when a reversible reaction looks like it has stopped?",
+      "retrieved": [
+        "chemistry_basics.pdf#8"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 545
+    },
+    {
+      "id": "G45",
+      "course": "chemistry",
+      "type": "paraphrase",
+      "query": "Why do atoms of one element sometimes have different masses?",
+      "retrieved": [
+        "chemistry_basics.pdf#1",
+        "chemistry_basics.pdf#2",
+        "chemistry_basics.pdf#4"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 0.3333333333333333,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 369
+    },
+    {
+      "id": "G46",
+      "course": "chemistry",
+      "type": "multi_page",
+      "query": "How do temperature and pressure affect chemical reactions?",
+      "retrieved": [
+        "chemistry_basics.pdf#5",
+        "chemistry_basics.pdf#8"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 1533
+    },
+    {
+      "id": "G47",
+      "course": "chemistry",
+      "type": "multi_page",
+      "query": "How does an element's group in the periodic table relate to the bonds it forms?",
+      "retrieved": [
+        "chemistry_basics.pdf#2",
+        "chemistry_basics.pdf#3"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 391
+    },
+    {
+      "id": "G48",
+      "course": "chemistry",
+      "type": "conflicting",
+      "query": "Which day is the chemistry quiz?",
+      "retrieved": [
+        "chemistry_basics.pdf#9",
+        "chemistry_basics.pdf#10"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 576
+    },
+    {
+      "id": "G49",
+      "course": "chemistry",
+      "type": "conflicting",
+      "query": "How many questions are on the chemistry quiz?",
+      "retrieved": [
+        "chemistry_basics.pdf#9",
+        "chemistry_basics.pdf#10"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": true,
+      "abstained": false,
+      "correct": true,
+      "ms": 376
+    },
+    {
+      "id": "G50",
+      "course": "chemistry",
+      "type": "ambiguous",
+      "query": "electrons",
+      "retrieved": [
+        "chemistry_basics.pdf#3",
+        "chemistry_basics.pdf#1",
+        "chemistry_basics.pdf#7"
+      ],
+      "firstRelevantRank": 1,
+      "recall1": true,
+      "recallK": true,
+      "precisionK": 1,
+      "requiredAll": null,
+      "abstained": false,
+      "correct": true,
+      "ms": 578
+    },
+    {
+      "id": "G51",
+      "course": "chemistry",
+      "type": "abstain",
+      "query": "Who wrote Romeo and Juliet?",
+      "retrieved": [],
+      "firstRelevantRank": null,
+      "recall1": false,
+      "recallK": false,
+      "precisionK": null,
+      "requiredAll": null,
+      "abstained": true,
+      "correct": true,
+      "ms": 392
     }
   ]
 }

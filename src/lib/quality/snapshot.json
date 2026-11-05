@@ -1,7 +1,7 @@
 {
   "tests": {
-    "unit": 214,
-    "integration": 156,
+    "unit": 220,
+    "integration": 162,
     "e2e": 72
   },
   "eval": {
@@ -153,7 +153,7 @@
     ]
   },
   "security": {
-    "migrations": 20,
+    "migrations": 21,
     "tablesWithRls": 31,
     "rateLimitBuckets": 11,
     "securityDefinerFunctions": 40

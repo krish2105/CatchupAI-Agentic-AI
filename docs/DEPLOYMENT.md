@@ -44,6 +44,7 @@ and a kill switch (`ops_flags`; see INCIDENT_RESPONSE_RUNBOOK.md).
    | `SUPABASE_SECRET_KEY` | secret key (server only) |
    | `GEMINI_API_KEY` / `GEMINI_MODEL` / `AI_PROVIDER` | set by `scripts/configure-ai.py` (or `OPENAI_API_KEY` / `OPENAI_MODEL`) |
    | `GEMINI_FALLBACK_MODEL` (optional) | a second Gemini model, tried once when the first hits its daily quota, is overloaded or times out; it has its own free quota. Plain config, not a secret |
+   | `GEMINI_OCR_MODEL` / `PDF_OCR` (optional) | scanned PDFs are read with Gemini OCR (needs migration 0021): defaults to `GEMINI_MODEL`; `PDF_OCR=off` turns it off. Plain config |
    | `STRIPE_SECRET_KEY` (sk_test_…), `STRIPE_WEBHOOK_SECRET` (whsec_…), `STRIPE_PRICE_CLASS` (price_…) — optional | organisation billing in Stripe **test mode**; off unless all three are set. Webhook endpoint: `https://<app>/api/billing/webhook` with events `customer.subscription.created/updated/deleted`. Optional `STRIPE_CLASS_SEATS` (default 300) and `STRIPE_PRICE_CLASS_LABEL` (the price text on /pricing, must match Stripe) |
    | `NEXT_PUBLIC_APP_URL` | `https://<your-app>.vercel.app` |
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | from step 2 |

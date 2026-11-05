@@ -500,6 +500,9 @@ export type Database = {
           error_code: string | null
           filename: string
           id: string
+          ocr_input_tokens: number | null
+          ocr_model: string | null
+          ocr_output_tokens: number | null
           owner_id: string
           page_count: number | null
           processed_at: string | null
@@ -508,6 +511,7 @@ export type Database = {
           size_bytes: number
           status: string
           storage_path: string | null
+          text_source: string
           updated_at: string
         }
         Insert: {
@@ -518,6 +522,9 @@ export type Database = {
           error_code?: string | null
           filename: string
           id?: string
+          ocr_input_tokens?: number | null
+          ocr_model?: string | null
+          ocr_output_tokens?: number | null
           owner_id?: string
           page_count?: number | null
           processed_at?: string | null
@@ -526,6 +533,7 @@ export type Database = {
           size_bytes: number
           status?: string
           storage_path?: string | null
+          text_source?: string
           updated_at?: string
         }
         Update: {
@@ -536,6 +544,9 @@ export type Database = {
           error_code?: string | null
           filename?: string
           id?: string
+          ocr_input_tokens?: number | null
+          ocr_model?: string | null
+          ocr_output_tokens?: number | null
           owner_id?: string
           page_count?: number | null
           processed_at?: string | null
@@ -544,6 +555,7 @@ export type Database = {
           size_bytes?: number
           status?: string
           storage_path?: string | null
+          text_source?: string
           updated_at?: string
         }
         Relationships: [

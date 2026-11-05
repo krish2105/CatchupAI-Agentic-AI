@@ -5,6 +5,8 @@ export const PDF_LIMITS = { maxBytes: 10 * 1024 * 1024, maxPages: 50, minTextCha
 export type PdfErrorCode = "not_pdf" | "too_large" | "empty" | "encrypted" | "malformed" | "too_many_pages" | "no_text";
 
 export class PdfError extends Error {
+  /** Set for no_text: the page count, so a scan can be sent to OCR within its page limit. */
+  pageCount?: number;
   constructor(public code: PdfErrorCode, message: string) {
     super(message);
   }
@@ -43,7 +45,7 @@ export async function extractPdfPages(bytes: Uint8Array): Promise<string[]> {
     if (pdf.numPages > PDF_LIMITS.maxPages) throw new PdfError("too_many_pages", PDF_ERROR_MESSAGES.too_many_pages);
     const { text } = await extractText(pdf, { mergePages: false });
     const pages = text.map(normalizeText);
-    if (pages.join("").length < PDF_LIMITS.minTextChars) throw new PdfError("no_text", PDF_ERROR_MESSAGES.no_text);
+    if (pages.join("").length < PDF_LIMITS.minTextChars) throw Object.assign(new PdfError("no_text", PDF_ERROR_MESSAGES.no_text), { pageCount: pdf.numPages });
     return pages;
   } catch (error) {
     if (error instanceof PdfError) throw error;

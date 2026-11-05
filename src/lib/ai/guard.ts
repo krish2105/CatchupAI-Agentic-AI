@@ -20,13 +20,18 @@ export function resetOpsFlagsCache() {
   cache = null;
 }
 
-/** Tokens used by all agent runs since 00:00 UTC. */
+/** Tokens used since 00:00 UTC by all agent runs and by OCR of scanned PDFs. */
 export async function tokensUsedToday(admin: AdminSupabase, now = Date.now()) {
   const since = new Date(now);
   since.setUTCHours(0, 0, 0, 0);
-  const { data, error } = await admin.from("agent_runs").select("input_tokens, output_tokens").gte("created_at", since.toISOString()).limit(20000);
-  if (error) return Number.POSITIVE_INFINITY;
-  return data.reduce((s, r) => s + (r.input_tokens ?? 0) + (r.output_tokens ?? 0), 0);
+  const [runs, ocr] = await Promise.all([
+    admin.from("agent_runs").select("input_tokens, output_tokens").gte("created_at", since.toISOString()).limit(20000),
+    admin.from("documents").select("ocr_input_tokens, ocr_output_tokens").eq("text_source", "ocr").gte("processed_at", since.toISOString()).limit(20000),
+  ]);
+  if (runs.error) return Number.POSITIVE_INFINITY;
+  // Before migration 0021 there are no OCR columns, and no OCR runs either (ingest checks the same columns).
+  const ocrTokens = ocr.error ? 0 : ocr.data.reduce((s, r) => s + (r.ocr_input_tokens ?? 0) + (r.ocr_output_tokens ?? 0), 0);
+  return runs.data.reduce((s, r) => s + (r.input_tokens ?? 0) + (r.output_tokens ?? 0), 0) + ocrTokens;
 }
 
 /**
@@ -34,6 +39,13 @@ export async function tokensUsedToday(admin: AdminSupabase, now = Date.now()) {
  * pages) when the operator pauses AI, the daily token budget is spent, or the student already has a run going.
  */
 export async function assertAiAvailable(admin: AdminSupabase, userId: string, now = Date.now()) {
+  await assertAiBudget(admin, now);
+  const { data: running } = await admin.from("agent_runs").select("id").eq("owner_id", userId).eq("status", "running").gte("created_at", new Date(now - 4 * 60_000).toISOString()).limit(1);
+  if (running?.length) throw new ApiError(429, "run_in_progress", "The copilot is still working on your last request. Wait for it to finish.");
+}
+
+/** The kill switches and the daily token budget only (for AI work that isn't a copilot run, such as OCR). */
+export async function assertAiBudget(admin: AdminSupabase, now = Date.now()) {
   const paused = "The AI copilot is paused right now. Your plans, notes, schedule and practice still work.";
   if (process.env.AI_KILL_SWITCH === "1") throw new ApiError(503, "ai_paused", paused);
   const flags = await opsFlags(admin, now);
@@ -41,6 +53,4 @@ export async function assertAiAvailable(admin: AdminSupabase, userId: string, no
   if ((await tokensUsedToday(admin, now)) >= flags.dailyTokenBudget) {
     throw new ApiError(503, "ai_budget_reached", "The copilot has reached today's usage limit. It will be back tomorrow; everything else still works.");
   }
-  const { data: running } = await admin.from("agent_runs").select("id").eq("owner_id", userId).eq("status", "running").gte("created_at", new Date(now - 4 * 60_000).toISOString()).limit(1);
-  if (running?.length) throw new ApiError(429, "run_in_progress", "The copilot is still working on your last request. Wait for it to finish.");
 }

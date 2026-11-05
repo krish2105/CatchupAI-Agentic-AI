@@ -11,7 +11,7 @@ import { uploadAndProcessPdf } from "@/lib/client/upload";
 function statusChip(doc: DocumentDto) {
   switch (doc.status) {
     case "ready":
-      return <Chip tone="good">Indexed · {doc.pageCount} page{doc.pageCount === 1 ? "" : "s"}</Chip>;
+      return <Chip tone="good">Indexed · {doc.pageCount} page{doc.pageCount === 1 ? "" : "s"}{doc.textSource === "ocr" ? " · from scan" : ""}</Chip>;
     case "failed":
       return <Chip tone="danger">Failed</Chip>;
     case "processing":
@@ -82,6 +82,7 @@ export default function DocumentsPanel({ courseId, documents }: { courseId: stri
                   <span className="muted" style={{ fontSize: 11 }}>
                     {(doc.sizeBytes / 1024).toFixed(0)} KB{doc.searchMode ? ` · ${doc.searchMode === "hybrid" ? "semantic + keyword search" : "keyword search"}` : ""}
                   </span>
+                  {doc.status === "ready" && doc.textSource === "ocr" ? <span className="field-hint">Read from a scan by AI: check numbers and formulas against the original.</span> : null}
                   {doc.errorMessage ? <span className="field-error">{doc.errorMessage}</span> : null}
                 </span>
               </span>
