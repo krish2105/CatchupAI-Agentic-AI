@@ -1,5 +1,5 @@
 {
-  "about": "Live-model evaluation runs (agent tool-selection cases T1\u2013T8 and agentic scenarios S1\u2013S4), one entry per run. Written by the evals when a real model runs; skipped or not-selected cases are left out; scripted runs are never recorded. Seeded from evals/results/latest.json and docs/evidence/agent-traces/SUMMARY.json of the 4 Nov run.",
+  "about": "Live-model evaluation runs (agent tool-selection cases T1–T8 and agentic scenarios S1–S4), one entry per run. Written by the evals when a real model runs; skipped or not-selected cases are left out; scripted runs are never recorded. Seeded from evals/results/latest.json and docs/evidence/agent-traces/SUMMARY.json of the 4 Nov run.",
   "titles": {
     "T1": "\"What are my upcoming deadlines?\" uses list_assignments",
     "T2": "\"Explain residuals from my course notes.\" uses search_course_material",
@@ -44,6 +44,13 @@
       "cases": {
         "T8": "pass",
         "S2-overloaded-week": "fail"
+      }
+    },
+    {
+      "ranAt": "2026-11-07T12:57:31.212Z",
+      "model": "gemini:gemini-3.6-flash",
+      "cases": {
+        "S2-overloaded-week": "pass"
       }
     }
   ]

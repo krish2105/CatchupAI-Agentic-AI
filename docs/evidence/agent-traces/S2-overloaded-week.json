@@ -1,0 +1,115 @@
+{
+  "scenario": "S2-overloaded-week",
+  "title": "Two deadlines, not enough time: report the shortfall honestly",
+  "model": "gemini:gemini-3.6-flash",
+  "answeredBy": "gemini-3.6-flash",
+  "fallback": null,
+  "ranAt": "2026-11-07T12:57:31.173Z",
+  "request": "Can I finish the regression worksheet and the group project report before they're due? Plan it for me.",
+  "latencyMs": 39460,
+  "tokens": {
+    "input": 6677,
+    "output": 430
+  },
+  "estimatedCostUsd": null,
+  "status": "completed",
+  "errorCode": null,
+  "steps": [
+    {
+      "step": 1,
+      "tool": "get_study_preferences",
+      "args": {},
+      "status": "completed",
+      "ms": 17,
+      "outcome": "5h per week, Asia/Dubai"
+    },
+    {
+      "step": 2,
+      "tool": "list_assignments",
+      "args": {
+        "courseId": "1d20ba63…",
+        "includeCompleted": false
+      },
+      "status": "completed",
+      "ms": 21,
+      "outcome": "2 assignments"
+    },
+    {
+      "step": 3,
+      "tool": "get_student_memory",
+      "args": {},
+      "status": "completed",
+      "ms": 14,
+      "outcome": "0 memories"
+    },
+    {
+      "step": 4,
+      "tool": "draft_recovery_plan",
+      "args": {
+        "scenario": "balanced",
+        "studyItems": 0
+      },
+      "status": "completed",
+      "ms": 41,
+      "outcome": "balanced draft: short by 420 min, 2 blocks (pending approval)"
+    },
+    {
+      "step": 5,
+      "tool": "search_course_material",
+      "args": {
+        "courseId": "1d20ba63…",
+        "query": "regression worksheet group project report",
+        "topK": 3
+      },
+      "status": "completed",
+      "ms": 390,
+      "outcome": "No supporting evidence"
+    }
+  ],
+  "answer": {
+    "facts": [
+      {
+        "statement": "The Regression worksheet requires an estimated 240 minutes and is due on November 10, 2026 at 12:55 UTC.",
+        "sources": []
+      },
+      {
+        "statement": "The Group project report requires an estimated 300 minutes and is due on November 11, 2026 at 12:55 UTC.",
+        "sources": []
+      },
+      {
+        "statement": "Based on your current study preferences (60 minutes per weekday, 0 on weekends), the drafted plan schedules 120 minutes out of the required 540 minutes, leaving a shortfall of 420 minutes.",
+        "sources": []
+      }
+    ],
+    "suggestions": [
+      "Increase your daily study minutes or enable weekend study time in your preferences to fit both assignments before their deadlines.",
+      "Prioritise the Regression worksheet first as it is due earlier.",
+      "Review and approve the proposed recovery plan draft in the Recovery lab once you adjust your availability."
+    ],
+    "clarifyingQuestion": null
+  },
+  "citations": [],
+  "removedUnsupportedFacts": 0,
+  "draft": {
+    "status": "pending",
+    "feasible": false,
+    "shortfallMinutes": 420,
+    "savedWithoutApproval": false
+  },
+  "measured": {
+    "expectedTools": [
+      "list_assignments",
+      "get_study_preferences",
+      "draft_recovery_plan"
+    ],
+    "usedTools": [
+      "get_study_preferences",
+      "list_assignments",
+      "get_student_memory",
+      "draft_recovery_plan",
+      "search_course_material"
+    ],
+    "toolRecall": 1,
+    "checksFailed": []
+  }
+}

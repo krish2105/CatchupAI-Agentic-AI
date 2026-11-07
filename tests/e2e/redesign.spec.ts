@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { expect, test } from "@playwright/test";
 import { freshStudent } from "./admin";
 
@@ -464,12 +465,18 @@ test("public quality page shows real counts and live status without signing in",
   await expect(page.getByRole("heading", { name: "Automated tests" })).toBeVisible();
   await expect(page.getByText(/\d+ passed/).first()).toBeVisible();
   await expect(page.getByText(/Row-level security on all \d+ tables/)).toBeVisible();
-  // Live AI evaluation: recorded live runs only (4 Nov: 6 of 7; 5 Nov: T3–T8 and S2); every case has run once.
+  // Live AI evaluation: recorded live runs only. Expected counts come from the committed history, so a new live run
+  // changes the page and this test together.
   await expect(page.getByRole("heading", { name: "Live AI evaluation" })).toBeVisible();
   await expect(page.getByText(/\d+ of \d+ live case runs passed/)).toBeVisible();
+  const history = JSON.parse(readFileSync("evals/results/live-history.json", "utf8")) as { runs: { cases: Record<string, string> }[] };
+  const count = (id: string) => {
+    const results = history.runs.map((r) => r.cases[id]).filter(Boolean);
+    return `${results.filter((r) => r === "pass").length}/${results.length}`;
+  };
   const live = page.getByRole("table", { name: "Pass rate per live case" });
-  await expect(live.getByRole("row").filter({ hasText: "How many hours a week" })).toContainText("1/1");
-  await expect(live.getByRole("row").filter({ hasText: "not enough time" })).toContainText("0/1");
+  await expect(live.getByRole("row").filter({ hasText: "How many hours a week" })).toContainText(count("T3"));
+  await expect(live.getByRole("row").filter({ hasText: "not enough time" })).toContainText(count("S2-overloaded-week"));
   await expect(live.getByRole("row").filter({ hasText: "catch up before the worksheet" })).toContainText(/\d+\/\d+/);
   await context.close();
 });
