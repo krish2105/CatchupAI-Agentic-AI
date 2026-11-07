@@ -4,6 +4,8 @@ import { VerdictCache, type JudgeClient } from "@/lib/rag/faithfulness-judge";
 
 const snippet = "Meiosis instead produces four genetically different gametes with half the chromosome number. Mitosis produces two identical daughter cells.";
 const sources = new Map([["S1", { sourceId: "S1", chunkId: "c1", documentId: "d1", filename: "bio.pdf", pageStart: 4, pageEnd: 4, snippet, score: 1, lexicalRank: 1, lexicalCoverage: 1, vectorSimilarity: null }]]);
+// What list_assignments returned in the same run: the uncited deadline fact is grounded in it.
+const toolData = [JSON.stringify([{ title: "Cell division essay", dueAt: "2026-11-13T12:00:00.000Z", estimatedMinutes: 90 }])];
 const answer = {
   facts: [
     { statement: "Meiosis produces four genetically different gametes.", sourceIds: ["S1"] },
@@ -32,7 +34,7 @@ function judge(opts: { fail?: boolean } = {}) {
 describe("faithfulness judge in the copilot", () => {
   it("removes cited facts the judge rejects, keeps tool facts, and recomputes citations", async () => {
     const { judge: j, calls } = judge();
-    const verified = verifyAnswer(answer, sources);
+    const verified = verifyAnswer(answer, sources, toolData);
     expect(verified.answer.facts).toHaveLength(3);
     const out = await judgeAnswer(verified, sources, j);
     expect(calls).toHaveLength(1);
@@ -45,16 +47,16 @@ describe("faithfulness judge in the copilot", () => {
   });
 
   it("keeps the word check's result when the judge fails", async () => {
-    const verified = verifyAnswer(answer, sources);
+    const verified = verifyAnswer(answer, sources, toolData);
     const out = await judgeAnswer(verified, sources, judge({ fail: true }).judge);
     expect(out.verified.answer.facts).toHaveLength(3);
     expect(out.judge).toMatchObject({ checked: 2, removed: 0, failed: 2 });
   });
 
   it("does nothing without a judge or without cited facts", async () => {
-    const verified = verifyAnswer(answer, sources);
+    const verified = verifyAnswer(answer, sources, toolData);
     expect((await judgeAnswer(verified, sources, null)).judge).toBeNull();
-    const toolOnly = verifyAnswer({ ...answer, facts: [answer.facts[2]] }, sources);
+    const toolOnly = verifyAnswer({ ...answer, facts: [answer.facts[2]] }, sources, toolData);
     const { judge: j, calls } = judge();
     expect((await judgeAnswer(toolOnly, sources, j)).judge).toBeNull();
     expect(calls).toHaveLength(0);

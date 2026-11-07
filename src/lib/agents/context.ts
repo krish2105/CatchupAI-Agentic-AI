@@ -37,6 +37,8 @@ export type AgentContext = {
   events: ToolEvent[];
   /** Sources actually retrieved in this run, keyed by sourceId ("S1"...). Only these may be cited. */
   sources: Map<string, SourceRef>;
+  /** Results the data tools (deadlines, availability, progress, drafted plan, memory) returned in this run: what a fact without a source id must be grounded in. */
+  toolData?: string[];
   proposalId: string | null;
   /** 1 for the primary model, 2 after falling back. Per-request tool budgets count per attempt. */
   attempt: number;

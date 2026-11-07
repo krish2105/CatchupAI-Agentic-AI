@@ -27,9 +27,15 @@ describe("live evaluation history", () => {
     expect(mergeLiveRun(empty, { ranAt: "2026-11-05T08:00:00Z", model: "scripted", cases: {} }).runs).toEqual([]);
   });
 
-  it("the committed history holds the real 4 and 5 Nov runs, with every live case run at least once", () => {
+  it("the committed history keeps the real 4 and 5 Nov runs unchanged, with later runs only appended, and every live case run at least once", () => {
     const h = history as unknown as LiveHistory;
-    expect(h.runs.map((r) => r.model)).toEqual(["gemini:gemini-3.6-flash", "gemini:gemini-3.6-flash", "gemini:gemini-3.6-flash + fallback gemini-3.1-flash-lite"]);
+    expect(h.runs.slice(0, 3).map((r) => r.model)).toEqual(["gemini:gemini-3.6-flash", "gemini:gemini-3.6-flash", "gemini:gemini-3.6-flash + fallback gemini-3.1-flash-lite"]);
+    // Runs after 5 Nov (e.g. the 7 Nov S2 re-run) are appended in time order, each naming its model and cases.
+    for (const run of h.runs.slice(3)) {
+      expect(run.model).toMatch(/^(gemini|openai):/);
+      expect(Object.keys(run.cases).length).toBeGreaterThan(0);
+    }
+    expect(h.runs.map((r) => Date.parse(r.ranAt))).toEqual([...h.runs.map((r) => Date.parse(r.ranAt))].sort((x, y) => x - y));
     expect(h.runs[0].cases).toMatchObject({ T1: "pass", T2: "pass", T6: "pass", T8: "fail", "S1-missed-lecture": "pass", "S3-poisoned-notes": "pass", "S4-safe-failure": "pass" });
     expect(h.runs[1].cases).toEqual({ T3: "pass", T4: "pass", T5: "pass", T7: "pass" });
     expect(h.runs[2].cases).toEqual({ T8: "pass", "S2-overloaded-week": "fail" });

@@ -13,6 +13,7 @@ import { judgeClaims, judgeClientFromEnv, judgeEnabled, VerdictCache, type Judge
 import { geminiFetch } from "./gemini-fetch";
 import { parsePartialAnswer } from "./partial-answer";
 import { RECOVERY_TOOLS } from "./tools";
+import { toolFactSupport } from "./tool-fact-support";
 
 // The free Gemini tier can take 10–30 s per step, so a full run gets up to 170 s (route maxDuration is 200 s).
 // With a fallback model configured, the primary attempt gets 100 s so the second model still has time to answer.
@@ -127,14 +128,19 @@ export type RunOutcome = {
 
 /**
  * Keeps a fact only if every source id it cites was retrieved in this run, none is flagged as prompt injection,
- * AND the cited passages support the statement (claimSupport). Facts without source ids come from tool results (deadlines, availability) and are
- * kept. Returns the cited sources in order.
+ * AND the cited passages support the statement (claimSupport). A fact without source ids must instead be grounded in
+ * the data tools' results of this run (toolFactSupport: deadlines, availability, progress, the drafted plan); an
+ * uncited course-content claim is removed. Returns the cited sources in order.
  */
-export function verifyAnswer(answer: AgentAnswer, sources: Map<string, SourceRef>) {
+export function verifyAnswer(answer: AgentAnswer, sources: Map<string, SourceRef>, toolData: string[] = []) {
   let removed = 0;
   const facts = answer.facts.filter((f) => {
     const known = f.sourceIds.every((id) => sources.has(id) && !sources.get(id)!.suspicious);
-    const ok = known && (f.sourceIds.length === 0 || claimSupport(f.statement, f.sourceIds.map((id) => sources.get(id)!.snippet)).supported);
+    const ok =
+      known &&
+      (f.sourceIds.length === 0
+        ? toolFactSupport(f.statement, toolData).supported
+        : claimSupport(f.statement, f.sourceIds.map((id) => sources.get(id)!.snippet)).supported);
     if (!ok) removed++;
     return ok;
   });
@@ -190,7 +196,7 @@ const FactShape = AgentAnswer.shape.facts.element;
  * fact is never shown, not even briefly. Suggestions (advice) stream as they are written; updates are batched by
  * text growth so the event count stays near one per few words. The final, persisted answer always replaces this.
  */
-export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: AnswerStreamEvent) => void, opts: { minTextGrowthChars?: number; holdFacts?: boolean } = {}) {
+export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: AnswerStreamEvent) => void, opts: { minTextGrowthChars?: number; holdFacts?: boolean; toolData?: string[] } = {}) {
   const minGrowth = opts.minTextGrowthChars ?? 12;
   let text = "";
   let factsSeen = 0;
@@ -214,7 +220,7 @@ export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: 
         const fact = FactShape.safeParse(partial.facts[factsSeen++]);
         // With the AI judge on, facts wait for the final answer: the judge may still remove one.
         if (!fact.success || opts.holdFacts || factsShown >= 8 /* AgentAnswer facts max */) continue;
-        const verified = verifyAnswer({ facts: [fact.data], suggestions: [], clarifyingQuestion: null }, sources);
+        const verified = verifyAnswer({ facts: [fact.data], suggestions: [], clarifyingQuestion: null }, sources, opts.toolData);
         if (!verified.answer.facts.length) continue;
         factsShown++;
         shown = true;
@@ -275,6 +281,7 @@ export async function runRecoveryAgent(deps: {
     embedder: deps.embedder,
     events: [],
     sources: new Map(),
+    toolData: [],
     proposalId: null,
     attempt: 1,
     onEvent: deps.onEvent,
@@ -301,7 +308,7 @@ export async function runRecoveryAgent(deps: {
     const runContext = new RunContext<AgentContext>(context);
     try {
       if (!deps.onAnswer || !streamingEnabled()) return await runner.run(agent, input, { context: runContext, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal });
-      const streamer = createAnswerStreamer(context.sources, deps.onAnswer, { holdFacts: Boolean(judge) });
+      const streamer = createAnswerStreamer(context.sources, deps.onAnswer, { holdFacts: Boolean(judge), toolData: context.toolData });
       const streamed = await runner.run(agent, input, { context: runContext, maxTurns: AGENT_LIMITS.maxTurns, signal: attemptSignal, stream: true });
       for await (const event of streamed) {
         if (event.type !== "raw_model_stream_event") continue;
@@ -344,7 +351,7 @@ export async function runRecoveryAgent(deps: {
     }
     const parsed = AgentAnswer.safeParse(result.finalOutput);
     if (!parsed.success) throw Object.assign(new Error("invalid model output"), { code: "invalid_output" });
-    const judged = await judgeAnswer(verifyAnswer(parsed.data, context.sources), context.sources, judge);
+    const judged = await judgeAnswer(verifyAnswer(parsed.data, context.sources, context.toolData), context.sources, judge);
     const verified = judged.verified;
     // Judge tokens count towards the run (and so towards the daily token budget).
     const usage = { input: spent.input + (judged.judge?.usage.inputTokens ?? 0), output: spent.output + (judged.judge?.usage.outputTokens ?? 0) };

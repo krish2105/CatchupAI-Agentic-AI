@@ -141,6 +141,8 @@ describe("LearningRecoveryAgent", () => {
       a,
       [
         { call: "search_course_material", args: { courseId: courseA, query: "What does a residual mean?", topK: 4 } },
+        // The uncited deadline fact below must be grounded in a data tool's result from this run.
+        { call: "list_assignments", args: { courseId: courseA, includeCompleted: false } },
         {
           answer: answer([
             { statement: "A residual is observed Y minus predicted Y-hat.", sourceIds: ["S1"] },
@@ -160,6 +162,24 @@ describe("LearningRecoveryAgent", () => {
     const { data: stored } = await a.db.from("agent_runs").select("summary, input_tokens, output_tokens").eq("id", outcome.runId).single();
     expect(stored).toMatchObject({ input_tokens: 120, output_tokens: 15 });
     expect(stored!.summary).not.toContain("always equals");
+  });
+
+  it("removes a fact that cites nothing and isn't in the tool results, and never stores it", async () => {
+    const outcome = await agentRun(a, [
+      { call: "list_assignments", args: { courseId: courseA, includeCompleted: false } },
+      {
+        answer: answer([
+          { statement: "The regression worksheet is due in five days.", sourceIds: [] },
+          // Course content with no citation: it must not ride along as a "tool fact".
+          { statement: "Residuals are always normally distributed in every regression model.", sourceIds: [] },
+        ]),
+      },
+    ]).run;
+    expect(outcome.status).toBe("completed");
+    expect(outcome.answer!.facts.map((f) => f.statement)).toEqual(["The regression worksheet is due in five days."]);
+    expect(outcome.removedUnsupportedFacts).toBe(1);
+    const { data: stored } = await a.db.from("agent_runs").select("summary").eq("id", outcome.runId).single();
+    expect(stored!.summary).not.toContain("normally distributed");
   });
 
   it("denies a forged course id from another student and leaks nothing", async () => {

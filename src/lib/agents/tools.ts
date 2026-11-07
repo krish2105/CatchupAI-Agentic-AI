@@ -17,6 +17,9 @@ const LIMITS = { maxSearches: 4, maxStudyItems: 6, maxDrafts: 1, maxRefusedDraft
 
 class ToolDenied extends Error {}
 
+/** Tools whose results are the student's own data, so facts taken from them need no page citation (see tool-fact-support.ts). */
+const DATA_TOOLS = new Set(["get_study_preferences", "list_assignments", "get_learning_progress", "draft_recovery_plan", "get_student_memory"]);
+
 /** Wraps a tool body: records a real event for every execution and returns model-safe errors. */
 async function traced<T>(
   ctx: RunContext<AgentContext> | undefined,
@@ -35,6 +38,7 @@ async function traced<T>(
   try {
     const { result, outcome, cached } = await body(c);
     push("completed", outcome, cached);
+    if (DATA_TOOLS.has(name) && typeof result === "string" && !/^NO_[A-Z]+:/.test(result)) c.toolData?.push(result);
     return result;
   } catch (error) {
     if (error instanceof ToolDenied || (error instanceof ApiError && error.status === 404)) {
