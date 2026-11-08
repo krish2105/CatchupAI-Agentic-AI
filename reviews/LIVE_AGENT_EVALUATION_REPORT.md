@@ -10,8 +10,8 @@ limits.
 | Commands | 4 Nov: `npm run eval:live`. 5 Nov: `LIVE_CASES=T3,T4,T5,T7,T8,S2 npm run eval -- evals/agent.eval.ts evals/agentic-scenarios.eval.ts`, then retries with `LIVE_PAUSE_MS` (and `GEMINI_FALLBACK_MODEL` for T8 and S2), set for that local run only |
 | Primary model | gemini-3.6-flash, thinking level "minimal"; embeddings gemini-embedding-001 |
 | Fallback model (5 Nov, T8 and S2) | gemini-3.1-flash-lite, set locally only. It isn't set on Vercel: that's the owner's step |
-| Agent eval | **38 of 38 pass** on each case's latest real result ([evals/REPORT.md](evals/REPORT.md)) |
-| Scenarios | **S1 pass · S2 pass (7 and 8 Nov re-runs; failed 5 Nov) · S3 pass · S4 pass** ([docs/evidence/agent-traces](docs/evidence/agent-traces)) |
+| Agent eval | **38 of 38 pass** on each case's latest real result ([evals/REPORT.md](../evals/REPORT.md)) |
+| Scenarios | **S1 pass · S2 pass (7 and 8 Nov re-runs; failed 5 Nov) · S3 pass · S4 pass** ([docs/evidence/agent-traces](../docs/evidence/agent-traces)) |
 | Cost | $0 (free tier). No per-run cost is claimed, because no paid list price was available for these models |
 
 ## Live results (latest run per case)
@@ -38,9 +38,9 @@ which model produced an outcome, so "fallback" is inferred from that sequence ra
 records it (`answeredBy` in traces, the model in each detail line).
 
 ² The per-step trace file of this S2 run was overwritten by an accidental re-run (see 08:29 below). The figures come
-from the run's eval output, read at 08:18, and its summary is in [SUMMARY.json](docs/evidence/agent-traces/SUMMARY.json).
+from the run's eval output, read at 08:18, and its summary is in [SUMMARY.json](../docs/evidence/agent-traces/SUMMARY.json).
 
-**S2 on the primary model, before its quota ran out** (5 Nov 08:14 UTC, [trace](docs/evidence/agent-traces/S2-overloaded-week-primary-quota.json)):
+**S2 on the primary model, before its quota ran out** (5 Nov 08:14 UTC, [trace](../docs/evidence/agent-traces/S2-overloaded-week-primary-quota.json)):
 gemini-3.6-flash called preferences → assignments → course search (no evidence) → memory → draft. The planner
 computed an honest infeasible "balanced" draft, **short by 420 minutes**. Google then refused the final answer with a
 daily-quota 429, so the run failed and the draft was expired. The behaviour up to the answer was correct. Whether
@@ -100,7 +100,7 @@ It requested gemini-3.5-flash, which on this key counts against gemini-3.6-flash
 | 1 | Correct tool selection | Tool descriptions plus instructions | T1–T8 | ✅ **8 of 8** on the latest runs (T8 via the fallback model) |
 | 2 | Correct tool arguments | Zod schemas on every tool; invalid arguments never execute | B1, `agent.test.ts` | Deterministic ✅ |
 | 3 | Authorized data retrieval | Trusted context from the verified session; ownership re-checked in every tool | X2, `agent.test.ts` "forged course id" | Deterministic ✅ |
-| 4 | Grounded sources | Facts must cite retrieved, unflagged sources that support the claim ([claim check](src/lib/rag/claim-support.ts)) | B4, unit `claim-support`, RAG report | ✅ live S1: 3 facts cited to pp. 2–3, 0 removed. Live T4: 1 unsupported fact removed. Live S2: drafts citing unretrieved sources refused |
+| 4 | Grounded sources | Facts must cite retrieved, unflagged sources that support the claim ([claim check](../src/lib/rag/claim-support.ts)) | B4, unit `claim-support`, RAG report | ✅ live S1: 3 facts cited to pp. 2–3, 0 removed. Live T4: 1 unsupported fact removed. Live S2: drafts citing unretrieved sources refused |
 | 5 | Correct plan generation | Deterministic engine computes every number; the model only proposes study items | S1–S8, A1 | ✅ live S2 (primary): infeasible draft, short by 420 min |
 | 6 | Missing information | `NO_EVIDENCE` from tools; clarifying question in the answer schema | B5, R7–R8, T7 | ✅ live S3 asked instead of inventing; live T7 didn't invent the missing assignment |
 | 7 | Approval before changes | No tool can commit; approval is a separate locked RPC | A1–A5, tool list test | ✅ live T8: no approval claimed |

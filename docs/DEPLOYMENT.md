@@ -31,7 +31,7 @@ It reads the key with hidden input, checks it, runs one tool-call test, sets `GE
 `AI_PROVIDER=gemini` on Vercel, and redeploys. The same key turns on `gemini-embedding-001` embeddings for semantic search.
 **OpenAI (alternative):** set `OPENAI_API_KEY` and `OPENAI_MODEL` and a monthly usage limit.
 Either way, the app limits each student (30 copilot runs a day), keeps one run at a time, and enforces a global daily token budget
-and a kill switch (`ops_flags`; see INCIDENT_RESPONSE_RUNBOOK.md).
+and a kill switch (`ops_flags`; see reviews/INCIDENT_RESPONSE_RUNBOOK.md).
 
 ## 4. Vercel (you)
 1. Import `github.com/krish2105/CatchupAI-Agentic-AI` (framework: Next.js, root: repository root).

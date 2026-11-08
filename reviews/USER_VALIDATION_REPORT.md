@@ -4,7 +4,7 @@
 
 ## Prepared study
 - **Participants:** 3–5 student volunteers, recruited by the owner. Synthetic data only (one-click demo account, deleted after 24 h).
-- **Consent:** read aloud from [docs/VOLUNTEER_KIT.md](docs/VOLUNTEER_KIT.md); recorded as yes/no per session ID, with no names.
+- **Consent:** read aloud from [docs/VOLUNTEER_KIT.md](../docs/VOLUNTEER_KIT.md); recorded as yes/no per session ID, with no names.
 - **Tasks:** understand the recovery dashboard; upload a lecture document; ask the copilot about a missed class; compare
   recovery routes; approve a plan; start a Focus Sanctuary session; find a cited source in the Knowledge Vault; use the
   catch-up pack; send feedback.

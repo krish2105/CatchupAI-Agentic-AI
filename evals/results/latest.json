@@ -3,7 +3,7 @@
     "ranAt": "2026-11-05T08:17:59.882Z",
     "retrievalMode": "hybrid (gemini-embedding-001)",
     "agentModel": "gemini:gemini-3.6-flash (T8 with fallback gemini-3.1-flash-lite)",
-    "merged": "Deterministic cases from the run at 2026-11-05T08:17:59.882Z; each live case (T1\u2013T8) is its latest real live result: T1, T2, T6 on 2026-11-04, T3\u2013T8 on 2026-11-05. See LIVE_AGENT_EVALUATION_REPORT.md for every attempt, including provider-limit failures.",
+    "merged": "Deterministic cases from the run at 2026-11-05T08:17:59.882Z; each live case (T1\u2013T8) is its latest real live result: T1, T2, T6 on 2026-11-04, T3\u2013T8 on 2026-11-05. See reviews/LIVE_AGENT_EVALUATION_REPORT.md for every attempt, including provider-limit failures.",
     "totals": {
       "cases": 38,
       "pass": 38,

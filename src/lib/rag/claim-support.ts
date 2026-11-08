@@ -4,7 +4,7 @@
  * appear there too, and quoted text must match verbatim. Deterministic and conservative: a claim that can't be
  * checked is treated as unsupported. It catches unrelated or invented citations, dropped negations and swapped
  * opposite words ("double" for "half"); it does not prove the claim is a correct reading of the passage (see
- * RAG_QUALITY_REPORT.md for that limitation).
+ * reviews/RAG_QUALITY_REPORT.md for that limitation).
  */
 import { terms } from "@/lib/quiz/cloze";
 import { stem } from "@/lib/teach/feedback";

@@ -1,6 +1,6 @@
 # RAG quality report
 
-**Date:** 2026-11-04 · **Command:** `npm run db:start && npm run eval` · **Generated numbers:** [evals/RAG_REPORT.md](evals/RAG_REPORT.md), [evals/results/rag-latest.json](evals/results/rag-latest.json)
+**Date:** 2026-11-04 · **Command:** `npm run db:start && npm run eval` · **Generated numbers:** [evals/RAG_REPORT.md](../evals/RAG_REPORT.md), [evals/results/rag-latest.json](../evals/results/rag-latest.json)
 
 ## Pipeline audited
 | Stage | Implementation | Finding |
@@ -11,12 +11,12 @@
 | Embeddings | OpenAI `text-embedding-3-small` only when an OpenAI key exists | **Not active**: no key, so retrieval is lexical only |
 | Retrieval | `search_course_chunks` (SECURITY INVOKER, RLS and owner filter): lexical rank and coverage, fused with vector similarity (RRF) when embeddings exist; evidence threshold, else abstain | Measured below |
 | Answer generation | Structured answer: facts with source ids, kept separate from suggestions | Live model **not measured** (no key) |
-| Citation check | **New:** a fact is kept only if its cited, unflagged passage supports it ([claim-support.ts](src/lib/rag/claim-support.ts)) | Measured below |
+| Citation check | **New:** a fact is kept only if its cited, unflagged passage supports it ([claim-support.ts](../src/lib/rag/claim-support.ts)) | Measured below |
 | Source rendering | Signed 120 s link to the exact page, issued after an ownership lookup | OK (E2E) |
 
 ## Dataset
-Synthetic, committed and reproducible: [scripts/make-rag-fixtures.ts](scripts/make-rag-fixtures.ts) creates a six-page biology lecture,
-an errata sheet that **contradicts** two of its facts, and a red-team document. [evals/rag/gold.json](evals/rag/gold.json) has 18
+Synthetic, committed and reproducible: [scripts/make-rag-fixtures.ts](../scripts/make-rag-fixtures.ts) creates a six-page biology lecture,
+an errata sheet that **contradicts** two of its facts, and a red-team document. [evals/rag/gold.json](../evals/rag/gold.json) has 18
 questions with every answering page listed: 8 direct, 2 paraphrased, 1 multi-page, 2 conflicting, 1 ambiguous and 4 that must abstain
 (one of them is answered in the student's *other* course, so it tests course scoping).
 
@@ -45,13 +45,13 @@ The conflicting cases (G12 ATP yield, G13 test day) retrieve **both** the origin
 student sees the conflict instead of one silently winning.
 
 ## Expanded gold set: 51 questions over three courses (2026-11-05, keyword only so far)
-The set grew from 18 to 51 questions ([evals/rag/gold.json](evals/rag/gold.json)): the biology course gained 9, and two
+The set grew from 18 to 51 questions ([evals/rag/gold.json](../evals/rag/gold.json)): the biology course gained 9, and two
 more synthetic courses were added, statistics (8, on the Module 4 notes) and chemistry (16, a new 10-page fixture with a
 teacher update that conflicts with its revision guide). By type: 21 direct, 11 paraphrase, 6 multi-page, 4 conflicting,
 2 ambiguous, 7 abstain. Each query searches only its own course. The questions were written before the first run and
 were not changed after it.
 
-The first run had no embedding key (keyword only), so it went to [evals/RAG_REPORT_LEXICAL.md](evals/RAG_REPORT_LEXICAL.md);
+The first run had no embedding key (keyword only), so it went to [evals/RAG_REPORT_LEXICAL.md](../evals/RAG_REPORT_LEXICAL.md);
 the eval now writes keyword-only runs there so they can't replace the live-embedding report.
 
 | Metric (keyword only, 51 cases) | Value |
@@ -91,7 +91,7 @@ word that the passage negates; and not swap one side of an opposite pair ("doubl
 "raise"/"lower", "high"/"low", "maximize"/"minimize", "identical"/"different", "before"/"after" and 11 more, listed in
 `OPPOSITES` in `src/lib/rag/claim-support.ts`) for the other side used in the passage sentence the claim most resembles.
 
-Measured against 30 labelled claims in [evals/rag/claims.json](evals/rag/claims.json) (14 supported, 16 not; labelled by the
+Measured against 30 labelled claims in [evals/rag/claims.json](../evals/rag/claims.json) (14 supported, 16 not; labelled by the
 developer from the source text, **not yet reviewed by an independent person**):
 
 | | Predicted supported | Predicted unsupported |

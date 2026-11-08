@@ -51,7 +51,7 @@ flowchart LR
 ## 5. Security and privacy
 RLS on every student table, tested with two students. Nonce CSP, Origin checks, hash-only tokens, signed unsubscribe
 links. AI kill switch and daily token budget. Structured logs with redaction. Data export and account deletion. Synthetic
-demo data, deleted after 24 h. Details: SECURITY_AUDIT.md and AI_SECURITY_RED_TEAM_REPORT.md.
+demo data, deleted after 24 h. Details: SECURITY_AUDIT.md and reviews/AI_SECURITY_RED_TEAM_REPORT.md.
 
 ## 6. Judge Q&A
 - **What's agentic?** The model chooses which tools to call and with what arguments; every call is real and logged. It can

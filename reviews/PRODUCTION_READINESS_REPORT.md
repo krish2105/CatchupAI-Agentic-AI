@@ -16,7 +16,7 @@
 ## Live checks done by automation (public pages only)
 `node scripts/capture-production-evidence.mjs`: `/`, `/login` and `/quality` at 1440 px and 390 px, light and dark (via
 the OS colour scheme, i.e. **System** mode): **12/12** returned 200 with 0 px horizontal overflow and 0 page errors. Screenshots are in
-[docs/evidence/production](docs/evidence/production). `scripts/uptime-check.mjs`: liveness, landing page with nonce
+[docs/evidence/production](../docs/evidence/production). `scripts/uptime-check.mjs`: liveness, landing page with nonce
 CSP, quality page, protected-route redirect and cron protection pass; readiness is 404 until this branch is deployed.
 
 The live sign-in is protected by a human bot check (Turnstile), which automation must not solve. The owner signed in

@@ -56,4 +56,4 @@ Fixed earlier in this build (recorded in BUILD_STATUS): rejected/rotated session
 
 **Backup and restore drill (local only):** a full `pg_dump` restored into a scratch database. Row counts identical for 7 core tables and `auth.users`; 25 RLS tables restored with RLS on; 29 restore errors, all platform-privilege items (default privileges, vault, superuser functions), as expected when restoring as `postgres`.
 
-**Residual (unchanged or new):** `style-src 'unsafe-inline'`; 120 s bearer source links; heuristic injection detection (see AI_SECURITY_RED_TEAM_REPORT.md); no error-alerting service yet (see OBSERVABILITY_REPORT.md).
+**Residual (unchanged or new):** `style-src 'unsafe-inline'`; 120 s bearer source links; heuristic injection detection (see reviews/AI_SECURITY_RED_TEAM_REPORT.md); no error-alerting service yet (see reviews/OBSERVABILITY_REPORT.md).

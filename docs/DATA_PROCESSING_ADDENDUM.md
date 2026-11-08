@@ -46,7 +46,7 @@ class totals or leave the organisation. Deleting an organisation never deletes s
 
 ## 7. Incidents
 The operator will tell the school's contact [email] without undue delay after becoming aware of a personal-data
-breach affecting the school's members, with what is known, and follow INCIDENT_RESPONSE_RUNBOOK.md.
+breach affecting the school's members, with what is known, and follow reviews/INCIDENT_RESPONSE_RUNBOOK.md.
 
 ## 8. End of the agreement
 On request the operator deletes the organisation; students keep their own accounts unless they delete them.

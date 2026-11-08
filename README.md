@@ -41,7 +41,7 @@ One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model)
 
 A typical request makes 4–6 real tool calls (deadlines → availability → notes → draft), each recorded and shown in the timeline. Facts must cite a passage that actually supports them. Passages that try to instruct an AI are flagged and can't be cited. Nothing is saved, approved or deleted by the AI.
 
-**Measured with the live model (Gemini, 4–5 Nov):** all 12 live cases have run at least once. Tool selection was correct in 8 of 8 cases (T8 answered by the fallback model after the primary's daily quota ran out). In the missed-lecture scenario the model chose 5 tools in order and drafted a feasible plan, left pending, in 10.7 s, with facts cited to pages 2–3. It resisted a malicious document and failed safely when the provider broke. One scenario failed: in the overloaded week it looped on refused drafts until the turn limit. That is fixed but not yet re-run live. One run per case so far, so these are not pass rates. See [LIVE_AGENT_EVALUATION_REPORT.md](LIVE_AGENT_EVALUATION_REPORT.md) and [AGENTIC_AI_AUDIT.md](AGENTIC_AI_AUDIT.md).
+**Measured with the live model (Gemini, 4–5 Nov):** all 12 live cases have run at least once. Tool selection was correct in 8 of 8 cases (T8 answered by the fallback model after the primary's daily quota ran out). In the missed-lecture scenario the model chose 5 tools in order and drafted a feasible plan, left pending, in 10.7 s, with facts cited to pages 2–3. It resisted a malicious document and failed safely when the provider broke. One scenario failed: in the overloaded week it looped on refused drafts until the turn limit. That is fixed but not yet re-run live. One run per case so far, so these are not pass rates. See [reviews/LIVE_AGENT_EVALUATION_REPORT.md](reviews/LIVE_AGENT_EVALUATION_REPORT.md) and [reviews/AGENTIC_AI_AUDIT.md](reviews/AGENTIC_AI_AUDIT.md).
 
 ## Why TypeScript and not Python?
 
@@ -67,7 +67,7 @@ each database query stays inside one region.
 | Deterministic planner: **essential / balanced / full** routes, honest shortfall in minutes, what-if availability | ✅ |
 | Human approval gate: atomic, idempotent, refuses stale/expired/infeasible plans | ✅ |
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
-| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 7 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see LIVE_AGENT_EVALUATION_REPORT.md) |
+| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 7 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see reviews/LIVE_AGENT_EVALUATION_REPORT.md) |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
@@ -81,7 +81,7 @@ each database query stays inside one region.
 | Learning trail: student-confirmed prerequisites drawn in the 3D universe with a study order | ✅ |
 | Guided judge tour on the one-click demo; installable app (PWA) | ✅ |
 | One-click judge demo (anonymous account + synthetic data, Turnstile-ready, 24 h cleanup) | ✅ |
-| 30-case evaluation (`npm run eval` → `evals/REPORT.md`) | ✅ 25 pass · 0 fail · 5 tool-selection cases pending a real LLM |
+| 38-case evaluation (`npm run eval` → `evals/REPORT.md`) plus 12 live-model cases; recorded live runs replayed at `/watch` | ✅ 38/38 on each case's latest result; live cases 12/12 on their latest run |
 | Light / dark / system themes, reduced motion, 3D on/off, no-WebGL fallback, keyboard + screen-reader paths | ✅ |
 | Missed Lecture Catch-up Pack: page-cited summary, key terms, self-check questions and a 30-minute plan (built without AI), plus read-aloud | ✅ |
 | Opt-in study emails (morning digest, missed-block alert, signed one-click unsubscribe) and 👍/👎 + written feedback | ✅ (sending needs SMTP on the server: `python3 scripts/configure-nudge-email.py`) |
@@ -91,9 +91,9 @@ each database query stays inside one region.
 | Captioned demo video recorded automatically from the real app (`npm run demo:record`) and a [volunteer test kit](docs/VOLUNTEER_KIT.md) | ✅ |
 | Public deployment | ✅ https://catchupai-chi.vercel.app (Vercel + Supabase, CI on every push) |
 
-See `BUILD_STATUS.md` for every command run and its result, and `QA_REPORT.md` for the test evidence.
+See `BUILD_STATUS.md` for every command run and its result, and `reviews/QA_REPORT.md` for the test evidence.
 
-**Release reports (M8):** [live agent evaluation](LIVE_AGENT_EVALUATION_REPORT.md) · [RAG quality](RAG_QUALITY_REPORT.md) · [AI red team](AI_SECURITY_RED_TEAM_REPORT.md) · [security audit](SECURITY_AUDIT.md) · [observability](OBSERVABILITY_REPORT.md) · [incident runbook](INCIDENT_RESPONSE_RUNBOOK.md) · [production readiness](PRODUCTION_READINESS_REPORT.md) · [user validation](USER_VALIDATION_REPORT.md) · [submission package](submission/PROJECT_PACKAGE.md) · [iOS app](ios/README.md)
+**Release reports (M8):** [live agent evaluation](reviews/LIVE_AGENT_EVALUATION_REPORT.md) · [RAG quality](reviews/RAG_QUALITY_REPORT.md) · [AI red team](reviews/AI_SECURITY_RED_TEAM_REPORT.md) · [security audit](SECURITY_AUDIT.md) · [observability](reviews/OBSERVABILITY_REPORT.md) · [incident runbook](reviews/INCIDENT_RESPONSE_RUNBOOK.md) · [production readiness](reviews/PRODUCTION_READINESS_REPORT.md) · [user validation](reviews/USER_VALIDATION_REPORT.md) · [submission package](submission/PROJECT_PACKAGE.md) · [iOS app](ios/README.md)
 
 ## Screenshots (Nature Flow 3.0)
 
@@ -193,7 +193,7 @@ npm run eval                # 38-case agent eval + RAG eval + 3 agentic scenario
 npm run preflight           # environment checks (add -- --production before deploying)
 ```
 
-Security: [SECURITY_AUDIT.md](SECURITY_AUDIT.md) · [THREAT_MODEL.md](THREAT_MODEL.md) · [SECURITY_TEST_REPORT.md](SECURITY_TEST_REPORT.md).
+Security: [SECURITY_AUDIT.md](SECURITY_AUDIT.md) · [THREAT_MODEL.md](THREAT_MODEL.md) · [reviews/SECURITY_TEST_REPORT.md](reviews/SECURITY_TEST_REPORT.md).
 
 Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, SMTP, Turnstile, Vercel, Gemini or OpenAI).
 
@@ -209,6 +209,9 @@ src/lib/                 auth, db access, planner, rag, agents, quiz, validation
 supabase/migrations/     schema, RLS, search and approval functions
 tests/{unit,integration,e2e}
 evals/                   agent, RAG and agentic-scenario evaluations (+ gold data)
+reviews/                 dated review reports (live evaluation, RAG, security, QA, operations)
+submission/              competition package: walkthrough, evidence pack, reports, architecture
+demo/                    demo video script, shot list, storyboard and recorder
 ios/                     SwiftUI iPhone/iPad app (XcodeGen)
 scripts/                 setup, fixtures, demo recording, uptime and evidence tools
 ```
@@ -216,7 +219,7 @@ scripts/                 setup, fixtures, demo recording, uptime and evidence to
 ## Known limitations
 
 - The live model runs on Google's free tier: 20 requests a day per model and 10–90 s per answer when Google is busy. Paid quota would remove both limits.
-- Text-based PDFs only (no OCR), ≤ 10 MB and ≤ 50 pages, processed synchronously.
+- PDF only (no slides, Word files or audio), ≤ 10 MB and ≤ 50 pages, processed synchronously. Scanned PDFs go through OCR (up to 20 pages).
 - Knowledge checks are fill-in-the-blank from your own sentences, not LLM-written questions.
 - No institutional LMS integration (Moodle or Canvas) yet. The iOS app (`ios/`) wraps the web app and is not on the App Store.
 - Planner assumes one daily study window per day starting at a fixed local time.

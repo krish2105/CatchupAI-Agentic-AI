@@ -11,7 +11,7 @@
 | ADR-007 | Text-searchable PDF only for MVP | OCR/large file ingestion increases time and failure modes | Accepted |
 | ADR-008 | Start P0 before P1 quizzes | Protect eight-day deadline | Accepted |
 
-Add dated decisions here when the coding assistant changes architecture or requirements. Record concrete consequences and rejected alternatives.
+Add dated decisions here whenever the architecture or requirements change. Record concrete consequences and rejected alternatives.
 
 ## 2026-11-03 | Starter conversion
 - Keep the OpenAI Agents SDK as the application's runtime orchestration for the MVP; `OPENAI_MODEL` is product-runtime configuration.
