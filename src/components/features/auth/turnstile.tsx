@@ -39,8 +39,12 @@ export default function Turnstile({ onToken }: { onToken: (token: string | null)
     script.async = true;
     script.dataset.turnstile = "true";
     script.onload = render;
-    // An ad or script blocker stops the check from loading at all; report it instead of spinning.
-    script.onerror = fail;
+    // An ad or script blocker stops the check from loading at all; report it instead of spinning. The dead tag is
+    // removed so "Try again" loads the script afresh instead of waiting on a tag that will never fire.
+    script.onerror = () => {
+      script.remove();
+      fail();
+    };
     document.head.appendChild(script);
   }, []);
   return TURNSTILE_SITE_KEY ? <div ref={el} /> : null;
