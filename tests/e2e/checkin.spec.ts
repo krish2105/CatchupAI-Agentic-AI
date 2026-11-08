@@ -47,6 +47,10 @@ test("check-in card: CatchUp explains what it noticed, and Dismiss saves nothing
     const { data: drafts } = await s.db.from("action_proposals").select("status").eq("owner_id", s.userId).eq("proactive", true);
     expect(drafts?.map((d) => d.status)).toEqual(["rejected"]);
     expect((await s.db.from("study_plans").select("id, status").eq("owner_id", s.userId)).data).toEqual(plansBefore);
+
+    // The data export says why the check-in was made.
+    const exported = await (await s.page.request.get("/api/account/export")).json();
+    expect(exported.checkins).toEqual([expect.objectContaining({ status: "rejected", reason: expect.stringMatching(/^1 block missed/) })]);
   } finally {
     await s.cleanup();
   }

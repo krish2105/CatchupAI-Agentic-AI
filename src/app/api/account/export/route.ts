@@ -3,6 +3,8 @@ import { requireApiUser } from "@/lib/auth/session";
 import { fromDbError, isMissingSchema, route } from "@/lib/http/errors";
 import { enforceRateLimit } from "@/lib/http/rate-limit";
 
+const isMissingColumn = (error: { code?: string }) => isMissingSchema(error) || error.code === "42703" || error.code === "PGRST204";
+
 const TABLES = [
   ["profile", "profiles", "id, display_name, timezone, weekly_minutes, study_start_time, onboarded_at, created_at"],
   ["courses", "courses", "id, title, description, created_at"],
@@ -44,6 +46,13 @@ export const GET = route(async () => {
   const calendar = await supabase.from("calendar_prefs").select("friday_prayer, prayer_breaks, prayer_city, prayer_method, ramadan_mode, ramadan_reduction_pct, ramadan_start, ramadan_end, ramadan_study_start, show_hijri, updated_at");
   if (calendar.error && !isMissingSchema(calendar.error)) throw fromDbError(calendar.error);
   out.calendarPreferences = calendar.data ?? [];
+  // Daily check-in: the opt-out switch and why each check-in draft was made. Skipped on a database without migration 0023.
+  const checkinPref = await supabase.from("notification_prefs").select("proactive_checkin");
+  if (checkinPref.error && !isMissingColumn(checkinPref.error)) throw fromDbError(checkinPref.error);
+  out.checkinPreference = checkinPref.error ? [] : checkinPref.data;
+  const checkins = await supabase.from("action_proposals").select("id, status, reason, checkin_on, created_at").eq("proactive", true);
+  if (checkins.error && !isMissingColumn(checkins.error)) throw fromDbError(checkins.error);
+  out.checkins = checkins.error ? [] : checkins.data;
   return new NextResponse(JSON.stringify(out, null, 2), {
     headers: { "content-type": "application/json", "content-disposition": `attachment; filename="catchup-ai-export-${new Date().toISOString().slice(0, 10)}.json"` },
   });
