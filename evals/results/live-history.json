@@ -52,6 +52,13 @@
       "cases": {
         "S2-overloaded-week": "pass"
       }
+    },
+    {
+      "ranAt": "2026-11-08T09:49:35.286Z",
+      "model": "gemini:gemini-3.6-flash",
+      "cases": {
+        "S2-overloaded-week": "pass"
+      }
     }
   ]
 }
