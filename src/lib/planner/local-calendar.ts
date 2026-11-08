@@ -110,6 +110,30 @@ export function hasPlanningRules(prefs: LocalCalendarPrefs): boolean {
 }
 
 /**
+ * What the copilot is told about the rules in force, so it doesn't misstate the student's time. The planner has
+ * already applied them; the city is left out because the copilot doesn't need it.
+ */
+export function localCalendarSummary(prefs: LocalCalendarPrefs, timezone: string, now: number) {
+  if (!hasPlanningRules(prefs)) return null;
+  const located = prefs.city !== null && prefs.method !== null;
+  return {
+    ...(prefs.fridayPrayer ? { fridayPrayerKeptFree: "Fridays 12:00-14:00 local time" } : {}),
+    ...(located && prefs.prayerBreaks ? { prayerTimeBreaks: "15 minutes around each of the five daily prayers" } : {}),
+    ...(located && prefs.ramadanMode
+      ? {
+          ramadan: {
+            todayIsRamadan: isRamadanDay(localYmd(now, timezone), prefs),
+            dailyMinutesReducedByPercent: prefs.ramadanReductionPercent,
+            noStudyMinutesBeforeMaghrib: PRE_IFTAR_MINUTES,
+            ...(prefs.ramadanStudyStart ? { studyStartTimeOnRamadanDays: prefs.ramadanStudyStart } : {}),
+          },
+        }
+      : {}),
+    note: "Study windows pause for these breaks and resume after them; drafted plans already respect them.",
+  };
+}
+
+/**
  * Engine rules for every local day touching [from, to]: breaks as absolute instants and the Ramadan dates.
  * Returns undefined when nothing applies, so the planner behaves exactly as without this feature.
  */

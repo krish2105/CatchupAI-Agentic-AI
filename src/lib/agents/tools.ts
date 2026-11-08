@@ -1,8 +1,10 @@
 import "server-only";
 import { tool, type RunContext } from "@openai/agents";
 import { z } from "zod";
+import { getCalendarPrefs } from "@/lib/calendar-prefs/service";
 import { listAssignments } from "@/lib/db/assignments";
 import { getProfile } from "@/lib/db/profiles";
+import { localCalendarSummary } from "@/lib/planner/local-calendar";
 import { getActivePlan } from "@/lib/db/tasks";
 import { ApiError } from "@/lib/http/errors";
 import type { WorkItem } from "@/lib/planner/engine";
@@ -62,14 +64,19 @@ const courseIdParam = z.string().uuid().nullable().describe("Course id, or null 
 
 export const getStudyPreferences = tool({
   name: "get_study_preferences",
-  description: "Read the student's time zone, study minutes available per weekday (Mon..Sun) and daily study start time.",
+  description: "Read the student's time zone, study minutes available per weekday (Mon..Sun), daily study start time and any local calendar rules (Friday prayer, prayer-time breaks, Ramadan).",
   parameters: z.object({}),
   execute: (_input, ctx?: RunContext<AgentContext>) =>
     traced(ctx, "get_study_preferences", {}, async (c) => {
-      const { value: p, hit } = await cachedRead(c.userId, "get_study_preferences", {}, () => getProfile(c.supabase, c.userId));
+      const { value, hit } = await cachedRead(c.userId, "get_study_preferences", {}, async () => {
+        const [profile, calendar] = await Promise.all([getProfile(c.supabase, c.userId), getCalendarPrefs(c.supabase)]);
+        return { profile, calendar };
+      });
+      const p = value.profile;
       const weekly = p.weeklyMinutes.reduce((s, m) => s + m, 0);
+      const localCalendar = localCalendarSummary(value.calendar, p.timezone, c.now);
       return {
-        result: JSON.stringify({ timezone: p.timezone, weeklyMinutesMonToSun: p.weeklyMinutes, studyStartTime: p.studyStartTime, totalMinutesPerWeek: weekly }),
+        result: JSON.stringify({ timezone: p.timezone, weeklyMinutesMonToSun: p.weeklyMinutes, studyStartTime: p.studyStartTime, totalMinutesPerWeek: weekly, ...(localCalendar ? { localCalendar } : {}) }),
         outcome: `${Math.round(weekly / 6) / 10}h per week, ${p.timezone}`,
         cached: hit,
       };

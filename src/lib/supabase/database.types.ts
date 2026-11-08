@@ -341,6 +341,54 @@ export type Database = {
         }
         Relationships: []
       }
+      calendar_prefs: {
+        Row: {
+          friday_prayer: boolean
+          owner_id: string
+          prayer_breaks: boolean
+          prayer_city: string | null
+          prayer_method: string | null
+          ramadan_end: string | null
+          ramadan_mode: boolean
+          ramadan_reduction_pct: number
+          ramadan_start: string | null
+          ramadan_study_start: string | null
+          rules_changed_at: string | null
+          show_hijri: boolean
+          updated_at: string
+        }
+        Insert: {
+          friday_prayer?: boolean
+          owner_id?: string
+          prayer_breaks?: boolean
+          prayer_city?: string | null
+          prayer_method?: string | null
+          ramadan_end?: string | null
+          ramadan_mode?: boolean
+          ramadan_reduction_pct?: number
+          ramadan_start?: string | null
+          ramadan_study_start?: string | null
+          rules_changed_at?: string | null
+          show_hijri?: boolean
+          updated_at?: string
+        }
+        Update: {
+          friday_prayer?: boolean
+          owner_id?: string
+          prayer_breaks?: boolean
+          prayer_city?: string | null
+          prayer_method?: string | null
+          ramadan_end?: string | null
+          ramadan_mode?: boolean
+          ramadan_reduction_pct?: number
+          ramadan_start?: string | null
+          ramadan_study_start?: string | null
+          rules_changed_at?: string | null
+          show_hijri?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       copilot_memories: {
         Row: {
           created_at: string

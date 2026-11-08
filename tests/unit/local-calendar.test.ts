@@ -6,6 +6,7 @@ import {
   DEFAULT_LOCAL_CALENDAR,
   hijriLabel,
   isRamadanDay,
+  localCalendarSummary,
   localYmd,
   PRAYER_BREAK,
   PRE_IFTAR_MINUTES,
@@ -142,6 +143,26 @@ describe("buildCalendarRules", () => {
       TO,
     )!;
     expect(rules.ramadan).toEqual({ dates: ["2026-11-10", "2026-11-11"], reductionPercent: 25, studyStartTime: "21:00" });
+  });
+});
+
+describe("localCalendarSummary (what the copilot is told)", () => {
+  it("is empty when no planning rule is on", () => {
+    expect(localCalendarSummary(prefs({ showHijri: true }), "Asia/Dubai", Date.parse("2026-11-09T08:00:00Z"))).toBeNull();
+  });
+
+  it("describes the rules in force, says whether today is a Ramadan day, and never names the city", () => {
+    const summary = localCalendarSummary(
+      prefs({ fridayPrayer: true, prayerBreaks: true, ramadanMode: true, ramadanReductionPercent: 30, city: "fujairah", method: "dubai" }),
+      "Asia/Dubai",
+      Date.parse("2027-02-10T08:00:00Z"),
+    );
+    expect(summary).toMatchObject({
+      fridayPrayerKeptFree: "Fridays 12:00-14:00 local time",
+      prayerTimeBreaks: expect.stringContaining("15 minutes"),
+      ramadan: { todayIsRamadan: true, dailyMinutesReducedByPercent: 30, noStudyMinutesBeforeMaghrib: 60 },
+    });
+    expect(JSON.stringify(summary).toLowerCase()).not.toContain("fujairah");
   });
 });
 

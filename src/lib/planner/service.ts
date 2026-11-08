@@ -8,11 +8,14 @@ import { ApiError, fromDbError } from "@/lib/http/errors";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import type { ServerSupabase } from "@/lib/supabase/server";
-import { planScenarios, scaleWeekly, type PlanResult, type ScenarioKey, type WorkItem } from "./engine";
+import { getCalendarPrefs, getCalendarState } from "@/lib/calendar-prefs/service";
+import { HORIZON_RULES, planScenarios, scaleWeekly, type PlanResult, type ScenarioKey, type WorkItem } from "./engine";
+import { buildCalendarRules, hasPlanningRules, type LocalCalendarPrefs } from "./local-calendar";
 import { applyCompletedWork } from "./progress";
 
 export const PROPOSAL_TTL_MS = 6 * 60 * 60_000;
 export const REVIEW_MINUTES = 30;
+const DAY = 86_400_000;
 
 type ReadyDoc = { id: string; course_id: string; filename: string };
 
@@ -108,11 +111,13 @@ export function sha256(value: unknown) {
   return createHash("sha256").update(canonical(value)).digest("hex");
 }
 
-export function inputHash(profile: Profile, assignments: Assignment[], items: WorkItem[]) {
+export function inputHash(profile: Profile, assignments: Assignment[], items: WorkItem[], calendar?: LocalCalendarPrefs) {
   return sha256({
     availability: { timezone: profile.timezone, weeklyMinutes: profile.weeklyMinutes, studyStartTime: profile.studyStartTime },
     assignments: assignments.map((a) => [a.id, a.dueAt, a.estimatedMinutes, a.required, a.status, a.updatedAt]).sort(),
     items: items.map((i) => [i.id, i.minutes, i.deadline, i.tier]),
+    // Only planning rules count (showing Hijri dates doesn't); without them the hash is the same as before.
+    ...(calendar && hasPlanningRules(calendar) ? { calendar: { ...calendar, showHijri: undefined } } : {}),
   });
 }
 
@@ -124,15 +129,18 @@ export async function computePlan(
   userId: string,
   opts: { now: number; weeklyTotal?: number; extraItems?: WorkItem[] },
 ): Promise<ComputedPlan> {
-  const [profile, assignments] = await Promise.all([getProfile(supabase, userId), listAssignments(supabase)]);
+  const [profile, assignments, localCalendar] = await Promise.all([getProfile(supabase, userId), listAssignments(supabase), getCalendarPrefs(supabase)]);
   const candidates = await buildCandidateItems(supabase, assignments, opts.now);
   // Copilot-proposed (cited) study items rank ahead of the planner's generic review sessions.
   const items = [...candidates.filter((i) => i.tier === "required"), ...(opts.extraItems ?? []), ...candidates.filter((i) => i.tier !== "required")];
   const savedTotal = profile.weeklyMinutes.reduce((s, m) => s + m, 0);
   const whatIf = opts.weeklyTotal !== undefined && opts.weeklyTotal !== savedTotal;
   const weeklyMinutes = whatIf ? scaleWeekly(profile.weeklyMinutes, opts.weeklyTotal!) : profile.weeklyMinutes;
-  const plan = planScenarios({ items, availability: { timezone: profile.timezone, weeklyMinutes, studyStartTime: profile.studyStartTime }, now: opts.now });
-  return { ...plan, inputHash: inputHash(profile, assignments, items), timezone: profile.timezone, weeklyMinutes, whatIf };
+  // Local calendar rules (Friday prayer, prayer-time breaks, Ramadan) for every day the horizon can reach.
+  const calendar = buildCalendarRules(localCalendar, profile.timezone, opts.now - DAY, opts.now + (HORIZON_RULES.maxDays + 2) * DAY);
+  const availability = { timezone: profile.timezone, weeklyMinutes, studyStartTime: profile.studyStartTime, ...(calendar ? { calendar } : {}) };
+  const plan = planScenarios({ items, availability, now: opts.now });
+  return { ...plan, inputHash: inputHash(profile, assignments, items, localCalendar), timezone: profile.timezone, weeklyMinutes, whatIf };
 }
 
 export type ProposalDto = {
@@ -256,9 +264,15 @@ const OUTCOME_ERRORS: Record<string, ApiError> = {
 
 export async function approveProposal(supabase: ServerSupabase, id: string, idempotencyKey: string) {
   // Defense in depth on top of the database's own deadline and overlap guards: re-check the stored draft.
-  const { data: stored } = await supabase.from("action_proposals").select("payload").eq("id", id).maybeSingle();
+  const { data: stored } = await supabase.from("action_proposals").select("payload, status, created_at").eq("id", id).maybeSingle();
   if (stored && selfCheckPlan(stored.payload as unknown as ProposalPayload).status === "fail") {
     throw new ApiError(409, "self_check_failed", "This draft failed its self-check (blocks overlap, run past a deadline or don't add up), so it can't be approved. Compare the routes again for a fresh plan.");
+  }
+  // The database refuses drafts made before the profile or assignments changed; local calendar rules live in
+  // their own table, so a pending draft made before one of those rules changed is refused here the same way.
+  if (stored?.status === "pending") {
+    const { rulesChangedAt } = await getCalendarState(supabase);
+    if (rulesChangedAt && Date.parse(rulesChangedAt) > Date.parse(stored.created_at)) throw OUTCOME_ERRORS.stale;
   }
   const { data, error } = await supabase.rpc("approve_proposal", { p_proposal_id: id, p_idempotency_key: idempotencyKey });
   if (error) {
