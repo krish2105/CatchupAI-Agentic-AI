@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, ExternalLink, Pause, Play, RotateCcw, XCircle } from "lucide-react";
 import { Chip } from "@/components/ui/primitives";
 import type { Replay } from "@/lib/quality/replay";
@@ -34,11 +34,22 @@ export default function ReplayPlayer({ replays }: { replays: Replay[] }) {
     setPlaying(true);
   };
 
+  // ARIA tabs pattern: one tab stop; arrow keys, Home and End move between runs.
+  const tabs = useRef<(HTMLButtonElement | null)[]>([]);
+  const onTabKey = (e: React.KeyboardEvent) => {
+    const last = replays.length - 1;
+    const next = ({ ArrowRight: index === last ? 0 : index + 1, ArrowLeft: index === 0 ? last : index - 1, Home: 0, End: last } as Record<string, number>)[e.key];
+    if (next === undefined) return;
+    e.preventDefault();
+    pick(next);
+    tabs.current[next]?.focus();
+  };
+
   return (
     <div className="replay">
-      <div className="replay-tabs" role="tablist" aria-label="Recorded runs">
+      <div className="replay-tabs" role="tablist" aria-label="Recorded runs" onKeyDown={onTabKey}>
         {replays.map((x, i) => (
-          <button key={x.id} type="button" role="tab" id={`tab-${x.id}`} aria-controls="replay-panel" aria-selected={i === index} className={i === index ? "btn small primary" : "btn small"} onClick={() => pick(i)}>
+          <button key={x.id} ref={(el) => { tabs.current[i] = el; }} type="button" role="tab" id={`tab-${x.id}`} aria-controls="replay-panel" aria-selected={i === index} tabIndex={i === index ? 0 : -1} className={i === index ? "btn small primary" : "btn small"} onClick={() => pick(i)}>
             {x.title}
           </button>
         ))}
@@ -46,7 +57,7 @@ export default function ReplayPlayer({ replays }: { replays: Replay[] }) {
 
       <section id="replay-panel" role="tabpanel" aria-labelledby={`tab-${r.id}`} className="card replay-panel">
         <div className="replay-meta">
-          <Chip tone="warn">Recorded run · not live</Chip>
+          <Chip>Recorded run · not live</Chip>
           <span className="muted">
             {r.model} · {date(r.recordedAt)} · {(r.latencyMs / 1000).toFixed(1)} s · {r.tokens.input.toLocaleString("en-GB")} in / {r.tokens.output.toLocaleString("en-GB")} out tokens
           </span>
@@ -85,6 +96,13 @@ export default function ReplayPlayer({ replays }: { replays: Replay[] }) {
             {r.status === "failed" ? (
               <p className="replay-failed"><XCircle className="ic" aria-hidden="true" /> {ERROR[r.errorCode ?? ""] ?? "The run failed"}. The student saw a clear error; nothing was saved.</p>
             ) : null}
+            {/* The verdict first: did the plan fit, and was anything saved? */}
+            {r.draft ? (
+              <p className="replay-verdict">
+                <Chip tone={r.draft.feasible ? "good" : "warn"}>{r.draft.feasible ? "Plan fits" : `Short by ${r.draft.shortfallMinutes} min`}</Chip>{" "}
+                Draft plan left for the student to approve. {r.draft.saved ? "It was saved without approval." : "Nothing was saved."}
+              </p>
+            ) : r.status === "completed" ? <p className="muted">No plan was drafted.</p> : null}
             {r.facts.length ? (
               <>
                 <div className="label">Checked facts</div>
@@ -102,12 +120,6 @@ export default function ReplayPlayer({ replays }: { replays: Replay[] }) {
               </>
             ) : null}
             {r.clarifyingQuestion ? <p><b>It asked:</b> {r.clarifyingQuestion}</p> : null}
-            {r.draft ? (
-              <p>
-                <Chip tone={r.draft.feasible ? "good" : "warn"}>{r.draft.feasible ? "Plan fits" : `Short by ${r.draft.shortfallMinutes} min`}</Chip>{" "}
-                Draft plan left for the student to approve. {r.draft.saved ? "It was saved without approval." : "Nothing was saved."}
-              </p>
-            ) : r.status === "completed" ? <p className="muted">No plan was drafted.</p> : null}
             <a className="text-link" href={r.sourceUrl} target="_blank" rel="noopener noreferrer">Raw trace on GitHub <ExternalLink className="ic" aria-hidden="true" /></a>
           </div>
         ) : null}

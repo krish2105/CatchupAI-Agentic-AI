@@ -120,6 +120,7 @@ body {
 .page-heading h1,
 .hero-copy h1,
 .photo-hero h1,
+.quality > h1,
 .auth-card h1 {
   font-family: var(--font-serif), Georgia, "Times New Roman", serif;
   font-weight: 600;
@@ -379,8 +380,9 @@ html[data-theme="dark"] .photo-hero-art { background-image: image-set(url("/natu
 .photo-hero-art::after { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, var(--hero-fade) 0%, color-mix(in srgb, var(--hero-fade), transparent 8%) 34%, color-mix(in srgb, var(--hero-fade), transparent 70%) 54%, transparent 70%); }
 .photo-hero-copy { position: relative; z-index: 1; padding: 40px 36px 36px; max-width: 640px; display: grid; gap: 14px; }
 .photo-hero h1 { font-size: clamp(38px, 4vw, 56px); line-height: 1.04; margin: 6px 0 0; }
-.photo-hero-copy > p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--muted); }
-.nf-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
+/* --text, not --muted: over the light photo the muted colour fell to 3.95:1 (10th percentile) at 1440 px. */
+.photo-hero-copy > p { margin: 0; font-size: 16px; line-height: 1.6; color: var(--text); }
+.nf-hero-actions { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-start; margin-top: 10px; }
 .nf-hero-actions .btn:not(.primary) { background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 .nf-hero-foot { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .nf-hero-foot .listen .btn { background: var(--glass); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
@@ -1126,3 +1128,38 @@ html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: 
 .text-link.inline { display: inline; font-size: inherit; }
 @media (prefers-reduced-motion: no-preference) { .replay .trace-steps > li { animation: replay-in 0.35s ease-out; } }
 @keyframes replay-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.replay-verdict { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 4px; font-size: 15px; font-weight: 600; color: var(--heading); }
+
+/* Home hero: the recorded missed-lecture run beside the copy, so the first screen shows the product working. */
+.photo-hero.has-aside { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); }
+.photo-hero-aside { position: relative; z-index: 1; padding: 28px 28px 28px 0; }
+/* Near-opaque, not glass: over the light photo the muted text on --glass fell to 3.9:1. */
+.run-proof { margin: 0; padding: 18px 20px; display: grid; gap: 10px; border-radius: 20px; border: 1px solid var(--stroke-strong); background: color-mix(in srgb, var(--surface) 95%, transparent); box-shadow: 0 18px 40px -24px var(--shadow); font-size: 13px; line-height: 1.45; }
+.run-proof-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }
+.run-proof-ask { margin: 0; font-weight: 600; color: var(--heading); }
+.run-proof-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 5px; }
+.run-proof-steps li { display: grid; grid-template-columns: 15px auto minmax(0, 1fr); gap: 8px; align-items: baseline; }
+.run-proof-steps span { color: var(--muted); }
+.run-proof .ic { width: 15px; height: 15px; color: var(--accent); align-self: center; }
+.run-proof-line { margin: 0; display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.run-proof-line > span:not(.chip) { flex: 1 1 12em; min-width: 0; }
+.run-proof .text-link { font-size: 13px; justify-self: start; }
+@media (max-width: 1100px) {
+  .photo-hero.has-aside { grid-template-columns: minmax(0, 1fr); }
+  .photo-hero-aside { padding: 0 36px 32px; }
+}
+@media (max-width: 720px) {
+  .photo-hero-aside { padding: 0 18px 20px; }
+  .run-proof-steps li { grid-template-columns: 15px minmax(0, 1fr); }
+  .run-proof-steps span { grid-column: 2; }
+}
+
+/* Public pages: readable buttons, links that look like links, footer links big enough to tap (WCAG 2.5.8). */
+.lp .btn { font-size: 14px; }
+.lp .btn.small { font-size: 13px; }
+.lp .eyebrow, .lp .chip { font-size: 12px; }
+.quality .data-table { font-size: 13px; }
+.quality > p { max-width: 75ch; }
+.quality p a:not([class]) { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+.lp-foot { font-size: 12px; }
+.lp-foot a { display: inline-block; padding: 5px 0; }

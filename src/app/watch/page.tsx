@@ -5,6 +5,7 @@ import Brand from "@/components/shell/brand";
 import ThemeButton from "@/components/shell/theme-button";
 import { ButtonLink } from "@/components/ui/primitives";
 import ReplayPlayer from "@/components/features/replay/replay-player";
+import DemoButton from "@/components/features/demo/demo-button";
 import { REPLAYS } from "@/lib/quality/replay";
 
 export const metadata: Metadata = { title: "Watch a real run", description: "Step-by-step replays of real CatchUp AI runs on a live model, read from the committed traces." };
@@ -32,6 +33,9 @@ export default function WatchPage() {
         <p className="muted">
           Each run is the latest live result for that case. Pass counts across all live runs are on the <Link className="text-link inline" href="/quality">quality page</Link>.
         </p>
+        <div className="nf-hero-actions">
+          <DemoButton className="btn primary" label="Try the live demo, no sign-up" />
+        </div>
       </main>
       <footer className="lp-foot">
         <Link href="/quality">Quality and trust</Link>
