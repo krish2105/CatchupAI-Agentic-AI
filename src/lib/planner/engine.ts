@@ -3,7 +3,9 @@
  *
  * Model
  * - Availability: one study window per local calendar day in the student's IANA time zone, starting at
- *   `studyStartTime` and lasting `weeklyMinutes[weekday]` minutes (DST-safe via TZDate).
+ *   `studyStartTime` and lasting `weeklyMinutes[weekday]` minutes (DST-safe via TZDate). Optional local-calendar
+ *   rules (`availability.calendar`: Friday prayer, prayer-time breaks, Ramadan) pause the window around breaks and
+ *   adjust Ramadan days; they arrive precomputed, so the engine still has no clock, location or calendar lookups.
  * - Work items carry minutes, a deadline (or none = "by the end of the horizon") and a tier:
  *   required (always included), recommended, optional.
  * - Scheduling: earliest-deadline-first, filling windows in time order with blocks of at most 90 minutes and
@@ -37,7 +39,22 @@ export type WorkItem = {
   rationale?: string;
 };
 
-export type Availability = { timezone: string; weeklyMinutes: number[]; studyStartTime: string };
+/** A time the student keeps free (epoch ms, end exclusive). `reason` is for display and tests; the engine ignores it. */
+export type CalendarBreak = { start: number; end: number; reason?: "friday_prayer" | "prayer" | "pre_iftar" };
+
+/**
+ * Optional local-calendar rules, precomputed by the caller (see local-calendar.ts) so the engine stays pure.
+ * - breaks: the day's window pauses for a break and resumes after it, so the student keeps their minutes.
+ * - ramadan: on these local dates (YYYY-MM-DD) the day's minutes drop by `reductionPercent` (rounded down to
+ *   5 minutes) and, if set, the window starts at `studyStartTime` instead of the usual start.
+ * Absent rules leave the output exactly as before.
+ */
+export type CalendarRules = {
+  breaks: CalendarBreak[];
+  ramadan?: { dates: string[]; reductionPercent: number; studyStartTime?: string | null };
+};
+
+export type Availability = { timezone: string; weeklyMinutes: number[]; studyStartTime: string; calendar?: CalendarRules };
 
 export type Window = { start: number; end: number };
 
@@ -110,6 +127,7 @@ function parseStart(hhmm: string): [number, number] {
 export function availabilityWindows(availability: Availability, from: number, to: number): Window[] {
   const { timezone, weeklyMinutes } = availability;
   if (weeklyMinutes.length !== 7 || weeklyMinutes.some((m) => !Number.isFinite(m) || m < 0)) throw new RangeError("weeklyMinutes must be 7 non-negative numbers");
+  if (availability.calendar) return calendarWindows(availability, availability.calendar, from, to);
   const [hh, mm] = parseStart(availability.studyStartTime);
   const windows: Window[] = [];
   const first = new TZDate(from, timezone);
@@ -123,6 +141,104 @@ export function availabilityWindows(availability: Availability, from: number, to
     const s = Math.max(startMs, from);
     const e = Math.min(startMs + minutes * MINUTE, to);
     if (e - s >= BLOCK_RULES.minBlockMinutes * MINUTE) windows.push({ start: s, end: e });
+  }
+  return windows;
+}
+
+const pad2 = (n: number) => String(n).padStart(2, "0");
+
+/** A Ramadan day's minutes: reduced by `percent`, rounded down to 5 minutes (integer arithmetic, so exact). */
+export function reducedMinutes(minutes: number, percent: number): number {
+  const p = Math.min(100, Math.max(0, percent));
+  return Math.floor((minutes * (100 - p)) / 500) * 5;
+}
+
+/** Sorted, non-overlapping copy of the breaks (overlapping or touching breaks are joined). */
+function mergeBreaks(breaks: CalendarBreak[]): Window[] {
+  const sorted = breaks
+    .filter((b) => Number.isFinite(b.start) && Number.isFinite(b.end) && b.end > b.start)
+    .map((b) => ({ start: b.start, end: b.end }))
+    .sort((a, b) => a.start - b.start);
+  const merged: Window[] = [];
+  for (const b of sorted) {
+    const last = merged[merged.length - 1];
+    if (last && b.start <= last.end) last.end = Math.max(last.end, b.end);
+    else merged.push(b);
+  }
+  return merged;
+}
+
+/**
+ * Lays out a day's `minutes` from `start`, pausing for each break and resuming after it, so breaks move study
+ * time instead of removing it. A gap too short for a block is skipped without spending minutes on it.
+ * Nothing goes past `hardEnd` (the start of the next study day), so days never overlap.
+ */
+function layOutDay(start: number, minutes: number, breaks: Window[], hardEnd: number): Window[] {
+  const minBlock = BLOCK_RULES.minBlockMinutes * MINUTE;
+  const pieces: Window[] = [];
+  let cursor = start;
+  let remaining = minutes * MINUTE;
+  for (const b of breaks) {
+    if (remaining <= 0 || cursor >= hardEnd) break;
+    if (b.end <= cursor) continue;
+    if (b.start >= cursor + remaining) break;
+    const gapEnd = Math.min(b.start, hardEnd);
+    if (gapEnd - cursor >= minBlock) {
+      pieces.push({ start: cursor, end: gapEnd });
+      remaining -= gapEnd - cursor;
+    }
+    cursor = Math.max(cursor, b.end);
+  }
+  if (remaining > 0 && cursor < hardEnd) pieces.push({ start: cursor, end: Math.min(cursor + remaining, hardEnd) });
+  return pieces;
+}
+
+/** `availabilityWindows` with local-calendar rules: per-day minutes and start time, then breaks laid around. */
+function calendarWindows(availability: Availability, rules: CalendarRules, from: number, to: number): Window[] {
+  const { timezone, weeklyMinutes } = availability;
+  const usual = parseStart(availability.studyStartTime);
+  const ramadanDates = new Set(rules.ramadan?.dates ?? []);
+  const ramadanStart = rules.ramadan?.studyStartTime ? parseStart(rules.ramadan.studyStartTime) : null;
+  const reduction = rules.ramadan?.reductionPercent ?? 0;
+  const breaks = mergeBreaks(rules.breaks);
+  const first = new TZDate(from, timezone);
+
+  const studyDay = (offset: number) => {
+    const noon = new TZDate(first.getFullYear(), first.getMonth(), first.getDate() + offset, 12, 0, 0, timezone);
+    const ymd = `${noon.getFullYear()}-${pad2(noon.getMonth() + 1)}-${pad2(noon.getDate())}`;
+    const ramadan = ramadanDates.has(ymd);
+    const [hh, mm] = ramadan && ramadanStart ? ramadanStart : usual;
+    const start = new TZDate(noon.getFullYear(), noon.getMonth(), noon.getDate(), hh, mm, 0, timezone).getTime();
+    const minutes = weeklyMinutes[(noon.getDay() + 6) % 7];
+    return { start, minutes: ramadan ? reducedMinutes(minutes, reduction) : minutes };
+  };
+
+  // Start one day early (a window from yesterday evening can run past midnight). After the range, keep the next
+  // day that has study time: it only caps the last window and is clipped away below.
+  const days: { start: number; minutes: number }[] = [];
+  for (let offset = -1; ; offset++) {
+    const day = studyDay(offset);
+    if (day.start >= to) {
+      for (let extra = 0; extra < 8; extra++) {
+        const next = studyDay(offset + extra);
+        if (next.minutes > 0) {
+          days.push(next);
+          break;
+        }
+      }
+      break;
+    }
+    days.push(day);
+  }
+
+  const active = days.filter((d) => d.minutes > 0);
+  const windows: Window[] = [];
+  for (const [i, day] of active.entries()) {
+    for (const piece of layOutDay(day.start, day.minutes, breaks, active[i + 1]?.start ?? Infinity)) {
+      const s = Math.max(piece.start, from);
+      const e = Math.min(piece.end, to);
+      if (e - s >= BLOCK_RULES.minBlockMinutes * MINUTE) windows.push({ start: s, end: e });
+    }
   }
   return windows;
 }
