@@ -8,6 +8,8 @@ import NudgesCard from "@/components/features/settings/nudges-card";
 import FeedbackCard from "@/components/features/settings/feedback-card";
 import McpCard from "@/components/features/settings/mcp-card";
 import LocalCalendarCard from "@/components/features/settings/local-calendar-card";
+import CheckinPrefCard from "@/components/features/settings/checkin-pref-card";
+import { getCheckinPref } from "@/lib/checkin/service";
 import { getCalendarPrefs } from "@/lib/calendar-prefs/service";
 import { headers } from "next/headers";
 import { getNudgePrefs } from "@/lib/nudges/service";
@@ -24,7 +26,7 @@ export const metadata: Metadata = { title: "Preferences" };
 export default async function SettingsPage() {
   const { supabase, user } = await requirePageUser("/settings");
   const now = await renderTime();
-  const [ai, profile, usage, nudges, localCalendar] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id), getUsage(supabase, user.isAnonymous, now), getNudgePrefs(supabase), getCalendarPrefs(supabase)]);
+  const [ai, profile, usage, nudges, localCalendar, checkin] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id), getUsage(supabase, user.isAnonymous, now), getNudgePrefs(supabase), getCalendarPrefs(supabase), getCheckinPref(supabase)]);
   const mcp = await supabase.from("mcp_tokens").select("created_at, last_used_at").maybeSingle();
   const host = (await headers()).get("host");
   const origin = (process.env.NEXT_PUBLIC_APP_URL || (host ? `${host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https"}://${host}` : "")).replace(/\/$/, "");
@@ -60,6 +62,7 @@ export default async function SettingsPage() {
         <NudgesCard initial={nudges} isAnonymous={user.isAnonymous} mailReady={mailReady} />
         <McpCard status={mcp.data ? { createdAt: mcp.data.created_at, lastUsedAt: mcp.data.last_used_at } : null} isAnonymous={user.isAnonymous} origin={origin} />
       </div>
+      <div className="section-space"><CheckinPrefCard initial={checkin} isAnonymous={user.isAnonymous} /></div>
       <div className="section-space"><FeedbackCard /></div>
       <div className="settings-grid section-space">
         <PrivacyCard />

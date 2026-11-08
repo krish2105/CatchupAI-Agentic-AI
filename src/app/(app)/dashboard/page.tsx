@@ -1,4 +1,6 @@
 import GettingStarted from "@/components/features/activation/getting-started";
+import CheckinCard from "@/components/features/recovery/checkin-card";
+import { getProactiveDraft } from "@/lib/checkin/service";
 import { TrackerGlance } from "@/components/features/insights/recovery-tracker";
 import { getActivationFacts } from "@/lib/activation/service";
 import { getTracker } from "@/lib/db/tracker";
@@ -25,7 +27,7 @@ export default async function DashboardPage() {
   const { supabase, user } = await requirePageUser("/dashboard");
   const now = await renderTime();
   // The glance only uses per-assignment states, which don't depend on the time zone.
-  const [overview, profile, plan, active, runs, practice, tracker, activation] = await Promise.all([
+  const [overview, profile, plan, active, runs, practice, tracker, activation, checkin] = await Promise.all([
     getOverview(supabase),
     getProfile(supabase, user.id),
     computePlan(supabase, user.id, { now }),
@@ -34,6 +36,7 @@ export default async function DashboardPage() {
     getPracticeEvidence(supabase, now),
     getTracker(supabase, "UTC", now),
     getActivationFacts(supabase),
+    getProactiveDraft(supabase, now),
   ]);
   const tz = profile.timezone;
   const firstName = (profile.displayName ?? "").split(" ")[0] || "there";
@@ -51,6 +54,8 @@ export default async function DashboardPage() {
   const dueRevision = practice.revision.filter((r) => r.due).length;
   const missed = missedBlocks(tasks, now);
   const missedMinutes = missed.reduce((sum, t) => sum + t.durationMinutes, 0);
+  const todoBlocks = tasks.filter((t) => t.status === "todo");
+  const currentPlan = active ? { todo: todoBlocks.length, todoMinutes: todoBlocks.reduce((s, t) => s + t.durationMinutes, 0), completed: tasks.filter((t) => t.status === "completed").length } : null;
 
   const briefing = !overview.courses.length
     ? "Start by adding a course with its deadlines. Your briefing builds itself from your real work."
@@ -84,7 +89,9 @@ export default async function DashboardPage() {
       </PhotoHero>
       <GettingStarted facts={activation} />
 
-      {missed.length ? (
+      {checkin ? (
+        <CheckinCard proposal={checkin.proposal} reason={checkin.reason} timezone={tz} courseNames={Object.fromEntries(overview.courses.map((c) => [c.id, c.title]))} currentPlan={currentPlan} />
+      ) : missed.length ? (
         <section className="card nf-replan" aria-labelledby="replan-head">
           <span className="nf-replan-icon" aria-hidden="true"><RefreshCcw className="ic" /></span>
           <div>
