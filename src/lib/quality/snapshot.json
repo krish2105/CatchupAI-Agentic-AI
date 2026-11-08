@@ -1,8 +1,8 @@
 {
   "tests": {
-    "unit": 238,
-    "integration": 165,
-    "e2e": 73
+    "unit": 270,
+    "integration": 170,
+    "e2e": 74
   },
   "eval": {
     "ranAt": "2026-11-05T08:17:59.882Z",
@@ -154,8 +154,8 @@
     ]
   },
   "security": {
-    "migrations": 21,
-    "tablesWithRls": 31,
+    "migrations": 22,
+    "tablesWithRls": 32,
     "rateLimitBuckets": 11,
     "securityDefinerFunctions": 40
   }
