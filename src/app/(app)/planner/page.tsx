@@ -16,16 +16,19 @@ import { listAssignments } from "@/lib/db/assignments";
 import { listFocusSessions } from "@/lib/db/focus";
 import { getPracticeEvidence } from "@/lib/quiz/service";
 import { renderTime } from "@/lib/server/clock";
+import { getCalendarPrefs } from "@/lib/calendar-prefs/service";
+import { hijriLabel } from "@/lib/planner/hijri";
 
 export const metadata: Metadata = { title: "Study schedule" };
 
 export default async function PlannerPage({ searchParams }: { searchParams: Promise<{ approved?: string; week?: string; view?: string }> }) {
   const { supabase, user } = await requirePageUser("/planner");
   const now = await renderTime();
-  const [plan, profile, courses, params, assignments, feed, focus, practice, draft] = await Promise.all([
+  const [plan, profile, courses, params, assignments, feed, focus, practice, draft, localCalendar] = await Promise.all([
     getActivePlan(supabase), getProfile(supabase, user.id), listCourses(supabase), searchParams, listAssignments(supabase), supabase.from("calendar_feeds").select("created_at").maybeSingle(),
-    listFocusSessions(supabase, new Date(now - 180 * 86400_000).toISOString()), getPracticeEvidence(supabase, now), getPendingDraft(supabase, now),
+    listFocusSessions(supabase, new Date(now - 180 * 86400_000).toISOString()), getPracticeEvidence(supabase, now), getPendingDraft(supabase, now), getCalendarPrefs(supabase),
   ]);
+  const showHijri = localCalendar.showHijri;
   const initialView = params.view === "month" || params.view === "list" ? params.view : "week";
   const month = {
     deadlines: assignments.map((a) => ({ id: a.id, title: a.title, courseId: a.courseId, dueAt: a.dueAt, required: a.required, status: a.status })),
@@ -42,6 +45,7 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
   const deadlines = assignments
     .filter((a) => a.status !== "completed" && Date.parse(a.dueAt) >= monday.getTime() && Date.parse(a.dueAt) < weekEnd)
     .map((a) => ({ id: a.id, title: a.title, dueAt: a.dueAt }));
+  const todayYmd = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
   return (
     <>
       <PageHeading
@@ -50,18 +54,23 @@ export default async function PlannerPage({ searchParams }: { searchParams: Prom
         description="Approved recovery tasks become your study schedule, shown in your own time zone. Tick blocks off as you complete them."
         actions={<>{plan ? <TrustDrawer proposalId={plan.proposalId} label="Why this plan?" /> : null}<ButtonLink href="/recovery" variant="primary" small>Compare plans</ButtonLink></>}
       />
+      {showHijri ? (
+        <p className="muted hijri-today">
+          Today: {new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: profile.timezone }).format(now)} · {hijriLabel(todayYmd)} (Umm al-Qura, approximate)
+        </p>
+      ) : null}
       {params.approved && plan ? <div style={{ marginBottom: 16 }}><Notice tone="info" title="Plan approved and saved.">Your schedule below is stored in your account.</Notice></div> : null}
       {plan ? <CalendarCard hasFeed={Boolean(feed.data)} feedCreatedAt={feed.data?.created_at ?? null} /> : null}
       {plan ? <div className="thumbs-row"><Thumbs kind="plan" refId={plan.id} question="Is this plan working for you?" /></div> : null}
       {plan ? (
-        <PlannerView plan={plan} timezone={profile.timezone} courseNames={courseNames} now={now} weekStart={new Date(monday.getTime()).toISOString()} weekOffset={weekOffset} deadlines={deadlines} initialView={initialView} month={month} />
+        <PlannerView plan={plan} timezone={profile.timezone} courseNames={courseNames} now={now} weekStart={new Date(monday.getTime()).toISOString()} weekOffset={weekOffset} deadlines={deadlines} initialView={initialView} month={month} showHijri={showHijri} />
       ) : (
         <>
           <EmptyCard icon={CalendarDays} title="No approved plan yet" action={<ButtonLink href="/recovery" small>Open the recovery lab</ButtonLink>}>
             Review and approve a recovery route in the lab to populate your schedule. Rejected proposals never create tasks.
           </EmptyCard>
           {/* Deadlines, focus time and revision still show on the calendar before any plan exists. */}
-          {assignments.length || month.drafts.length ? <div className="section-space"><MonthCalendar timezone={profile.timezone} now={now} tasks={[]} deadlines={month.deadlines} focus={month.focus} revision={month.revision} drafts={month.drafts} draftHref={month.draftHref} courseNames={courseNames} /></div> : null}
+          {assignments.length || month.drafts.length ? <div className="section-space"><MonthCalendar timezone={profile.timezone} now={now} tasks={[]} deadlines={month.deadlines} focus={month.focus} revision={month.revision} drafts={month.drafts} draftHref={month.draftHref} courseNames={courseNames} showHijri={showHijri} /></div> : null}
         </>
       )}
     </>

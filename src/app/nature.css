@@ -825,6 +825,11 @@ html[data-theme="dark"] .nav-item.active { box-shadow: 0 0 0 1px var(--stroke) i
 .thumbs-note .input { flex: 1 1 200px; min-width: 0; }
 .thumbs-row { margin: 0 0 16px; }
 .setting-foot { font-size: 11px; line-height: 1.6; margin-top: 12px; }
+/* Local calendar: Umm al-Qura date next to the Gregorian date (approximate, display only). */
+.hijri-date { display: block; font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: .01em; margin-top: 2px; }
+.month-day-detail h4 .hijri-date { display: inline; margin-left: 8px; }
+.hijri-today { font-size: 12px; margin: -6px 0 16px; }
+.local-calendar .field { align-content: start; }
 
 /* Copilot memory panel (M4) */
 .memory-panel h3 { display: inline-flex; align-items: center; gap: 8px; }

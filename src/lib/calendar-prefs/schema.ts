@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { PRAYER_METHOD_KEYS, RAMADAN_REDUCTION, UAE_CITY_KEYS } from "@/lib/planner/local-calendar";
+import { PRAYER_METHOD_KEYS, RAMADAN_REDUCTION, UAE_CITY_KEYS } from "@/lib/planner/calendar-options";
 
 const DAY = 86_400_000;
 const date = z

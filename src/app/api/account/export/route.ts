@@ -40,6 +40,10 @@ export const GET = route(async () => {
   const memberships = await supabase.from("memberships").select("org_id, role, share_progress, created_at, organizations(name)").eq("user_id", user.id);
   if (memberships.error && !isMissingSchema(memberships.error)) throw fromDbError(memberships.error);
   out.memberships = memberships.data ?? [];
+  // Local calendar settings: a city and method at most, never coordinates. Skipped on a database without migration 0022.
+  const calendar = await supabase.from("calendar_prefs").select("friday_prayer, prayer_breaks, prayer_city, prayer_method, ramadan_mode, ramadan_reduction_pct, ramadan_start, ramadan_end, ramadan_study_start, show_hijri, updated_at");
+  if (calendar.error && !isMissingSchema(calendar.error)) throw fromDbError(calendar.error);
+  out.calendarPreferences = calendar.data ?? [];
   return new NextResponse(JSON.stringify(out, null, 2), {
     headers: { "content-type": "application/json", "content-disposition": `attachment; filename="catchup-ai-export-${new Date().toISOString().slice(0, 10)}.json"` },
   });

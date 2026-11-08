@@ -9,6 +9,7 @@ import type { ActivePlan, StudyTask } from "@/lib/db/tasks";
 import { formatMinutes } from "@/lib/time";
 import { Segmented } from "@/components/ui/controls";
 import type { MonthDeadline, MonthTask } from "@/lib/planner/month";
+import { hijriLabel } from "@/lib/planner/hijri";
 import MonthCalendar from "./month-calendar";
 import WeekGrid from "./week-grid";
 
@@ -33,6 +34,7 @@ export default function PlannerView({
   deadlines,
   initialView = "week",
   month,
+  showHijri = false,
 }: {
   plan: ActivePlan;
   timezone: string;
@@ -44,6 +46,8 @@ export default function PlannerView({
   initialView?: View;
   /** Everything the month view shows beyond the plan's blocks. */
   month: { deadlines: MonthDeadline[]; focus: { startedAt: string; focusedMinutes: number }[]; revision: { dueAt: string }[]; drafts?: Omit<MonthTask, "status">[]; draftHref?: string };
+  /** Show the Umm al-Qura date next to each day (Local calendar setting). */
+  showHijri?: boolean;
 }) {
   const [view, setViewState] = useState<View>(initialView);
   // The chosen view is kept in the URL (?view=month) so it survives reloads and can be shared.
@@ -116,6 +120,7 @@ export default function PlannerView({
           drafts={month.drafts}
           draftHref={month.draftHref}
           courseNames={courseNames}
+          showHijri={showHijri}
           pending={pending}
           onToggle={(id) => { const t = plan.tasks.find((x) => x.id === id); if (t) void toggle(t); }}
         />
@@ -129,7 +134,7 @@ export default function PlannerView({
       <>
         {toolbar}
         {error ? <div style={{ marginBottom: 12 }}><Notice tone="danger" title={error} /></div> : null}
-        <WeekGrid tasks={plan.tasks} deadlines={deadlines} timezone={timezone} weekStart={weekStart} offset={weekOffset} courseNames={courseNames} onToggle={toggle} pending={pending} />
+        <WeekGrid tasks={plan.tasks} deadlines={deadlines} timezone={timezone} weekStart={weekStart} offset={weekOffset} courseNames={courseNames} onToggle={toggle} pending={pending} showHijri={showHijri} />
         <div className="section-space">{progressCard}</div>
       </>
     );
@@ -157,6 +162,7 @@ export default function PlannerView({
                 </div>
                 <div className="schedule-block" style={{ display: "grid", gap: 12 }}>
                   <span className="visually-hidden">{new Intl.DateTimeFormat("en-GB", { dateStyle: "full", timeZone: "UTC" }).format(date)}{key === today ? " (today)" : ""}</span>
+                  {showHijri ? <span className="hijri-date" suppressHydrationWarning>{hijriLabel(key)}</span> : null}
                   {list.map((t) => (
                     <div key={t.id} style={{ display: "flex", gap: 14, alignItems: "flex-start", justifyContent: "space-between" }}>
                       <div style={{ minWidth: 0 }}>

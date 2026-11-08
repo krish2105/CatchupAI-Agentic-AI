@@ -1,6 +1,6 @@
 import "server-only";
 import { ApiError, fromDbError, isMissingSchema } from "@/lib/http/errors";
-import { DEFAULT_LOCAL_CALENDAR, type LocalCalendarPrefs, type PrayerMethod, type UaeCity } from "@/lib/planner/local-calendar";
+import { DEFAULT_LOCAL_CALENDAR, type LocalCalendarPrefs, type PrayerMethod, type UaeCity } from "@/lib/planner/calendar-options";
 import type { ServerSupabase } from "@/lib/supabase/server";
 
 export { calendarPrefsSchema } from "./schema";

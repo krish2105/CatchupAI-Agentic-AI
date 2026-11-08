@@ -4,6 +4,7 @@ import { Check, ChevronLeft, ChevronRight, Circle, CircleDashed, Flag, Leaf, Ref
 import Link from "next/link";
 import { useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { Chip } from "@/components/ui/primitives";
+import { hijriLabel } from "@/lib/planner/hijri";
 import { buildMonthView, courseColors, localDate, shiftMonth, type MonthDeadline, type MonthTask } from "@/lib/planner/month";
 
 const WEEKDAYS = [["Mon", "Monday"], ["Tue", "Tuesday"], ["Wed", "Wednesday"], ["Thu", "Thursday"], ["Fri", "Friday"], ["Sat", "Saturday"], ["Sun", "Sunday"]] as const;
@@ -33,6 +34,7 @@ export default function MonthCalendar({
   mode = "plan",
   drafts,
   draftHref,
+  showHijri = false,
 }: {
   timezone: string;
   now: number;
@@ -48,6 +50,8 @@ export default function MonthCalendar({
   drafts?: Omit<MonthTask, "status">[];
   /** Where the draft is reviewed and approved (the Recovery lab's approval dialog). */
   draftHref?: string;
+  /** Show the Umm al-Qura date of the selected day (Local calendar setting). */
+  showHijri?: boolean;
 }) {
   const today = localDate(now, timezone);
   const [selected, setSelected] = useState(today);
@@ -217,7 +221,7 @@ export default function MonthCalendar({
 
       {day && !(done && asTable) ? (
         <section className="month-day-detail" aria-labelledby="month-day-title">
-          <h4 id="month-day-title">{new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${day.date}T12:00:00Z`))}{day.isToday ? " · today" : ""}</h4>
+          <h4 id="month-day-title">{new Intl.DateTimeFormat("en-GB", { weekday: "long", day: "numeric", month: "long", timeZone: "UTC" }).format(new Date(`${day.date}T12:00:00Z`))}{day.isToday ? " · today" : ""}{showHijri ? <span className="hijri-date" suppressHydrationWarning>{hijriLabel(day.date)}</span> : null}</h4>
           {!day.deadlines.length && !day.blocks.length && !day.focusMinutes && !day.revisionDue && !day.drafts.length ? <p className="muted">{done ? "No study done on this day." : "Nothing planned for this day."}</p> : null}
           <ul className="month-items" aria-label="On this day">
             {day.deadlines.map((d) => (

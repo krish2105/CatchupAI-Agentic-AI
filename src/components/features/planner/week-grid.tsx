@@ -4,6 +4,7 @@ import { Check, ChevronLeft, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { TZDate } from "@date-fns/tz";
 import type { StudyTask } from "@/lib/db/tasks";
+import { hijriDayMonth } from "@/lib/planner/hijri";
 import { formatMinutes } from "@/lib/time";
 
 type Deadline = { id: string; title: string; dueAt: string };
@@ -20,6 +21,7 @@ export default function WeekGrid({
   courseNames,
   onToggle,
   pending,
+  showHijri = false,
 }: {
   tasks: StudyTask[];
   deadlines: Deadline[];
@@ -29,6 +31,7 @@ export default function WeekGrid({
   courseNames: Record<string, string>;
   onToggle: (task: StudyTask) => void;
   pending: string | null;
+  showHijri?: boolean;
 }) {
   const start = new TZDate(Date.parse(weekStart), timezone);
   const days = Array.from({ length: 7 }, (_, i) => new TZDate(start.getFullYear(), start.getMonth(), start.getDate() + i, 0, 0, 0, timezone));
@@ -62,6 +65,7 @@ export default function WeekGrid({
             <div key={d.getTime()} className="week-day-head">
               <strong>{new Intl.DateTimeFormat("en-GB", { timeZone: timezone, weekday: "short" }).format(d)}</strong>
               <span>{d.getDate()}</span>
+              {showHijri ? <small className="hijri-date" suppressHydrationWarning>{hijriDayMonth(`${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`)}</small> : null}
               {deadlines.filter((x) => sameDay(local(x.dueAt), d)).map((x) => (
                 <em key={x.id} className="week-deadline" title={`Due ${new Intl.DateTimeFormat("en-GB", { timeZone: timezone, hour: "2-digit", minute: "2-digit" }).format(new Date(x.dueAt))}`}>Due: {x.title}</em>
               ))}

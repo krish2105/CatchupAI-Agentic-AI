@@ -31,7 +31,7 @@ export default function PrivacyCard() {
     <div className="card setting-card">
       <div className="split-head"><h3>Privacy and data</h3><a className="btn small ghost" href="/privacy">Privacy notice</a></div>
       <div className="setting-line">
-        <div><strong>Export your data</strong><p>Download everything stored about you (courses, deadlines, plans, agent runs, quiz attempts, focus sessions) as JSON.</p></div>
+        <div><strong>Export your data</strong><p>Download everything stored about you (courses, deadlines, plans, agent runs, quiz attempts, focus sessions, calendar settings) as JSON.</p></div>
         <a className="btn small" href="/api/account/export" download><Download className="ic" aria-hidden="true" /> Export</a>
       </div>
       <div className="setting-line">

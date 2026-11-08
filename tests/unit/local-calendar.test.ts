@@ -4,6 +4,7 @@ import { planScenarios, type Availability, type WorkItem } from "@/lib/planner/e
 import {
   buildCalendarRules,
   DEFAULT_LOCAL_CALENDAR,
+  hijriDayMonth,
   hijriLabel,
   isRamadanDay,
   localCalendarSummary,
@@ -76,6 +77,7 @@ describe("Ramadan and Hijri dates", () => {
 
   it("labels a day with its Umm al-Qura date", () => {
     expect(hijriLabel("2026-11-08")).toBe("28 Jumada I 1448 AH");
+    expect(hijriDayMonth("2027-02-08")).toBe("1 Ramadan");
   });
 });
 

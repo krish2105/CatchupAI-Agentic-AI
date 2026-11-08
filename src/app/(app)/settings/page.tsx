@@ -7,6 +7,8 @@ import UsageCard from "@/components/features/settings/usage-card";
 import NudgesCard from "@/components/features/settings/nudges-card";
 import FeedbackCard from "@/components/features/settings/feedback-card";
 import McpCard from "@/components/features/settings/mcp-card";
+import LocalCalendarCard from "@/components/features/settings/local-calendar-card";
+import { getCalendarPrefs } from "@/lib/calendar-prefs/service";
 import { headers } from "next/headers";
 import { getNudgePrefs } from "@/lib/nudges/service";
 import { getUsage } from "@/lib/db/usage";
@@ -22,7 +24,7 @@ export const metadata: Metadata = { title: "Preferences" };
 export default async function SettingsPage() {
   const { supabase, user } = await requirePageUser("/settings");
   const now = await renderTime();
-  const [ai, profile, usage, nudges] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id), getUsage(supabase, user.isAnonymous, now), getNudgePrefs(supabase)]);
+  const [ai, profile, usage, nudges, localCalendar] = await Promise.all([aiRuntimeStatus(), getProfile(supabase, user.id), getUsage(supabase, user.isAnonymous, now), getNudgePrefs(supabase), getCalendarPrefs(supabase)]);
   const mcp = await supabase.from("mcp_tokens").select("created_at, last_used_at").maybeSingle();
   const host = (await headers()).get("host");
   const origin = (process.env.NEXT_PUBLIC_APP_URL || (host ? `${host.startsWith("localhost") || host.startsWith("127.") ? "http" : "https"}://${host}` : "")).replace(/\/$/, "");
@@ -76,6 +78,7 @@ export default async function SettingsPage() {
         <p className="muted" style={{ fontSize: 12, lineHeight: 1.7, marginBottom: 18 }}>The planner never schedules more than these minutes per day, in your time zone.</p>
         <ProfileForm profile={profile} />
       </div>
+      <div className="section-space"><LocalCalendarCard initial={localCalendar} /></div>
     </>
   );
 }
