@@ -38,6 +38,7 @@ export type Database = {
         Row: {
           applied_plan_id: string | null
           approval_key: string | null
+          checkin_on: string | null
           created_at: string
           decided_at: string | null
           expires_at: string
@@ -48,6 +49,8 @@ export type Database = {
           owner_id: string
           payload: Json
           payload_hash: string
+          proactive: boolean
+          reason: string | null
           run_id: string | null
           scenario: string
           schema_version: number
@@ -56,6 +59,7 @@ export type Database = {
         Insert: {
           applied_plan_id?: string | null
           approval_key?: string | null
+          checkin_on?: string | null
           created_at?: string
           decided_at?: string | null
           expires_at: string
@@ -66,6 +70,8 @@ export type Database = {
           owner_id: string
           payload: Json
           payload_hash: string
+          proactive?: boolean
+          reason?: string | null
           run_id?: string | null
           scenario: string
           schema_version?: number
@@ -74,6 +80,7 @@ export type Database = {
         Update: {
           applied_plan_id?: string | null
           approval_key?: string | null
+          checkin_on?: string | null
           created_at?: string
           decided_at?: string | null
           expires_at?: string
@@ -84,6 +91,8 @@ export type Database = {
           owner_id?: string
           payload?: Json
           payload_hash?: string
+          proactive?: boolean
+          reason?: string | null
           run_id?: string | null
           scenario?: string
           schema_version?: number
@@ -770,6 +779,7 @@ export type Database = {
           last_sent_on: string | null
           missed_alert: boolean
           owner_id: string
+          proactive_checkin: boolean
           updated_at: string
         }
         Insert: {
@@ -777,6 +787,7 @@ export type Database = {
           last_sent_on?: string | null
           missed_alert?: boolean
           owner_id?: string
+          proactive_checkin?: boolean
           updated_at?: string
         }
         Update: {
@@ -784,6 +795,7 @@ export type Database = {
           last_sent_on?: string | null
           missed_alert?: boolean
           owner_id?: string
+          proactive_checkin?: boolean
           updated_at?: string
         }
         Relationships: []

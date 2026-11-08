@@ -26,8 +26,10 @@ type ReadyDoc = { id: string; course_id: string; filename: string };
  *   the page that best matches the assignment (real retrieval, not guessed), due before that assignment
  * - optional: incomplete optional assignments
  * Agent-proposed study items (M5) can be appended by the caller as `extraItems`.
+ * Every read filters by `ownerId` explicitly as well as through RLS, so the daily check-in can run it with the
+ * service role for one student (the course-material search then finds nothing, and review items carry no page).
  */
-export async function buildCandidateItems(supabase: ServerSupabase, assignments: Assignment[], now: number): Promise<WorkItem[]> {
+export async function buildCandidateItems(supabase: ServerSupabase, assignments: Assignment[], now: number, ownerId: string): Promise<WorkItem[]> {
   const open = assignments.filter((a) => a.status !== "completed");
   const required: WorkItem[] = open
     .filter((a) => a.required)
@@ -56,7 +58,7 @@ export async function buildCandidateItems(supabase: ServerSupabase, assignments:
       rationale: "Marked optional by you.",
     }));
 
-  const { data: docs, error } = await supabase.from("documents").select("id, course_id, filename").eq("status", "ready").order("created_at");
+  const { data: docs, error } = await supabase.from("documents").select("id, course_id, filename").eq("owner_id", ownerId).eq("status", "ready").order("created_at");
   if (error) throw fromDbError(error);
   const recommended: WorkItem[] = [];
   const upcomingRequired = open
@@ -88,7 +90,7 @@ export async function buildCandidateItems(supabase: ServerSupabase, assignments:
     }
   }
   // Completed study blocks (from any plan, current or superseded) count toward their assignment.
-  const { data: done, error: doneError } = await supabase.from("study_tasks").select("assignment_id, duration_minutes").eq("status", "completed").not("assignment_id", "is", null);
+  const { data: done, error: doneError } = await supabase.from("study_tasks").select("assignment_id, duration_minutes").eq("owner_id", ownerId).eq("status", "completed").not("assignment_id", "is", null);
   if (doneError) throw fromDbError(doneError);
   return applyCompletedWork(
     [...required, ...recommended, ...optional],
@@ -129,8 +131,8 @@ export async function computePlan(
   userId: string,
   opts: { now: number; weeklyTotal?: number; extraItems?: WorkItem[] },
 ): Promise<ComputedPlan> {
-  const [profile, assignments, localCalendar] = await Promise.all([getProfile(supabase, userId), listAssignments(supabase), getCalendarPrefs(supabase)]);
-  const candidates = await buildCandidateItems(supabase, assignments, opts.now);
+  const [profile, assignments, localCalendar] = await Promise.all([getProfile(supabase, userId), listAssignments(supabase, { ownerId: userId }), getCalendarPrefs(supabase, userId)]);
+  const candidates = await buildCandidateItems(supabase, assignments, opts.now, userId);
   // Copilot-proposed (cited) study items rank ahead of the planner's generic review sessions.
   const items = [...candidates.filter((i) => i.tier === "required"), ...(opts.extraItems ?? []), ...candidates.filter((i) => i.tier !== "required")];
   const savedTotal = profile.weeklyMinutes.reduce((s, m) => s + m, 0);
@@ -210,6 +212,9 @@ export async function createProposal(deps: {
   now: number;
   runId?: string | null;
   extraItems?: WorkItem[];
+  /** Set by the daily check-in: why it drafted this, and the day it ran (at most one per student per day). */
+  proactive?: { reason: string; checkinOn: string };
+  ttlMs?: number;
 }): Promise<ProposalDto> {
   const plan = await computePlan(deps.supabase, deps.userId, { now: deps.now, extraItems: deps.extraItems });
   const chosen = plan.scenarios.find((s) => s.key === deps.scenario)!;
@@ -228,8 +233,6 @@ export async function createProposal(deps: {
     tasks: chosen.tasks,
     overdue: plan.overdue,
   };
-  // One pending proposal at a time: older pending drafts expire.
-  await deps.admin.from("action_proposals").update({ status: "expired", decided_at: new Date(deps.now).toISOString() }).eq("owner_id", deps.userId).eq("status", "pending");
   const { data, error } = await deps.admin
     .from("action_proposals")
     .insert({
@@ -240,11 +243,14 @@ export async function createProposal(deps: {
       payload_hash: sha256(payload),
       input_hash: plan.inputHash,
       feasible: chosen.feasible,
-      expires_at: new Date(deps.now + PROPOSAL_TTL_MS).toISOString(),
+      expires_at: new Date(deps.now + (deps.ttlMs ?? PROPOSAL_TTL_MS)).toISOString(),
+      ...(deps.proactive ? { proactive: true, reason: deps.proactive.reason.slice(0, 500), checkin_on: deps.proactive.checkinOn } : {}),
     })
     .select(PROPOSAL_COLUMNS)
     .single();
   if (error) throw fromDbError(error);
+  // One pending proposal at a time: older pending drafts expire (after the insert, so a failed insert keeps them).
+  await deps.admin.from("action_proposals").update({ status: "expired", decided_at: new Date(deps.now).toISOString() }).eq("owner_id", deps.userId).eq("status", "pending").neq("id", data.id);
   return toProposal(data, deps.now);
 }
 
