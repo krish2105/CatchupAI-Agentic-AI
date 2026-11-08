@@ -55,9 +55,9 @@ export default async function QualityPage() {
         <section className="card quality-section" aria-labelledby="q-tests">
           <h2 id="q-tests">Automated tests</h2>
           <div className="quality-stats">
-            <div><b>{t.unit}</b><span>unit</span></div>
-            <div><b>{t.integration}</b><span>integration (real database, two students)</span></div>
-            <div><b>{t.e2e}</b><span>end-to-end in a real browser</span></div>
+            <div><b>{t.unit}</b><span>unit tests defined</span></div>
+            <div><b>{t.integration}</b><span>integration tests defined (real database, two students)</span></div>
+            <div><b>{t.e2e}</b><span>end-to-end tests defined (real browser)</span></div>
           </div>
           <p className="muted">Test definitions in the repository; a few loop over screen sizes and themes, so more cases run than are listed. Integration tests sign in as two real students and check that neither can read or change the other&apos;s data.</p>
         </section>
@@ -98,6 +98,7 @@ export default async function QualityPage() {
                   </tbody>
                 </table>
                 <p className="muted">These cases need a real AI model, so they run on the free daily quota a few at a time. A case that hasn&apos;t run yet is shown as not run, never as passed.</p>
+                <p><Link className="text-link inline" href="/watch">Watch the latest real runs step by step</Link>, recorded from these live cases.</p>
               </>
             );
           })()}
@@ -116,15 +117,14 @@ export default async function QualityPage() {
           <p><a className="text-link" href={`https://github.com/${GITHUB_REPO}/blob/main/SECURITY_AUDIT.md`} target="_blank" rel="noopener noreferrer">Security audit</a> · <a className="text-link" href={`https://github.com/${GITHUB_REPO}/blob/main/THREAT_MODEL.md`} target="_blank" rel="noopener noreferrer">Threat model</a></p>
         </section>
 
-        <section className="card quality-section" aria-labelledby="q-feedback">
-          <h2 id="q-feedback">What students say</h2>
-          {feedback && feedback.ratings > 0 ? (
-            <>
-              <p><b>{Math.round((feedback.helpful / feedback.ratings) * 100)}% helpful</b> across {feedback.ratings} rating{feedback.ratings === 1 ? "" : "s"} (👍/👎 in the app).</p>
-              <ul className="quality-list">{feedback.byKind.filter((k) => k.ratings).map((k) => <li key={k.kind}>{KIND[k.kind]}: {k.helpful}/{k.ratings} helpful</li>)}</ul>
-            </>
-          ) : <p className="muted">No ratings yet. Students can rate answers, plans and packs with 👍/👎; only totals are shown here.</p>}
-        </section>
+        {/* Shown once students have rated something; an empty box says nothing a reader can use. */}
+        {feedback && feedback.ratings > 0 ? (
+          <section className="card quality-section" aria-labelledby="q-feedback">
+            <h2 id="q-feedback">What students say</h2>
+            <p><b>{Math.round((feedback.helpful / feedback.ratings) * 100)}% helpful</b> across {feedback.ratings} rating{feedback.ratings === 1 ? "" : "s"} (👍/👎 in the app).</p>
+            <ul className="quality-list">{feedback.byKind.filter((k) => k.ratings).map((k) => <li key={k.kind}>{KIND[k.kind]}: {k.helpful}/{k.ratings} helpful</li>)}</ul>
+          </section>
+        ) : null}
       </main>
       <footer className="lp-foot">
         <span>CatchUp AI · open source on <a href={`https://github.com/${GITHUB_REPO}`} target="_blank" rel="noopener noreferrer">GitHub</a></span>

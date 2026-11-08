@@ -197,7 +197,7 @@ describe("evaluation suite", () => {
     const runtime = liveRequested() ? openAiRuntime() : null;
     type Out = Awaited<ReturnType<typeof runRecoveryAgent>>;
     const toolCase = (id: string, prompt: string, expected: string[], forbid?: (out: Out, used: Set<string>) => void) =>
-      record(id, "tool_selection", `"${prompt}" uses ${expected.join(" + ")}`, async () => {
+      record(id, "tool_selection", `"${prompt}" ${expected.length ? `uses ${expected.join(" + ")}` : "uses no tool that can approve or save"}`, async () => {
         if (!runtime) return { skipped: "live model not requested (EVAL_LIVE=1 or LIVE_CASES) or no model key configured" };
         // LIVE_CASES=T1,T2 runs only those live cases (the Gemini free tier allows 20 requests a day per model).
         if (process.env.LIVE_CASES && !process.env.LIVE_CASES.split(",").includes(id)) return { skipped: "not selected for this run (LIVE_CASES quota budget)" };

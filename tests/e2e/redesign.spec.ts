@@ -481,6 +481,35 @@ test("public quality page shows real counts and live status without signing in",
   await context.close();
 });
 
+test("anyone can watch a recorded real run step by step, labelled as recorded, with no model call", async ({ browser }) => {
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const page = await context.newPage();
+  const modelCalls: string[] = [];
+  page.on("request", (r) => { if (/\/api\/(assistant|agent|copilot)/.test(r.url())) modelCalls.push(r.url()); });
+  await page.goto("/");
+  await page.getByRole("link", { name: "Watch a real run" }).click();
+  await expect(page).toHaveURL(/\/watch$/);
+  await expect(page.getByRole("heading", { level: 1, name: "Watch a real run." })).toBeVisible();
+  await expect(page.getByText("Recorded run · not live")).toBeVisible();
+
+  // S1 by default: the committed trace's steps, then the answer.
+  const s1 = JSON.parse(readFileSync("docs/evidence/agent-traces/S1-missed-lecture.json", "utf8")) as { steps: unknown[]; request: string };
+  await expect(page.getByText(s1.request, { exact: false })).toBeVisible();
+  const showAll = page.getByRole("button", { name: "Show all" });
+  if (await showAll.isVisible()) await showAll.click();
+  await expect(page.locator(".trace-steps > li")).toHaveCount(s1.steps.length);
+  await expect(page.getByRole("heading", { name: "What the student got" })).toBeVisible();
+  await expect(page.getByText("Nothing was saved.")).toBeVisible();
+
+  // The provider-failure run shows the failure honestly.
+  await page.getByRole("tab", { name: /model provider fails/ }).click();
+  const showAll2 = page.getByRole("button", { name: "Show all" });
+  if (await showAll2.isVisible()) await showAll2.click();
+  await expect(page.getByText(/nothing was saved/i)).toBeVisible();
+  expect(modelCalls).toEqual([]);
+  await context.close();
+});
+
 test("public status page reports the app, database and AI live, with uptime and incident notes", async ({ browser }) => {
   const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
   const page = await context.newPage();

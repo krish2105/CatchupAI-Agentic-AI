@@ -1110,3 +1110,19 @@ html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: 
 .org-danger { padding: 12px 14px; border: 1px solid var(--stroke-strong); border-radius: 12px; }
 .org-invite-accept { border-color: var(--accent); }
 @media (max-width: 480px) { .org-audit li { grid-template-columns: minmax(0, 1fr); gap: 2px; } }
+
+/* Watch a real run (public replay of recorded live traces) */
+.replay { display: grid; gap: 14px; }
+.replay-tabs { display: flex; flex-wrap: wrap; gap: 8px; }
+.replay-tabs .btn { white-space: normal; text-align: left; }
+.replay-panel { padding: 22px; display: grid; gap: 12px; min-width: 0; }
+.replay-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 12.5px; }
+.replay-controls { display: flex; flex-wrap: wrap; gap: 8px; }
+.replay-result { display: grid; gap: 8px; padding-top: 6px; border-top: 1px solid var(--stroke); }
+.replay-panel p { font-size: 13.5px; line-height: 1.55; margin: 0; }
+.replay-result .trace-cites li { display: flex; flex-wrap: wrap; gap: 6px; align-items: baseline; }
+.replay-failed { display: flex; gap: 8px; align-items: center; margin: 0; color: var(--warn); }
+.replay-failed .ic { width: 16px; height: 16px; flex: none; }
+.text-link.inline { display: inline; font-size: inherit; }
+@media (prefers-reduced-motion: no-preference) { .replay .trace-steps > li { animation: replay-in 0.35s ease-out; } }
+@keyframes replay-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

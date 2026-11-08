@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, BookOpenCheck, CalendarPlus, ListChecks, MessageSquareQuote, RefreshCcw, Scale, ShieldCheck } from "lucide-react";
+import { ArrowRight, BookOpenCheck, PlayCircle, CalendarPlus, ListChecks, MessageSquareQuote, RefreshCcw, Scale, ShieldCheck } from "lucide-react";
 import Brand from "@/components/shell/brand";
 import ThemeButton from "@/components/shell/theme-button";
 import PhotoHero from "@/components/nature/photo-hero";
@@ -45,6 +45,9 @@ export default function Home() {
               Get started <ArrowRight className="ic" aria-hidden="true" />
             </ButtonLink>
             <DemoButton className="btn" label="Try the demo, no sign-up" />
+            <ButtonLink href="/watch">
+              <PlayCircle className="ic" aria-hidden="true" /> Watch a real run
+            </ButtonLink>
           </div>
         </PhotoHero>
 
