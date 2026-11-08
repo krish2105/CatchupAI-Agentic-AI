@@ -1,10 +1,11 @@
-import { ArrowLeft, Building2, Check, GraduationCap, Users } from "lucide-react";
+import { ArrowLeft, Building2, Check, GraduationCap, PlayCircle, Users } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { connection } from "next/server";
 import Brand from "@/components/shell/brand";
 import ThemeButton from "@/components/shell/theme-button";
 import { ButtonLink, Chip } from "@/components/ui/primitives";
+import DemoButton from "@/components/features/demo/demo-button";
 import { billingConfig, FREE_SEATS } from "@/lib/billing/stripe";
 
 export const metadata: Metadata = { title: "Plans", description: "Students never pay. Schools and classes can stay free or choose the Class plan." };
@@ -31,6 +32,7 @@ export default async function PricingPage() {
   ];
   return (
     <div className="lp">
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className="lp-top">
         <Brand />
         <div className="top-actions">
@@ -56,7 +58,15 @@ export default async function PricingPage() {
         </ul>
         <p className="muted">Larger institutions: single sign-on (SAML/OIDC), automatic provisioning (SCIM) and audit-log streaming are available on request; they aren&apos;t self-serve yet.</p>
         <p className="muted">Teachers: create an organisation in <Link href="/org">Organisations</Link> (sign in first); the admin upgrades from there. See the <Link href="/terms">terms</Link> and <Link href="/privacy">privacy notice</Link> for how payments work.</p>
+        <div className="nf-hero-actions">
+          <DemoButton className="btn primary" label="Try the demo, no sign-up" />
+          <ButtonLink href="/watch"><PlayCircle className="ic" aria-hidden="true" /> Watch a real run</ButtonLink>
+        </div>
       </main>
+      <footer className="lp-foot">
+        <Link href="/quality">Quality and trust</Link>
+        <Link href="/">Back to the home page</Link>
+      </footer>
     </div>
   );
 }

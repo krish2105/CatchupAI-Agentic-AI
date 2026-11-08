@@ -22,6 +22,7 @@ export default async function QualityPage() {
   const CiIcon = ci.state === "passed" ? CheckCircle2 : ci.state === "failed" ? XCircle : CircleDashed;
   return (
     <div className="lp">
+      <a href="#main" className="skip-link">Skip to content</a>
       <header className="lp-top">
         <Brand />
         <div className="top-actions">
@@ -38,6 +39,7 @@ export default async function QualityPage() {
           <div className="card quality-tile">
             <div className="label">Continuous integration · {ci.scope}</div>
             <p className={`quality-big ${ci.state}`}><CiIcon className="ic" aria-hidden="true" /> {ci.state === "passed" ? "All checks passed" : ci.state === "failed" ? "A check failed" : ci.state === "running" ? "Running now" : "Status unavailable"}</p>
+            {ci.failed.length ? <ul className="quality-list">{ci.failed.map((f) => <li key={f}>Failed: {f}</li>)}</ul> : null}
             <p className="muted">Typecheck, lint, unit, integration, end-to-end, evaluation and dependency audit run on every push.{ci.at ? ` Updated ${date(ci.at)}.` : ""}</p>
             {ci.url ? <a className="text-link" href={ci.url} target="_blank" rel="noopener noreferrer">Open the run <ExternalLink className="ic" aria-hidden="true" /></a> : null}
           </div>
@@ -114,7 +116,7 @@ export default async function QualityPage() {
             <li>Uploaded documents are treated as untrusted: instructions inside them are ignored, and answers cite only pages that were retrieved.</li>
             <li>Dependency audit blocks any high-severity vulnerability in CI.</li>
           </ul>
-          <p><a className="text-link" href={`https://github.com/${GITHUB_REPO}/blob/main/SECURITY_AUDIT.md`} target="_blank" rel="noopener noreferrer">Security audit</a> · <a className="text-link" href={`https://github.com/${GITHUB_REPO}/blob/main/THREAT_MODEL.md`} target="_blank" rel="noopener noreferrer">Threat model</a></p>
+          <p><a className="text-link inline" href={`https://github.com/${GITHUB_REPO}/blob/main/SECURITY_AUDIT.md`} target="_blank" rel="noopener noreferrer">Security audit</a> · <a className="text-link inline" href={`https://github.com/${GITHUB_REPO}/blob/main/THREAT_MODEL.md`} target="_blank" rel="noopener noreferrer">Threat model</a></p>
         </section>
 
         {/* Shown once students have rated something; an empty box says nothing a reader can use. */}

@@ -1,6 +1,7 @@
 "use client";
 
 import { Compass } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import Turnstile, { TURNSTILE_SITE_KEY } from "@/components/features/auth/turnstile";
@@ -18,6 +19,11 @@ export default function DemoButton({ className = "btn", label = "Try the demo" }
   const [checking, setChecking] = useState(false);
   const [stage, setStage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  function failCheck() {
+    setChecking(false);
+    setError("The human check didn't finish. An ad or script blocker can stop it. Try again.");
+  }
 
   async function start(token: string | null) {
     setError(null);
@@ -41,8 +47,12 @@ export default function DemoButton({ className = "btn", label = "Try the demo" }
       <button type="button" className={className} onClick={() => (TURNSTILE_SITE_KEY ? setChecking(true) : void start(null))} disabled={stage !== null || checking}>
         {stage ? <span className="spinner" aria-hidden="true" /> : <Compass className="ic" aria-hidden="true" />} {stage ?? (checking ? "Verifying you're human…" : label)}
       </button>
-      {checking ? <Turnstile onToken={(t) => { if (t) void start(t); }} /> : null}
-      {error ? <Notice tone="danger" title={error} /> : null}
+      {checking ? <Turnstile onToken={(t) => (t ? void start(t) : failCheck())} /> : null}
+      {error ? (
+        <Notice tone="danger" title={error}>
+          <p><Link className="text-link inline" href="/watch">Watch a recorded real run instead</Link>, no check needed.</p>
+        </Notice>
+      ) : null}
     </div>
   );
 }
