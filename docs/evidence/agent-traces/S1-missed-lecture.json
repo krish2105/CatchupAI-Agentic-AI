@@ -2,12 +2,14 @@
   "scenario": "S1-missed-lecture",
   "title": "Missed the regression lecture: catch up before the worksheet",
   "model": "gemini:gemini-3.6-flash",
-  "ranAt": "2026-11-04T08:23:00.454Z",
+  "answeredBy": "gemini-3.6-flash",
+  "fallback": null,
+  "ranAt": "2026-11-09T11:17:09.219Z",
   "request": "I missed the regression lecture. What do I need to know about residuals, and can you plan my catch-up before the worksheet is due?",
-  "latencyMs": 10680,
+  "latencyMs": 35004,
   "tokens": {
-    "input": 7336,
-    "output": 618
+    "input": 7595,
+    "output": 699
   },
   "estimatedCostUsd": null,
   "status": "completed",
@@ -18,95 +20,88 @@
       "tool": "get_study_preferences",
       "args": {},
       "status": "completed",
-      "ms": 8,
+      "ms": 22,
       "outcome": "16h per week, Asia/Dubai"
     },
     {
       "step": 2,
-      "tool": "get_student_memory",
-      "args": {},
-      "status": "completed",
-      "ms": 9,
-      "outcome": "0 memories"
-    },
-    {
-      "step": 3,
       "tool": "list_assignments",
       "args": {
-        "courseId": "cf896733…",
+        "courseId": "d3f8f75d…",
         "includeCompleted": false
       },
       "status": "completed",
-      "ms": 15,
+      "ms": 43,
       "outcome": "1 assignment"
     },
     {
-      "step": 4,
+      "step": 3,
       "tool": "search_course_material",
       "args": {
-        "courseId": "cf896733…",
+        "courseId": "d3f8f75d…",
         "query": "residuals regression",
-        "topK": 6
+        "topK": 5
       },
       "status": "completed",
-      "ms": 410,
+      "ms": 442,
       "outcome": "4 passages: p. 2, p. 3, p. 4, p. 1"
+    },
+    {
+      "step": 4,
+      "tool": "get_student_memory",
+      "args": {},
+      "status": "completed",
+      "ms": 21,
+      "outcome": "0 memories"
     },
     {
       "step": 5,
       "tool": "draft_recovery_plan",
       "args": {
         "scenario": "balanced",
-        "studyItems": 2
+        "studyItems": 3
       },
       "status": "completed",
-      "ms": 47,
-      "outcome": "balanced draft: feasible, 6 blocks (pending approval)"
+      "ms": 88,
+      "outcome": "balanced draft: feasible, 7 blocks (pending approval)"
     }
   ],
   "answer": {
     "facts": [
       {
-        "statement": "A residual equals observed Y minus predicted Y_hat.",
+        "statement": "A residual equals observed Y minus predicted Y-hat [S1].",
         "sources": [
           "S1"
         ]
       },
       {
-        "statement": "Ordinary least squares fits beta_0 and beta_1 by minimizing the sum of squared residuals.",
+        "statement": "Ordinary least squares fits the regression line by minimizing the sum of squared residuals [S1].",
         "sources": [
           "S1"
         ]
       },
       {
-        "statement": "Inspecting a residual plot helps identify nonlinear patterns or changing error variance, and large residuals suggest poor fit for a particular observation.",
+        "statement": "Large residuals suggest poor fit for a particular observation, and residual plots help identify nonlinear patterns or changing error variance [S1].",
         "sources": [
           "S1"
         ]
       },
       {
-        "statement": "A basic linear regression analysis assumes a linear mean relationship and makes assumptions about residual behavior.",
-        "sources": [
-          "S2"
-        ]
-      },
-      {
-        "statement": "The Regression worksheet is due on 2026-11-09T08:22:48.815+00:00 with an estimated completion time of 150 minutes.",
+        "statement": "Your upcoming required assignment 'Regression worksheet' (150 minutes) is due on November 14, 2026, at 11:15 UTC.",
         "sources": []
       }
     ],
     "suggestions": [
-      "I have drafted a recovery plan in the Recovery lab totaling 225 scheduled minutes (150 minutes for the Regression worksheet plus 45 minutes of residual study items) with 0 shortfall minutes.",
-      "Review residual concept definitions and residual plots first before attempting the worksheet exercises.",
-      "Please check the Recovery lab to review and approve the drafted plan."
+      "Review the core definition of residuals and practice sketching what a residual represents before starting the assignment.",
+      "Inspect residual plots to check for nonlinear trends or inconsistent variance across your predictor values.",
+      "Open the Recovery lab to review and approve your drafted catch-up plan so it can be saved to your schedule."
     ],
     "clarifyingQuestion": null
   },
   "citations": [
-    "regression_lecture.pdf p. 2",
-    "regression_lecture.pdf p. 3"
+    "regression_lecture.pdf p. 2"
   ],
-  "removedUnsupportedFacts": 0,
+  "removedUnsupportedFacts": 1,
   "draft": {
     "status": "pending",
     "feasible": true,
@@ -121,9 +116,9 @@
     ],
     "usedTools": [
       "get_study_preferences",
-      "get_student_memory",
       "list_assignments",
       "search_course_material",
+      "get_student_memory",
       "draft_recovery_plan"
     ],
     "toolRecall": 1,
