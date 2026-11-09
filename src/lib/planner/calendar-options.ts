@@ -25,8 +25,12 @@ export const PRAYER_METHOD_KEYS = Object.keys(PRAYER_METHODS) as [PrayerMethod, 
 export const PRAYER_BREAK = { beforeMinutes: 5, afterMinutes: 10 } as const;
 /** Friday prayer window, local time, Fridays only. */
 export const FRIDAY_PRAYER_WINDOW = { start: [12, 0], end: [14, 0] } as const;
-/** In Ramadan, no study in the hour before Maghrib (iftar). */
-export const PRE_IFTAR_MINUTES = 60;
+/**
+ * In Ramadan, time kept free around Maghrib (iftar): the hour before it, as the task asks. Whether to keep time
+ * after Maghrib free too (the meal) is the owner's decision (PR #5 review item 2): change `afterMinutes`.
+ */
+export const IFTAR_BREAK = { beforeMinutes: 60, afterMinutes: 0 } as const;
+export const PRE_IFTAR_MINUTES = IFTAR_BREAK.beforeMinutes;
 export const RAMADAN_REDUCTION = { min: 0, max: 75, step: 5, default: 25 } as const;
 
 export type LocalCalendarPrefs = {

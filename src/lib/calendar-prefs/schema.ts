@@ -31,6 +31,7 @@ export const calendarPrefsSchema = z
       ctx.addIssue({ code: "custom", path: ["ramadanEnd"], message: "Give both a start and an end date, or leave both empty." });
     } else if (p.ramadanStart && p.ramadanEnd) {
       const span = (Date.parse(`${p.ramadanEnd}T00:00:00Z`) - Date.parse(`${p.ramadanStart}T00:00:00Z`)) / DAY;
-      if (span < 0 || span > 30) ctx.addIssue({ code: "custom", path: ["ramadanEnd"], message: "The end date must be on or after the start date, and at most 30 days later." });
+      // A Hijri month has at most 30 days, so the last day is at most 29 days after the first.
+      if (span < 0 || span > 29) ctx.addIssue({ code: "custom", path: ["ramadanEnd"], message: "The last day must be on or after the first, and Ramadan lasts at most 30 days." });
     }
   });

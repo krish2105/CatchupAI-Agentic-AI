@@ -16,22 +16,25 @@ create table public.calendar_prefs (
   -- Server-maintained: last change to a setting that affects planning (drafts made before it are stale).
   rules_changed_at timestamptz,
   updated_at timestamptz not null default now(),
-  constraint calendar_prefs_ramadan_dates check ((ramadan_start is null) = (ramadan_end is null) and (ramadan_end is null or ramadan_end - ramadan_start between 0 and 30)),
+  constraint calendar_prefs_ramadan_dates check ((ramadan_start is null) = (ramadan_end is null) and (ramadan_end is null or ramadan_end - ramadan_start between 0 and 29)),
   constraint calendar_prefs_city_needed check (not (prayer_breaks or ramadan_mode) or (prayer_city is not null and prayer_method is not null))
 );
 create trigger calendar_prefs_updated before update on public.calendar_prefs for each row execute function public.set_updated_at();
 
--- Showing Hijri dates is display only, so it doesn't make a pending draft stale; the planning settings do.
+-- A pending draft is stale only when a change affects planning: a rule switched on or off, the city or method
+-- while prayer breaks or Ramadan mode are on (before or after), or the Ramadan details while Ramadan mode is on.
+-- Showing Hijri dates is display only.
 create function public.calendar_prefs_rules_changed() returns trigger
 language plpgsql set search_path = '' as $$
 begin
   if tg_op = 'INSERT' then
     new.rules_changed_at := case when new.friday_prayer or new.prayer_breaks or new.ramadan_mode then now() end;
-  elsif (new.friday_prayer, new.prayer_breaks, new.prayer_city, new.prayer_method, new.ramadan_mode, new.ramadan_reduction_pct,
-         new.ramadan_start, new.ramadan_end, new.ramadan_study_start)
-        is distinct from
-        (old.friday_prayer, old.prayer_breaks, old.prayer_city, old.prayer_method, old.ramadan_mode, old.ramadan_reduction_pct,
-         old.ramadan_start, old.ramadan_end, old.ramadan_study_start) then
+  elsif (new.friday_prayer, new.prayer_breaks, new.ramadan_mode) is distinct from (old.friday_prayer, old.prayer_breaks, old.ramadan_mode)
+     or ((old.prayer_breaks or old.ramadan_mode or new.prayer_breaks or new.ramadan_mode)
+         and (new.prayer_city, new.prayer_method) is distinct from (old.prayer_city, old.prayer_method))
+     or ((old.ramadan_mode or new.ramadan_mode)
+         and (new.ramadan_reduction_pct, new.ramadan_start, new.ramadan_end, new.ramadan_study_start)
+             is distinct from (old.ramadan_reduction_pct, old.ramadan_start, old.ramadan_end, old.ramadan_study_start)) then
     new.rules_changed_at := now();
   else
     new.rules_changed_at := old.rules_changed_at;

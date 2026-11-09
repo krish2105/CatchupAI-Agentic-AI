@@ -31,6 +31,9 @@ describe("calendarPrefsSchema", () => {
     expect(parse({ ramadanStart: "2027-02-08", ramadanEnd: null }).success).toBe(false);
     expect(parse({ ramadanStart: "2027-03-01", ramadanEnd: "2027-02-01" }).success).toBe(false);
     expect(parse({ ramadanStart: "2027-01-01", ramadanEnd: "2027-02-15" }).success).toBe(false);
+    // A Hijri month has at most 30 days: 8 Feb to 9 Mar (30 days) is fine, one day more is not.
+    expect(parse({ ramadanStart: "2027-02-08", ramadanEnd: "2027-03-09" }).success).toBe(true);
+    expect(parse({ ramadanStart: "2027-02-08", ramadanEnd: "2027-03-10" }).success).toBe(false);
     expect(parse({ ramadanStart: "2027-02-30", ramadanEnd: "2027-03-01" }).success).toBe(false);
     expect(parse({ ramadanStudyStart: "25:00" }).success).toBe(false);
   });

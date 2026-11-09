@@ -78,6 +78,7 @@ describe("local calendar preferences", () => {
       { ramadan_reduction_pct: 12 },
       { ramadan_start: "2027-03-01", ramadan_end: "2027-02-01" },
       { ramadan_start: "2027-02-01", ramadan_end: null },
+      { ramadan_start: "2027-02-08", ramadan_end: "2027-03-10" }, // 31 days; a Hijri month has at most 30
       { prayer_breaks: true, prayer_city: null },
     ];
     for (const patch of bad) {
@@ -109,5 +110,12 @@ describe("planning with local calendar rules", () => {
     await pause();
     await saveCalendarPrefs(asServer(a.db), prefs({ fridayPrayer: false, city: "dubai", method: "dubai" }));
     expect(await errorOf(approveProposal(asServer(a.db), draft.id, key()))).toMatchObject({ status: 409, code: "stale" });
+  });
+
+  it("doesn't refuse a draft when only settings without effect change (city or Ramadan details with no rule on)", async () => {
+    const draft = await createProposal({ supabase: asServer(b.db), admin: adminDb(), userId: b.id, scenario: "essential", now: Date.now() });
+    await pause();
+    await saveCalendarPrefs(asServer(b.db), prefs({ showHijri: true, city: "sharjah", method: "umm_al_qura", ramadanReductionPercent: 40, ramadanStudyStart: "21:00" }));
+    expect(await approveProposal(asServer(b.db), draft.id, key())).toMatchObject({ planId: expect.any(String) });
   });
 });

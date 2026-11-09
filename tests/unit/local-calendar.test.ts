@@ -153,18 +153,18 @@ describe("localCalendarSummary (what the copilot is told)", () => {
     expect(localCalendarSummary(prefs({ showHijri: true }), "Asia/Dubai", Date.parse("2026-11-09T08:00:00Z"))).toBeNull();
   });
 
-  it("describes the rules in force, says whether today is a Ramadan day, and never names the city", () => {
+  it("describes only the effect on study time: no religious labels and no city go to the model", () => {
     const summary = localCalendarSummary(
-      prefs({ fridayPrayer: true, prayerBreaks: true, ramadanMode: true, ramadanReductionPercent: 30, city: "fujairah", method: "dubai" }),
+      prefs({ fridayPrayer: true, prayerBreaks: true, ramadanMode: true, ramadanReductionPercent: 30, city: "fujairah", method: "dubai", ramadanStudyStart: "21:30" }),
       "Asia/Dubai",
       Date.parse("2027-02-10T08:00:00Z"),
     );
     expect(summary).toMatchObject({
-      fridayPrayerKeptFree: "Fridays 12:00-14:00 local time",
-      prayerTimeBreaks: expect.stringContaining("15 minutes"),
-      ramadan: { todayIsRamadan: true, dailyMinutesReducedByPercent: 30, noStudyMinutesBeforeMaghrib: 60 },
+      keptFree: ["Fridays 12:00-14:00 local time", "15 minutes at five set times each day"],
+      reducedDays: { todayIsReduced: true, dailyMinutesReducedByPercent: 30, eveningMinutesKeptFree: 60, startTimeOnReducedDays: "21:30" },
     });
-    expect(JSON.stringify(summary).toLowerCase()).not.toContain("fujairah");
+    const text = JSON.stringify(summary).toLowerCase();
+    expect(text).not.toMatch(/prayer|ramadan|maghrib|iftar|fast|islam|muslim|mosque|hijri|religio|fujairah|umm al-qura|dubai/);
   });
 });
 

@@ -1,6 +1,6 @@
 import { TZDate } from "@date-fns/tz";
 import { describe, expect, it } from "vitest";
-import { availabilityWindows, BLOCK_RULES, planScenarios, type Availability, type CalendarBreak, type WorkItem } from "@/lib/planner/engine";
+import { availabilityWindows, BLOCK_RULES, planScenarios, reducedMinutes, type Availability, type CalendarBreak, type WorkItem } from "@/lib/planner/engine";
 
 const MIN = 60_000;
 const DAY = 86_400_000;
@@ -118,7 +118,6 @@ describe("planScenarios with local calendar rules", () => {
       const items = Array.from({ length: 1 + Math.floor(rand() * 6) }, (_, i) => item(`i${i}`, 15 + Math.floor(rand() * 400), new Date(now + (0.5 + rand() * 14) * DAY).toISOString()));
       const plan = planScenarios({ items, availability, now });
       const windows = availabilityWindows(availability, Date.parse(plan.horizon.start), Date.parse(plan.horizon.end));
-      const plain = availabilityWindows({ ...availability, calendar: undefined }, Date.parse(plan.horizon.start), Date.parse(plan.horizon.end));
 
       for (let i = 0; i < windows.length; i++) {
         const w = windows[i];
@@ -126,8 +125,21 @@ describe("planScenarios with local calendar rules", () => {
         if (i > 0) expect(w.start).toBeGreaterThanOrEqual(windows[i - 1].end);
         for (const b of breaks) expect(w.end <= b.start || w.start >= b.end).toBe(true);
       }
-      // Rules move or reduce time; they never add any.
-      expect(minutes(windows)).toBeLessThanOrEqual(minutes(plain) + 24 * 60);
+      // Rules move or reduce time; they never add any. Exact bound: each study day contributes at most its own
+      // budget (weekly minutes, reduced on Ramadan days), counting every day whose window starts before the end.
+      const end = Date.parse(plan.horizon.end);
+      const first = new TZDate(Date.parse(plan.horizon.start), timezone);
+      let budget = 0;
+      for (let offset = -1; ; offset++) {
+        const noon = new TZDate(first.getFullYear(), first.getMonth(), first.getDate() + offset, 12, 0, 0, timezone);
+        const ymd = `${noon.getFullYear()}-${String(noon.getMonth() + 1).padStart(2, "0")}-${String(noon.getDate()).padStart(2, "0")}`;
+        const reduced = availability.calendar!.ramadan!.dates.includes(ymd);
+        const [hh, mm] = (reduced && availability.calendar!.ramadan!.studyStartTime ? availability.calendar!.ramadan!.studyStartTime : availability.studyStartTime).split(":").map(Number);
+        if (new TZDate(noon.getFullYear(), noon.getMonth(), noon.getDate(), hh, mm, 0, timezone).getTime() >= end) break;
+        const base = weekly[(noon.getDay() + 6) % 7];
+        budget += reduced ? reducedMinutes(base, availability.calendar!.ramadan!.reductionPercent) : base;
+      }
+      expect(minutes(windows)).toBeLessThanOrEqual(budget);
       for (const s of plan.scenarios) {
         for (const t of s.tasks) {
           const start = Date.parse(t.startsAt);
