@@ -1,5 +1,5 @@
 import "server-only";
-import { Agent, OpenAIProvider, RunContext, Runner, type ModelProvider } from "@openai/agents";
+import { Agent, OpenAIProvider, RunContext, Runner, type ModelProvider, type ModelSettings } from "@openai/agents";
 import OpenAI from "openai";
 import { z } from "zod";
 import type { Embedder } from "@/lib/rag/embed";
@@ -27,6 +27,8 @@ export const shouldFallBack = (code: string) => FALLBACK_CODES.has(code);
 export function classifyRunError(e: unknown): string {
   const err = (e ?? {}) as { name?: string; status?: number; code?: string; message?: string };
   if (err.name === "MaxTurnsExceededError") return "max_turns";
+  // OpenAI: out of credit or over the project's quota (429 with code insufficient_quota).
+  if (err.code === "insufficient_quota" || /insufficient_quota/i.test(String(err.message))) return "model_quota";
   if (err.status === 429) return /PerDay/i.test(String(err.message)) ? "model_quota" : "model_busy";
   if (err.status !== undefined && [500, 502, 503, 504].includes(err.status)) return "model_overloaded";
   if (/Timeout/i.test(err.name ?? "")) return "provider_timeout";
@@ -54,14 +56,14 @@ Rules:
 8. If a tool answers DENIED, don't repeat the same call: do what its message says, or explain the problem to the student.
 9. Be concise and kind.`;
 
-export function buildRecoveryAgent(model: string) {
+export function buildRecoveryAgent(model: string, settings?: ModelSettings) {
   return new Agent<AgentContext, typeof AgentAnswer>({
     name: "LearningRecoveryAgent",
     instructions: INSTRUCTIONS,
     model,
     tools: RECOVERY_TOOLS,
     outputType: AgentAnswer,
-    modelSettings: { parallelToolCalls: false },
+    modelSettings: { parallelToolCalls: false, ...settings },
   });
 }
 
@@ -69,15 +71,18 @@ export function buildRecoveryAgent(model: string) {
 export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
 export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
 
-export type ModelChoice = { provider: ModelProvider; model: string };
+/** `settings` are provider-specific model settings (OpenAI: don't store responses, optional reasoning effort). */
+export type ModelChoice = { provider: ModelProvider; model: string; settings?: ModelSettings };
 /** `fallback` is a second model tried once when the first hits its quota, is overloaded or times out. */
 export type ModelRuntime = ModelChoice & { kind: "openai" | "gemini"; fallback?: ModelChoice };
 
 /** A fallback that names the primary model would share its quota, so it is ignored. */
-function fallbackFor(provider: ModelProvider, primary: string, name: string | undefined): { fallback?: ModelChoice } {
+function fallbackFor(provider: ModelProvider, primary: string, name: string | undefined, settings?: ModelSettings): { fallback?: ModelChoice } {
   const model = name?.trim();
-  return model && model !== primary ? { fallback: { provider, model } } : {};
+  return model && model !== primary ? { fallback: { provider, model, ...(settings ? { settings } : {}) } } : {};
 }
+
+const REASONING_EFFORTS = new Set(["minimal", "low", "medium", "high"]);
 
 /**
  * The real runtime via the Agents SDK. OpenAI needs a key AND a model; Gemini needs a key (model optional).
@@ -88,8 +93,13 @@ export function modelRuntime(): ModelRuntime | null {
     const apiKey = process.env.OPENAI_API_KEY;
     const model = process.env.OPENAI_MODEL?.trim();
     if (!apiKey || !model) return null;
-    const provider = new OpenAIProvider({ apiKey });
-    return { provider, model, kind: "openai", ...fallbackFor(provider, model, process.env.OPENAI_FALLBACK_MODEL) };
+    // Responses API (the SDK default). Explicit timeout and one retry; responses aren't stored at OpenAI (the run
+    // and its answer are already stored here, and history is rebuilt from our own rows).
+    const client = new OpenAI({ apiKey, timeout: 120_000, maxRetries: 1 });
+    const provider = new OpenAIProvider({ openAIClient: client });
+    const effort = process.env.OPENAI_REASONING_EFFORT?.trim().toLowerCase();
+    const settings: ModelSettings = { store: false, ...(effort && REASONING_EFFORTS.has(effort) ? { reasoning: { effort: effort as "minimal" | "low" | "medium" | "high" } } : {}) };
+    return { provider, model, kind: "openai", settings, ...fallbackFor(provider, model, process.env.OPENAI_FALLBACK_MODEL, settings) };
   };
   const gemini = (): ModelRuntime | null => {
     const apiKey = process.env.GEMINI_API_KEY;
@@ -302,7 +312,7 @@ export async function runRecoveryAgent(deps: {
     const attemptTimeout = budgetMs === null ? null : AbortSignal.timeout(budgetMs);
     const attemptSignal = attemptTimeout ? AbortSignal.any([signal, attemptTimeout]) : signal;
     const runner = new Runner({ modelProvider: choice.provider, tracingDisabled: true, workflowName: "catchup-recovery" });
-    const agent = buildRecoveryAgent(choice.model);
+    const agent = buildRecoveryAgent(choice.model, choice.settings);
     const input = `${deps.message}${courseNote}`;
     // Our own RunContext, so its usage (added after each model response) is still readable if the attempt fails.
     const runContext = new RunContext<AgentContext>(context);

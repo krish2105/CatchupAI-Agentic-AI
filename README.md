@@ -177,8 +177,10 @@ Easiest (Gemini free tier): `python3 scripts/configure-ai.py` asks for the key w
 ```bash
 GEMINI_API_KEY=...        # never commit; from https://aistudio.google.com/apikey
 AI_PROVIDER=gemini        # model defaults to gemini-3.8-flash; embeddings to gemini-embedding-001
-# or: OPENAI_API_KEY=... and OPENAI_MODEL=...
+# or OpenAI: OPENAI_API_KEY=...  OPENAI_MODEL=<a model your project can use>  AI_PROVIDER=openai
 ```
+
+Switching an existing deployment from Gemini to OpenAI changes the embedding model too. Either keep the old vectors with `EMBEDDING_PROVIDER=gemini`, or re-embed: `npx tsx scripts/reembed-documents.ts` (dry run), then `--apply`. Scanned-PDF reading (OCR) needs a Gemini key.
 
 Without a key, everything except the copilot works and search is keyword-only. Embeddings are added for documents processed after a key is configured.
 
