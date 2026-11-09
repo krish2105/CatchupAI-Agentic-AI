@@ -31,9 +31,12 @@ export const profileUpdate = z
     weeklyMinutes: z.array(z.number().int().min(0).max(720)).length(7),
     studyStartTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM"),
     completeOnboarding: z.boolean(),
+    // Onboarding asks the student to confirm they are 13 or older; it isn't stored, only required to finish.
+    ageConfirmed: z.boolean(),
   })
   .partial()
-  .strict();
+  .strict()
+  .refine((v) => !v.completeOnboarding || v.ageConfirmed === true, { message: "Confirm that you are 13 or older to continue.", path: ["ageConfirmed"] });
 
 export type CourseCreate = z.infer<typeof courseCreate>;
 export type AssignmentCreate = z.infer<typeof assignmentCreate>;

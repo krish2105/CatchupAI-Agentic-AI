@@ -13,6 +13,7 @@ import { judgeClaims, judgeClientFromEnv, judgeEnabled, VerdictCache, type Judge
 import { geminiFetch } from "./gemini-fetch";
 import { historyPreamble, loadThreadTurns } from "./history";
 import { enforceScope } from "./scope";
+import { scrubPersonalData } from "@/lib/privacy/scrub";
 import { parsePartialAnswer } from "./partial-answer";
 import { RECOVERY_TOOLS } from "./tools";
 import { toolFactSupport } from "./tool-fact-support";
@@ -300,9 +301,11 @@ export async function runRecoveryAgent(deps: {
   const { admin, userId } = deps;
   const judge = deps.judge === undefined ? defaultJudge() : deps.judge;
   const threadId = deps.threadId ?? null;
+  // Emails, phone numbers and Emirates IDs are removed before the message reaches the model or the database.
+  const message = scrubPersonalData(deps.message).text;
   // Read the history before this run exists, so it holds only earlier turns.
   const preamble = threadId ? historyPreamble(await loadThreadTurns(deps.supabase, threadId)) : "";
-  const row = { owner_id: userId, course_id: deps.courseId, request_text: deps.message.slice(0, AGENT_LIMITS.maxMessageChars), model: deps.runtime.model, status: "running" };
+  const row = { owner_id: userId, course_id: deps.courseId, request_text: message.slice(0, AGENT_LIMITS.maxMessageChars), model: deps.runtime.model, status: "running" };
   const withThread: TablesInsert<"agent_runs"> = threadId ? { ...row, thread_id: threadId } : row;
   let inserted = await admin.from("agent_runs").insert(withThread).select("id").single();
   // Before migration 0024 reaches a database, agent_runs has no thread_id: the turn then runs on its own.
@@ -343,7 +346,7 @@ export async function runRecoveryAgent(deps: {
     const attemptSignal = attemptTimeout ? AbortSignal.any([signal, attemptTimeout]) : signal;
     const runner = new Runner({ modelProvider: choice.provider, tracingDisabled: true, workflowName: "catchup-recovery" });
     const agent = buildRecoveryAgent(choice.model, choice.settings);
-    const input = preamble ? `${preamble}\n\nCurrent message from the student:\n${deps.message}${courseNote}` : `${deps.message}${courseNote}`;
+    const input = preamble ? `${preamble}\n\nCurrent message from the student:\n${message}${courseNote}` : `${message}${courseNote}`;
     // Our own RunContext, so its usage (added after each model response) is still readable if the attempt fails.
     const runContext = new RunContext<AgentContext>(context);
     try {

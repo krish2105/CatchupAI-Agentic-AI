@@ -17,6 +17,7 @@ setup("sign up with an emailed code and complete onboarding", async ({ page }) =
   await expect(page).toHaveURL(/\/onboarding$/);
   await page.getByLabel("Display name").fill("E2E Student");
   await page.getByLabel("Time zone").selectOption("Asia/Dubai");
+  await page.getByLabel("I'm 13 or older").check();
   await page.getByRole("button", { name: "Save and continue" }).click();
   await expect(page).toHaveURL(/\/dashboard$/);
   await expect(page.getByText("E2E Student")).toBeVisible();

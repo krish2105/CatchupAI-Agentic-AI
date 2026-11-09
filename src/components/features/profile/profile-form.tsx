@@ -21,18 +21,30 @@ export default function ProfileForm({ profile, onboarding = false }: { profile: 
   const [weekly, setWeekly] = useState(profile.weeklyMinutes);
   const [start, setStart] = useState(profile.studyStartTime);
   const [status, setStatus] = useState<"idle" | "saving" | "saved">("idle");
+  // Onboarding only: CatchUp AI is for students aged 13 and over.
+  const [age, setAge] = useState<"" | "13plus" | "under13">("");
   const [error, setError] = useState<string | null>(null);
   const zones = useMemo(() => timeZones(initialZone), [initialZone]);
   const total = weekly.reduce((sum, m) => sum + m, 0);
 
   async function submit(event: React.FormEvent) {
     event.preventDefault();
-    setStatus("saving");
     setError(null);
+    if (onboarding && !age) {
+      setError("Please tell us whether you are 13 or older.");
+      return;
+    }
+    setStatus("saving");
     try {
+      if (onboarding && age === "under13") {
+        // Nothing is kept: the just-created sign-in is deleted, then a polite explanation.
+        await api("/api/account/under-age", { method: "POST" });
+        router.replace("/too-young");
+        return;
+      }
       await api("/api/profile", {
         method: "PATCH",
-        body: { displayName: displayName.trim() || null, timezone, weeklyMinutes: weekly, studyStartTime: start, ...(onboarding ? { completeOnboarding: true } : {}) },
+        body: { displayName: displayName.trim() || null, timezone, weeklyMinutes: weekly, studyStartTime: start, ...(onboarding ? { completeOnboarding: true, ageConfirmed: true } : {}) },
       });
       setStatus("saved");
       if (onboarding) router.replace("/dashboard");
@@ -78,6 +90,20 @@ export default function ProfileForm({ profile, onboarding = false }: { profile: 
           ))}
         </div>
       </fieldset>
+      {onboarding ? (
+        <fieldset className="span-2" style={{ border: 0, padding: 0, margin: 0 }}>
+          <legend className="field-label" style={{ fontSize: 11, fontWeight: 750, color: "var(--muted)", marginBottom: 8 }}>How old are you?</legend>
+          <div style={{ display: "flex", gap: 18, flexWrap: "wrap" }}>
+            <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+              <input type="radio" name="age" value="13plus" checked={age === "13plus"} onChange={() => setAge("13plus")} /> I&apos;m 13 or older
+            </label>
+            <label style={{ display: "inline-flex", gap: 8, alignItems: "center", fontSize: 13 }}>
+              <input type="radio" name="age" value="under13" checked={age === "under13"} onChange={() => setAge("under13")} /> I&apos;m under 13
+            </label>
+          </div>
+          <span className="field-hint">CatchUp AI is for students aged 13 and over. We don&apos;t store your age.</span>
+        </fieldset>
+      ) : null}
       <div className="field">
         <label htmlFor="start">Daily study blocks start at</label>
         <input id="start" className="input" type="time" value={start} onChange={(e) => setStart(e.target.value)} required />
