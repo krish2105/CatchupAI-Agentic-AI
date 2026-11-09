@@ -354,7 +354,7 @@ describe("evaluation suite", () => {
       return "NO_EVIDENCE returned; 0 citations";
     });
 
-    expect(results).toHaveLength(38);
+    expect(results).toHaveLength(41); // 38 + the on-topic guardrail cases T9-T11 (live only)
     expect(results.filter((r) => r.status === "fail")).toEqual([]);
   });
 });
