@@ -132,6 +132,7 @@ export type Database = {
           request_text: string
           status: string
           summary: string | null
+          thread_id: string | null
           tool_events: Json
         }
         Insert: {
@@ -150,6 +151,7 @@ export type Database = {
           request_text: string
           status?: string
           summary?: string | null
+          thread_id?: string | null
           tool_events?: Json
         }
         Update: {
@@ -168,6 +170,7 @@ export type Database = {
           request_text?: string
           status?: string
           summary?: string | null
+          thread_id?: string | null
           tool_events?: Json
         }
         Relationships: [
@@ -176,6 +179,13 @@ export type Database = {
             columns: ["course_id", "owner_id"]
             isOneToOne: false
             referencedRelation: "courses"
+            referencedColumns: ["id", "owner_id"]
+          },
+          {
+            foreignKeyName: "agent_runs_thread_fk"
+            columns: ["thread_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "copilot_threads"
             referencedColumns: ["id", "owner_id"]
           },
         ]
@@ -463,6 +473,30 @@ export type Database = {
             referencedColumns: ["id", "owner_id"]
           },
         ]
+      }
+      copilot_threads: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       courses: {
         Row: {

@@ -16,16 +16,22 @@ export type AgentRunDto = {
   citations: RunCitation[];
   errorCode: string | null;
   createdAt: string;
+  /** The conversation the run belongs to (null for runs before conversations, or before migration 0024). */
+  threadId: string | null;
   proposal: { id: string; scenario: string; feasible: boolean; status: string; selfCheck: SelfCheck | null } | null;
   /** What actually ran: model, token counts and wall-clock time (null while running or when unknown). */
   meta: { model: string | null; inputTokens: number | null; outputTokens: number | null; durationMs: number | null; fallbackFrom: string | null; fallbackReason: string | null };
 };
 
-const SELECT = "id, course_id, request_text, status, summary, tool_events, citations, error_code, created_at, completed_at, model, input_tokens, output_tokens, fallback_from, fallback_reason, action_proposals(id, scenario, feasible, status, payload)";
+const BASE_SELECT = "id, course_id, request_text, status, summary, tool_events, citations, error_code, created_at, completed_at, model, input_tokens, output_tokens, fallback_from, fallback_reason, action_proposals(id, scenario, feasible, status, payload)";
+const SELECT = `${BASE_SELECT}, thread_id`;
+/** Before migration 0024 reaches a database, agent_runs has no thread_id: read without it. */
+const missingColumn = (e: { code?: string } | null) => e?.code === "42703" || e?.code === "PGRST204";
 
 type Row = {
   id: string; course_id: string | null; request_text: string; status: string; summary: string | null; tool_events: unknown; citations: unknown; error_code: string | null; created_at: string;
   completed_at: string | null; model: string | null; input_tokens: number | null; output_tokens: number | null; fallback_from: string | null; fallback_reason: string | null;
+  thread_id?: string | null;
   action_proposals: { id: string; scenario: string; feasible: boolean; status: string; payload: unknown }[];
 };
 
@@ -44,7 +50,9 @@ function toRunProposal(p: Row["action_proposals"][number] | null): AgentRunDto["
 function toRun(r: Row): AgentRunDto {
   let answer: AgentAnswer | null = null;
   try {
-    answer = r.summary ? (JSON.parse(r.summary) as AgentAnswer) : null;
+    const raw = r.summary ? (JSON.parse(r.summary) as Partial<AgentAnswer>) : null;
+    // Answers stored before scope and follow-ups existed read as in scope with none.
+    answer = raw ? ({ ...raw, scope: raw.scope === "out_of_scope" ? "out_of_scope" : "catchup", followUps: Array.isArray(raw.followUps) ? raw.followUps : [] } as AgentAnswer) : null;
   } catch {
     answer = null;
   }
@@ -58,6 +66,7 @@ function toRun(r: Row): AgentRunDto {
     citations: (Array.isArray(r.citations) ? r.citations : []) as RunCitation[],
     errorCode: r.error_code,
     createdAt: r.created_at,
+    threadId: r.thread_id ?? null,
     // After a model fallback a run can own two drafts: the first attempt's (expired) and the actionable one.
     proposal: toRunProposal(r.action_proposals.find((p) => p.status !== "expired") ?? r.action_proposals[0] ?? null),
     meta: {
@@ -71,14 +80,21 @@ function toRun(r: Row): AgentRunDto {
   };
 }
 
-export async function listAgentRuns(supabase: ServerSupabase, limit = 10): Promise<AgentRunDto[]> {
-  const { data, error } = await supabase.from("agent_runs").select(SELECT).order("created_at", { ascending: false }).limit(limit);
-  if (error) throw fromDbError(error);
-  return (data as unknown as Row[]).map(toRun).reverse();
+/** The latest runs, oldest first; with `threadId`, only that conversation's. */
+export async function listAgentRuns(supabase: ServerSupabase, limit = 10, threadId: string | null = null): Promise<AgentRunDto[]> {
+  const query = (select: string, byThread: boolean) => {
+    const q = supabase.from("agent_runs").select(select).order("created_at", { ascending: false }).limit(limit);
+    return byThread && threadId ? q.eq("thread_id", threadId) : q;
+  };
+  let res = await query(SELECT, true);
+  if (res.error && missingColumn(res.error)) res = await query(BASE_SELECT, false);
+  if (res.error) throw fromDbError(res.error);
+  return (res.data as unknown as Row[]).map(toRun).reverse();
 }
 
 export async function getAgentRun(supabase: ServerSupabase, id: string): Promise<AgentRunDto> {
-  const { data, error } = await supabase.from("agent_runs").select(SELECT).eq("id", id).single();
-  if (error) throw fromDbError(error, "Run not found.");
-  return toRun(data as unknown as Row);
+  let res = await supabase.from("agent_runs").select(SELECT).eq("id", id).single();
+  if (res.error && missingColumn(res.error)) res = await supabase.from("agent_runs").select(BASE_SELECT).eq("id", id).single();
+  if (res.error) throw fromDbError(res.error, "Run not found.");
+  return toRun(res.data as unknown as Row);
 }

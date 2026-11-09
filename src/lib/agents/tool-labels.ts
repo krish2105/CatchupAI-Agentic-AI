@@ -1,6 +1,7 @@
 /** Plain-language names for the copilot's tools (safe for client components). */
 export const TOOL_LABEL: Record<string, string> = {
   get_study_preferences: "Read your availability",
+  list_courses: "Listed your courses",
   list_assignments: "Listed your assignments",
   search_course_material: "Searched your course notes",
   get_learning_progress: "Checked your plan progress",

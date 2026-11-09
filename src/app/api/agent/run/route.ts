@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { AGENT_LIMITS, runRecoveryAgent } from "@/lib/agents/recovery-agent";
 import { resolveRuntime } from "@/lib/agents/runtime";
+import { resolveThread } from "@/lib/agents/threads";
 import { assertAiAvailable } from "@/lib/ai/guard";
 import { agentDailyLimit } from "@/lib/billing/plan-limits";
 import { recordAppError } from "@/lib/observability/app-errors";
@@ -16,7 +17,8 @@ import { uuid } from "@/lib/validation/common";
 
 export const maxDuration = 200;
 
-const body = z.object({ message: z.string().trim().min(3).max(AGENT_LIMITS.maxMessageChars), courseId: uuid.nullable() }).strict();
+// threadId continues a conversation (the student's own); without it a new conversation starts.
+const body = z.object({ message: z.string().trim().min(3).max(AGENT_LIMITS.maxMessageChars), courseId: uuid.nullable(), threadId: uuid.nullable().optional() }).strict();
 
 /**
  * Runs the LearningRecoveryAgent and streams real tool events (Server-Sent Events) as they execute.
@@ -33,6 +35,8 @@ export const POST = route(async (request: Request) => {
   await assertAiAvailable(adminClient(), user.id);
   // Members of a Class-plan organisation get a higher daily copilot limit.
   await enforceRateLimit(supabase, "agent", user, { limit: await agentDailyLimit(supabase, user.id) });
+  // After the limits, so a refused request never creates a conversation.
+  const threadId = await resolveThread(supabase, adminClient(), user.id, input.threadId ?? null, input.message);
 
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
@@ -51,6 +55,7 @@ export const POST = route(async (request: Request) => {
           userId: user.id,
           courseId: input.courseId,
           message: input.message,
+          threadId,
           runtime,
           embedder: getEmbedder(),
           now: Date.now(),
