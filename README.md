@@ -27,11 +27,12 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 
 ## How agentic is it?
 
-One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **seven tools**. The model decides which to call, in what order and with what arguments, for up to 8 turns:
+One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **eight tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp, and suggests follow-up questions. The model decides which to call, in what order and with what arguments, for up to 8 turns:
 
 | Tool | Purpose | Can it change data? |
 | --- | --- | --- |
 | `get_study_preferences` | time zone and free minutes per day | no |
+| `list_courses` | the student's courses and their ids (for "All courses" mode) | no |
 | `list_assignments` | deadlines and estimates | no |
 | `search_course_material` | page-cited passages from your PDFs, or `NO_EVIDENCE` | no |
 | `get_learning_progress` | blocks done and remaining | no |
@@ -67,7 +68,7 @@ each database query stays inside one region.
 | Deterministic planner: **essential / balanced / full** routes, honest shortfall in minutes, what-if availability | ✅ |
 | Human approval gate: atomic, idempotent, refuses stale/expired/infeasible plans | ✅ |
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
-| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 7 permission-checked tools, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see reviews/LIVE_AGENT_EVALUATION_REPORT.md) |
+| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 8 permission-checked tools, multi-turn conversations, an on-topic guardrail and follow-up suggestions, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see reviews/LIVE_AGENT_EVALUATION_REPORT.md) |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
@@ -118,7 +119,7 @@ flowchart LR
   U[Student browser<br/>Next.js App Router · R3F 3D + DOM fallback] -->|cookie session · SSE| API[Route Handlers<br/>Zod · rate limits · structured errors]
   API --> RAG[Document pipeline<br/>PDF validation → page chunks → hybrid search]
   API --> PLAN[Deterministic planner<br/>EDF · 3 scenarios · shortfall]
-  API --> AGENT[LearningRecoveryAgent<br/>7 permission-checked tools]
+  API --> AGENT[LearningRecoveryAgent<br/>8 permission-checked tools]
   AGENT --> RAG
   AGENT --> PLAN
   AGENT -->|draft only| PROP[(Pending proposal)]
@@ -137,7 +138,7 @@ Next.js Route Handlers (Zod validation · structured errors · per-user DB rate 
    ├─ src/proxy.ts ............ session refresh + page guard (Next 16 "proxy")
    ├─ lib/rag ................. PDF validation (unpdf) → page chunks → hybrid search (RRF)
    ├─ lib/planner/engine.ts ... pure EDF scheduler, 3 scenarios, shortfall (no AI)
-   ├─ lib/agents .............. LearningRecoveryAgent + 7 typed tools (trusted context)
+   ├─ lib/agents .............. LearningRecoveryAgent + 8 typed tools (trusted context)
    └─ lib/quiz ................ grounded cloze generator + server grading
    ▼
 Supabase: Auth · Postgres + RLS (composite owner FKs, column grants) · private Storage · pgvector

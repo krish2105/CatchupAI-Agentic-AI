@@ -12,12 +12,12 @@ const full = JSON.stringify({
 
 describe("parsePartialAnswer (streamed structured answer)", () => {
   it("returns the whole answer once the JSON is complete", () => {
-    expect(parsePartialAnswer(full)).toEqual({ ...JSON.parse(full), midString: false });
+    expect(parsePartialAnswer(full)).toEqual({ ...JSON.parse(full), scope: null, midString: false }); // no scope key in this answer
   });
 
   it("never yields a fact that is still being written", () => {
     const mid = full.indexOf("observed") + 4;
-    expect(parsePartialAnswer(full.slice(0, mid))).toEqual({ facts: [], suggestions: [], clarifyingQuestion: null, midString: true });
+    expect(parsePartialAnswer(full.slice(0, mid))).toEqual({ scope: null, facts: [], suggestions: [], clarifyingQuestion: null, midString: true });
     const closeFirst = full.indexOf("},");
     expect(parsePartialAnswer(full.slice(0, closeFirst))!.facts).toEqual([]); // its closing brace hasn't arrived
     expect(parsePartialAnswer(full.slice(0, closeFirst + 1))!.facts).toHaveLength(1);
