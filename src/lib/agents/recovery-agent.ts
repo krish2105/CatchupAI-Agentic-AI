@@ -70,10 +70,23 @@ Rules:
 12. Write search_course_material queries that stand on their own: replace pronouns with the topic from the conversation. In "All courses" mode call list_courses to find course ids first.
 13. "followUps": up to 3 short questions (under 100 characters) the student could ask you next about their own courses, deadlines or plan.`;
 
-export function buildRecoveryAgent(model: string, settings?: ModelSettings) {
+/**
+ * "Guide me, don't tell me" (Socratic mode): the same agent and tools; only the instructions change, so citations,
+ * the claim check and "I couldn't verify that" all still apply.
+ */
+export const GUIDE_INSTRUCTIONS = `
+
+Guide mode ("Guide me, don't tell me") is on for this conversation:
+G1. Don't give the answer or a worked solution straight away. Search the student's notes first, then ask ONE short guiding question at a time in "clarifyingQuestion", built on what the notes say; state the passage it rests on as a cited fact.
+G2. Reveal the full answer only if the student asks for it directly, or once they have made two attempts in this conversation (the app tells you how many).
+G3. Every other rule still applies: facts cite retrieved pages, say "I couldn't verify that in your uploaded materials" when there is no evidence, and don't draft a plan unless the student asks for one.`;
+
+export type CopilotMode = "answer" | "guide";
+
+export function buildRecoveryAgent(model: string, settings?: ModelSettings, mode: CopilotMode = "answer") {
   return new Agent<AgentContext, typeof AgentAnswer>({
     name: "LearningRecoveryAgent",
-    instructions: INSTRUCTIONS,
+    instructions: mode === "guide" ? `${INSTRUCTIONS}${GUIDE_INSTRUCTIONS}` : INSTRUCTIONS,
     model,
     tools: RECOVERY_TOOLS,
     outputType: AgentAnswer,
@@ -297,6 +310,8 @@ export async function runRecoveryAgent(deps: {
   judge?: AnswerJudge | null;
   /** The conversation this turn belongs to (already checked to be the student's); its last turns are context. */
   threadId?: string | null;
+  /** "guide": Socratic mode (one guiding question at a time); default "answer". */
+  mode?: CopilotMode;
 }): Promise<RunOutcome> {
   const { admin, userId } = deps;
   const judge = deps.judge === undefined ? defaultJudge() : deps.judge;
@@ -304,7 +319,11 @@ export async function runRecoveryAgent(deps: {
   // Emails, phone numbers and Emirates IDs are removed before the message reaches the model or the database.
   const message = scrubPersonalData(deps.message).text;
   // Read the history before this run exists, so it holds only earlier turns.
-  const preamble = threadId ? historyPreamble(await loadThreadTurns(deps.supabase, threadId)) : "";
+  const turns = threadId ? await loadThreadTurns(deps.supabase, threadId) : [];
+  const preamble = historyPreamble(turns);
+  const mode: CopilotMode = deps.mode ?? "answer";
+  // Guide mode reveals the answer after two attempts: tell the model how many the student has made in this thread.
+  const guideNote = mode === "guide" ? `\n\n[Guide mode: the student has made ${turns.length} earlier attempt${turns.length === 1 ? "" : "s"} in this conversation.]` : "";
   const row = { owner_id: userId, course_id: deps.courseId, request_text: message.slice(0, AGENT_LIMITS.maxMessageChars), model: deps.runtime.model, status: "running" };
   const withThread: TablesInsert<"agent_runs"> = threadId ? { ...row, thread_id: threadId } : row;
   let inserted = await admin.from("agent_runs").insert(withThread).select("id").single();
@@ -345,8 +364,8 @@ export async function runRecoveryAgent(deps: {
     const attemptTimeout = budgetMs === null ? null : AbortSignal.timeout(budgetMs);
     const attemptSignal = attemptTimeout ? AbortSignal.any([signal, attemptTimeout]) : signal;
     const runner = new Runner({ modelProvider: choice.provider, tracingDisabled: true, workflowName: "catchup-recovery" });
-    const agent = buildRecoveryAgent(choice.model, choice.settings);
-    const input = preamble ? `${preamble}\n\nCurrent message from the student:\n${message}${courseNote}` : `${message}${courseNote}`;
+    const agent = buildRecoveryAgent(choice.model, choice.settings, mode);
+    const input = preamble ? `${preamble}\n\nCurrent message from the student:\n${message}${courseNote}${guideNote}` : `${message}${courseNote}${guideNote}`;
     // Our own RunContext, so its usage (added after each model response) is still readable if the attempt fails.
     const runContext = new RunContext<AgentContext>(context);
     try {

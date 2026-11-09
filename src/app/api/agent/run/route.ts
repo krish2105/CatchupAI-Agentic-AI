@@ -18,7 +18,7 @@ import { uuid } from "@/lib/validation/common";
 export const maxDuration = 200;
 
 // threadId continues a conversation (the student's own); without it a new conversation starts.
-const body = z.object({ message: z.string().trim().min(3).max(AGENT_LIMITS.maxMessageChars), courseId: uuid.nullable(), threadId: uuid.nullable().optional() }).strict();
+const body = z.object({ message: z.string().trim().min(3).max(AGENT_LIMITS.maxMessageChars), courseId: uuid.nullable(), threadId: uuid.nullable().optional(), mode: z.enum(["answer", "guide"]).optional() }).strict();
 
 /**
  * Runs the LearningRecoveryAgent and streams real tool events (Server-Sent Events) as they execute.
@@ -56,6 +56,7 @@ export const POST = route(async (request: Request) => {
           courseId: input.courseId,
           message: input.message,
           threadId,
+          mode: input.mode ?? "answer",
           runtime,
           embedder: getEmbedder(),
           now: Date.now(),

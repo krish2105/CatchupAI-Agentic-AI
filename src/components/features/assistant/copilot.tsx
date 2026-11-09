@@ -5,6 +5,7 @@ import { ArrowRight, BookOpen, Check, CheckCircle2, CircleSlash, FileText, Leaf,
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
+import { Switch } from "@/components/ui/controls";
 import { api, ClientApiError } from "@/lib/client/api";
 import SelfCheckBadge from "@/components/features/recovery/self-check-badge";
 import TrustDrawer from "@/components/features/recovery/trust-drawer";
@@ -230,6 +231,8 @@ export default function Copilot({
 }) {
   const [runs, setRuns] = useState(initialRuns);
   const [threadId, setThreadId] = useState<string | null>(initialThreadId);
+  // Socratic mode: the copilot asks one guiding question at a time and reveals the answer after two attempts.
+  const [guide, setGuide] = useState(false);
   const [message, setMessage] = useState("");
   const [courseId, setCourseId] = useState<string>(rescue?.courseId ?? courses[0]?.id ?? "");
   const rescueStarted = useRef(false);
@@ -252,7 +255,7 @@ export default function Copilot({
       const res = await fetch("/api/agent/run", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: trimmed, courseId: courseId || null, threadId }),
+        body: JSON.stringify({ message: trimmed, courseId: courseId || null, threadId, mode: guide ? "guide" : "answer" }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -372,6 +375,10 @@ export default function Copilot({
                 <button type="submit" aria-label="Send message" disabled={message.trim().length < 3}><ArrowRight className="ic" aria-hidden="true" /></button>
               )}
             </form>
+            <div className="guide-toggle">
+              <Switch checked={guide} onChange={setGuide} label="Guide me, don't tell me" disabled={running} />
+              <span>Guide me, don&apos;t tell me: one hint at a time from your notes; the answer after two tries or when you ask.</span>
+            </div>
             <p className="chat-disclaimer">Drafts only. Nothing is saved until you approve it in the Recovery lab.</p>
           </>
         ) : null}
