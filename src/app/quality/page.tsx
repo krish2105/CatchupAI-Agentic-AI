@@ -5,6 +5,7 @@ import Brand from "@/components/shell/brand";
 import ThemeButton from "@/components/shell/theme-button";
 import { ButtonLink, Chip } from "@/components/ui/primitives";
 import { ciStatus, feedbackSummary, GITHUB_REPO, health } from "@/lib/quality/live";
+import { TRUST_CONTROLS } from "@/lib/quality/trust-controls";
 import snapshot from "@/lib/quality/snapshot.json";
 import { aiRuntimeStatus } from "@/lib/server/env";
 
@@ -117,6 +118,20 @@ export default async function QualityPage() {
             <li>Dependency audit blocks any high-severity vulnerability in CI.</li>
           </ul>
           <p><a className="text-link inline" href={`https://github.com/${GITHUB_REPO}/blob/main/SECURITY_AUDIT.md`} target="_blank" rel="noopener noreferrer">Security audit</a> · <a className="text-link inline" href={`https://github.com/${GITHUB_REPO}/blob/main/THREAT_MODEL.md`} target="_blank" rel="noopener noreferrer">Threat model</a></p>
+        </section>
+
+        <section className="card quality-section" aria-labelledby="q-uae">
+          <h2 id="q-uae">Built for UAE rules</h2>
+          <p>Responsible-AI controls for students in the UAE. Each links to the code that does it and the test that checks it. This is a description of what the software does, not a legal opinion.</p>
+          <ul className="quality-list">
+            {TRUST_CONTROLS.map((c) => (
+              <li key={c.title}>
+                <strong>{c.title}.</strong> {c.what}{" "}
+                <a className="text-link inline" href={`https://github.com/${GITHUB_REPO}/blob/main/${c.code}`} target="_blank" rel="noopener noreferrer">Code</a> ·{" "}
+                <a className="text-link inline" href={`https://github.com/${GITHUB_REPO}/blob/main/${c.test}`} target="_blank" rel="noopener noreferrer">Test</a>
+              </li>
+            ))}
+          </ul>
         </section>
 
         {/* Shown once students have rated something; an empty box says nothing a reader can use. */}

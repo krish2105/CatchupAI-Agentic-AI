@@ -1177,3 +1177,12 @@ html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: 
 .quality p a:not([class]) { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
 .lp-foot { font-size: 12px; }
 .lp-foot a { display: inline-block; padding: 5px 0; }
+
+/* AI-use disclosure: lists and a clean printout ("Save as PDF" in the browser's print dialog). */
+.disclosure-list { margin: 0; padding-left: 18px; display: grid; gap: 14px; font-size: 13px; line-height: 1.55; }
+.disclosure-list ul { margin: 6px 0 0; padding-left: 18px; }
+@media print {
+  aside, nav, .bottom-nav, .topbar, .search-pill, .skip-link, .demo-banner, .page-heading .btn, .landscape { display: none !important; }
+  body, .shell, .main, .content { background: #fff !important; color: #000 !important; }
+  .card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
+}
