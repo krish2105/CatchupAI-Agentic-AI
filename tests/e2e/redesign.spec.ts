@@ -616,6 +616,55 @@ test("privacy notice and terms are public, linked from the landing page and sign
   }
 });
 
+test("agent team: the Diagnostician's warm-up builds a mastery map, then the Quizmaster practises the gaps", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
+    await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
+    await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
+    await expect(s.page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
+
+    await s.page.goto("/catch-up");
+    await s.page.getByRole("navigation", { name: "Lecture documents" }).getByRole("link").first().click();
+    const panel = s.page.getByRole("region", { name: "Where you are" });
+    await panel.getByRole("button", { name: "Start the 3-minute warm-up" }).click();
+    await expect(panel.getByText(/Questions by the Diagnostician \(scripted-test-model\)/)).toBeVisible();
+    await expect(panel.getByRole("link", { name: "View its run" })).toBeVisible();
+
+    // Answer every question: the scripted Diagnostician puts the page's own statement first. The last one is
+    // answered wrongly but "sure", so it must come back as confidently wrong.
+    const total = Number((await panel.getByText(/^Question 1 of \d+/).textContent())!.match(/of (\d+)/)![1]);
+    for (let i = 0; i < total; i++) {
+      const last = i === total - 1;
+      await panel.getByRole("radio").nth(last ? 1 : 0).click();
+      await panel.getByRole("radio", { name: "Sure" }).click();
+      await panel.getByRole("button", { name: "Check my answer" }).click();
+      await expect(panel.getByText(last ? "Not quite." : "Right.")).toBeVisible();
+      await expect(panel.getByRole("link", { name: /^p\. \d$/ }).last()).toBeVisible();
+      await panel.getByRole("button", { name: last ? "See where you are" : "Next question" }).click();
+    }
+    const map = panel.getByRole("list", { name: "Your mastery map" });
+    await expect(map.getByText("Known").first()).toBeVisible();
+    await expect(map.getByText("Confidently wrong")).toBeVisible();
+    await expect(panel.getByRole("heading", { name: "Your bridge" })).toBeVisible();
+
+    // The Quizmaster practises the gaps, with hints before answers and a soft timer.
+    await panel.getByRole("button", { name: /Practise my gaps with the Quizmaster/ }).click();
+    await expect(panel.getByText(/Questions by the Quizmaster/)).toBeVisible();
+    await expect(panel.getByRole("timer", { name: "Time on this question" })).toBeVisible();
+    await panel.getByRole("button", { name: "Give me a hint" }).click();
+    await expect(panel.getByRole("list", { name: "Hints" })).toBeVisible();
+    await panel.getByRole("radio").first().click();
+    await panel.getByRole("radio", { name: "Think so" }).click();
+    await panel.getByRole("button", { name: "Check my answer" }).click();
+    await expect(panel.getByText(/Right\.|Not quite\./)).toBeVisible();
+  } finally {
+    await s.cleanup();
+  }
+});
+
 test("catch-up pack: graded pre-check and post-check from the pack's document, with the gain on Insights", async ({ browser }) => {
   test.setTimeout(120_000);
   const s = await freshStudent(browser);

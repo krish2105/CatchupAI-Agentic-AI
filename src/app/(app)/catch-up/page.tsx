@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { BookOpen, FileText, LifeBuoy } from "lucide-react";
 import { AddToPlan, CheckQuestions, PackCheck } from "@/components/features/catchup/pack-actions";
+import MasteryPanel from "@/components/features/mastery/mastery-panel";
+import { getMasteryMap } from "@/lib/mastery/service";
 import { catchupGains, packTopic } from "@/lib/catchup/gain";
 import { getPracticeEvidence } from "@/lib/quiz/service";
 import { renderTime } from "@/lib/server/clock";
@@ -34,6 +36,8 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
     }
   }
   const pack = result?.pack;
+  // The agent team's mastery map (hidden if the database doesn't have migration 0025 yet).
+  const masteryMap = result && docId ? await getMasteryMap(supabase, docId).catch(() => null) : null;
   const evidence = result ? await getPracticeEvidence(supabase, await renderTime()) : null;
   const packGain = result ? catchupGains(evidence!.progress.filter((p) => p.courseId === result!.courseId && p.topic === packTopic(result!.filename)), { includePending: true })[0] ?? null : null;
   const listenText = pack
@@ -72,6 +76,7 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
             </div>
             <ListenButton text={listenText} />
           </header>
+          {masteryMap ? <MasteryPanel documentId={docId!} initialMap={masteryMap} /> : null}
           <div className="pack-grid">
             <section className="card pack-card" aria-labelledby="pack-summary">
               <h3 id="pack-summary">Summary</h3>

@@ -117,6 +117,7 @@ export type Database = {
       }
       agent_runs: {
         Row: {
+          agent: string
           citations: Json
           completed_at: string | null
           course_id: string | null
@@ -136,6 +137,7 @@ export type Database = {
           tool_events: Json
         }
         Insert: {
+          agent?: string
           citations?: Json
           completed_at?: string | null
           course_id?: string | null
@@ -155,6 +157,7 @@ export type Database = {
           tool_events?: Json
         }
         Update: {
+          agent?: string
           citations?: Json
           completed_at?: string | null
           course_id?: string | null
@@ -234,6 +237,173 @@ export type Database = {
           stack?: string | null
         }
         Relationships: []
+      }
+      assessment_attempts: {
+        Row: {
+          chosen: number | null
+          confidence: string
+          correct: boolean
+          created_at: string
+          elapsed_ms: number
+          hints_used: number
+          id: string
+          item_id: string
+          owner_id: string
+          timed_out: boolean
+        }
+        Insert: {
+          chosen?: number | null
+          confidence: string
+          correct: boolean
+          created_at?: string
+          elapsed_ms?: number
+          hints_used?: number
+          id?: string
+          item_id: string
+          owner_id: string
+          timed_out?: boolean
+        }
+        Update: {
+          chosen?: number | null
+          confidence?: string
+          correct?: boolean
+          created_at?: string
+          elapsed_ms?: number
+          hints_used?: number
+          id?: string
+          item_id?: string
+          owner_id?: string
+          timed_out?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_attempts_item_id_owner_id_fkey"
+            columns: ["item_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_items"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      assessment_hints: {
+        Row: {
+          created_at: string
+          item_id: string
+          level: number
+          owner_id: string
+        }
+        Insert: {
+          created_at?: string
+          item_id: string
+          level: number
+          owner_id: string
+        }
+        Update: {
+          created_at?: string
+          item_id?: string
+          level?: number
+          owner_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_hints_item_id_owner_id_fkey"
+            columns: ["item_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_items"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      assessment_items: {
+        Row: {
+          concept: string
+          created_at: string
+          difficulty: number
+          document_id: string
+          id: string
+          mode: string
+          options: Json
+          owner_id: string
+          page: number
+          position: number
+          prompt: string
+          session_id: string
+          source: string
+          time_limit_seconds: number | null
+        }
+        Insert: {
+          concept: string
+          created_at?: string
+          difficulty?: number
+          document_id: string
+          id?: string
+          mode: string
+          options: Json
+          owner_id: string
+          page: number
+          position: number
+          prompt: string
+          session_id: string
+          source: string
+          time_limit_seconds?: number | null
+        }
+        Update: {
+          concept?: string
+          created_at?: string
+          difficulty?: number
+          document_id?: string
+          id?: string
+          mode?: string
+          options?: Json
+          owner_id?: string
+          page?: number
+          position?: number
+          prompt?: string
+          session_id?: string
+          source?: string
+          time_limit_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_items_document_id_owner_id_fkey"
+            columns: ["document_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
+      assessment_keys: {
+        Row: {
+          answer_index: number
+          hint: string
+          item_id: string
+          owner_id: string
+          quote: string
+        }
+        Insert: {
+          answer_index: number
+          hint: string
+          item_id: string
+          owner_id: string
+          quote: string
+        }
+        Update: {
+          answer_index?: number
+          hint?: string
+          item_id?: string
+          owner_id?: string
+          quote?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "assessment_keys_item_id_owner_id_fkey"
+            columns: ["item_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "assessment_items"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
       }
       assignment_checklist_items: {
         Row: {
@@ -408,6 +578,59 @@ export type Database = {
         }
         Relationships: []
       }
+      concept_mastery: {
+        Row: {
+          attempts: number
+          concept: string
+          correct: number
+          document_id: string
+          id: string
+          last_confident_wrong: boolean
+          owner_id: string
+          page: number
+          quote: string
+          rating: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          attempts?: number
+          concept: string
+          correct?: number
+          document_id: string
+          id?: string
+          last_confident_wrong?: boolean
+          owner_id: string
+          page: number
+          quote: string
+          rating?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          attempts?: number
+          concept?: string
+          correct?: number
+          document_id?: string
+          id?: string
+          last_confident_wrong?: boolean
+          owner_id?: string
+          page?: number
+          quote?: string
+          rating?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "concept_mastery_document_id_owner_id_fkey"
+            columns: ["document_id", "owner_id"]
+            isOneToOne: false
+            referencedRelation: "documents"
+            referencedColumns: ["id", "owner_id"]
+          },
+        ]
+      }
       copilot_memories: {
         Row: {
           created_at: string
@@ -434,6 +657,30 @@ export type Database = {
           source?: string
           status?: string
           text?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      copilot_threads: {
+        Row: {
+          created_at: string
+          id: string
+          owner_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          owner_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          owner_id?: string
+          title?: string
           updated_at?: string
         }
         Relationships: []
@@ -473,30 +720,6 @@ export type Database = {
             referencedColumns: ["id", "owner_id"]
           },
         ]
-      }
-      copilot_threads: {
-        Row: {
-          created_at: string
-          id: string
-          owner_id: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          owner_id: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          owner_id?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: []
       }
       courses: {
         Row: {
