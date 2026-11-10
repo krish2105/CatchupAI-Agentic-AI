@@ -96,7 +96,9 @@ describe("faithfulness judge", () => {
     expect(judgeEnabled({})).toBe(false);
     expect(judgeEnabled({ FAITHFULNESS_JUDGE: "on" })).toBe(true);
     expect(judgeClientFromEnv({})).toBeNull();
-    expect(judgeClientFromEnv({ GEMINI_API_KEY: "test-key", GEMINI_MODEL: "gemini-x" })?.model).toBe("gemini-x");
-    expect(judgeClientFromEnv({ GEMINI_API_KEY: "test-key", GEMINI_MODEL: "gemini-x", FAITHFULNESS_JUDGE_MODEL: "gemini-y" })?.model).toBe("gemini-y");
+    expect(judgeClientFromEnv({ OPENAI_API_KEY: "sk-test-not-real", OPENAI_MODEL: "gpt-x" })?.model).toBe("gpt-x");
+    expect(judgeClientFromEnv({ OPENAI_API_KEY: "sk-test-not-real", OPENAI_MODEL: "gpt-x", FAITHFULNESS_JUDGE_MODEL: "gpt-y" })?.model).toBe("gpt-y");
+    // A leftover Gemini key gives no judge.
+    expect(judgeClientFromEnv({ GEMINI_API_KEY: "test-key", GEMINI_MODEL: "old-model" })).toBeNull();
   });
 });

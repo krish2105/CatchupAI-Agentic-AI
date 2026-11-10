@@ -5,7 +5,7 @@ import history from "../../evals/results/live-history.json";
 const base: RawTrace = {
   scenario: "S9-test",
   title: "A test case",
-  model: "gemini:gemini-3.6-flash",
+  model: "openai:gpt-5.4-mini",
   ranAt: "2026-11-08T09:49:35.251Z",
   request: "Plan my week",
   latencyMs: 8817,
@@ -25,7 +25,7 @@ const base: RawTrace = {
 describe("recorded real runs (replay)", () => {
   it("orders steps, uses plain tool names and strips the provider prefix from the model", () => {
     const r = toReplay(base);
-    expect(r.model).toBe("gemini-3.6-flash");
+    expect(r.model).toBe("gpt-5.4-mini");
     expect(r.steps.map((s) => s.tool)).toEqual(["list_assignments", "draft_recovery_plan"]);
     expect(r.steps[0].label).toBe("Listed your assignments");
     expect(r.sourceUrl).toBe("https://github.com/krish2105/CatchupAI-Agentic-AI/blob/main/docs/evidence/agent-traces/S9-test.json");

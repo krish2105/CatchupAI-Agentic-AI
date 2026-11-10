@@ -1,5 +1,5 @@
 /**
- * Re-embeds documents after the embedding model changes (for example when the app moves from Gemini to OpenAI),
+ * Re-embeds documents after the embedding model changes (for example when the app moved its embeddings to OpenAI),
  * using the embedder the current environment selects (see embeddingProvider in src/lib/rag/embed.ts).
  *
  *   npx tsx scripts/reembed-documents.ts               # dry run against the local stack: counts only
@@ -32,7 +32,7 @@ async function main() {
   const { getEmbedder } = await import("../src/lib/rag/embed");
   const { reembedDocuments } = await import("../src/lib/rag/reembed");
   const embedder = getEmbedder();
-  if (!embedder) throw new Error("No embedding provider is configured (OPENAI_API_KEY or GEMINI_API_KEY; see EMBEDDING_PROVIDER).");
+  if (!embedder) throw new Error("No embedding provider is configured (set OPENAI_API_KEY).");
 
   const admin = createClient<Database>(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
   const report = await reembedDocuments({ admin: admin as never, embedder, ownerId: arg("owner"), apply: flag("apply") });

@@ -64,7 +64,7 @@ test("record the CatchUp AI demo", async ({ browser }) => {
     await hold(4500);
 
     await page.goto("/assistant");
-    await caption("The copilot works through permission-checked tools. This recording uses the built-in scripted test model; the live site runs Gemini.");
+    await caption("The copilot works through permission-checked tools. This recording uses the built-in scripted test model; the live site runs an OpenAI model.");
     await page.getByLabel("Course scope").selectOption({ label: "Applied Statistics" });
     await page.getByLabel("Message CatchUp Copilot").pressSequentially("Remember: I study best in the morning. What does a residual mean?", { delay: 18 });
     await page.getByRole("button", { name: "Send message" }).click();

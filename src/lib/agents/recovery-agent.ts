@@ -10,7 +10,6 @@ import type { AgentContext, SourceRef, ToolEvent } from "./context";
 import { logEvent } from "@/lib/observability/log";
 import { claimSupport } from "@/lib/rag/claim-support";
 import { judgeClaims, judgeClientFromEnv, judgeEnabled, VerdictCache, type JudgeClient, type JudgeUsage } from "@/lib/rag/faithfulness-judge";
-import { geminiFetch } from "./gemini-fetch";
 import { historyPreamble, loadThreadTurns } from "./history";
 import { enforceScope } from "./scope";
 import { scrubPersonalData } from "@/lib/privacy/scrub";
@@ -18,7 +17,7 @@ import { parsePartialAnswer } from "./partial-answer";
 import { RECOVERY_TOOLS } from "./tools";
 import { toolFactSupport } from "./tool-fact-support";
 
-// The free Gemini tier can take 10–30 s per step, so a full run gets up to 170 s (route maxDuration is 200 s).
+// A model step can take 10–30 s, so a full run gets up to 170 s (route maxDuration is 200 s).
 // With a fallback model configured, the primary attempt gets 100 s so the second model still has time to answer.
 export const AGENT_LIMITS = { maxTurns: 8, maxMessageChars: 1000, timeoutMs: 170_000, primaryAttemptMs: 100_000, minFallbackMs: 30_000 } as const;
 
@@ -95,14 +94,10 @@ export function buildRecoveryAgent(model: string, settings?: ModelSettings, mode
   });
 }
 
-/** Gemini's OpenAI-compatible endpoint (chat completions; the Responses API isn't available there). */
-export const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
-export const GEMINI_DEFAULT_MODEL = "gemini-3.8-flash";
-
-/** `settings` are provider-specific model settings (OpenAI: don't store responses, optional reasoning effort). */
+/** `settings` are the model settings (don't store responses at OpenAI, optional reasoning effort). */
 export type ModelChoice = { provider: ModelProvider; model: string; settings?: ModelSettings };
 /** `fallback` is a second model tried once when the first hits its quota, is overloaded or times out. */
-export type ModelRuntime = ModelChoice & { kind: "openai" | "gemini"; fallback?: ModelChoice };
+export type ModelRuntime = ModelChoice & { kind: "openai"; fallback?: ModelChoice };
 
 /** A fallback that names the primary model would share its quota, so it is ignored. */
 function fallbackFor(provider: ModelProvider, primary: string, name: string | undefined, settings?: ModelSettings): { fallback?: ModelChoice } {
@@ -113,36 +108,19 @@ function fallbackFor(provider: ModelProvider, primary: string, name: string | un
 const REASONING_EFFORTS = new Set(["minimal", "low", "medium", "high"]);
 
 /**
- * The real runtime via the Agents SDK. OpenAI needs a key AND a model; Gemini needs a key (model optional).
- * AI_PROVIDER=openai|gemini picks one explicitly; otherwise OpenAI wins when both are configured.
+ * The real runtime via the Agents SDK: OpenAI, which needs a key AND a model (OPENAI_API_KEY, OPENAI_MODEL).
  */
 export function modelRuntime(): ModelRuntime | null {
-  const openai = (): ModelRuntime | null => {
-    const apiKey = process.env.OPENAI_API_KEY;
-    const model = process.env.OPENAI_MODEL?.trim();
-    if (!apiKey || !model) return null;
-    // Responses API (the SDK default). Explicit timeout and one retry; responses aren't stored at OpenAI (the run
-    // and its answer are already stored here, and history is rebuilt from our own rows).
-    const client = new OpenAI({ apiKey, timeout: 120_000, maxRetries: 1 });
-    const provider = new OpenAIProvider({ openAIClient: client });
-    const effort = process.env.OPENAI_REASONING_EFFORT?.trim().toLowerCase();
-    const settings: ModelSettings = { store: false, ...(effort && REASONING_EFFORTS.has(effort) ? { reasoning: { effort: effort as "minimal" | "low" | "medium" | "high" } } : {}) };
-    return { provider, model, kind: "openai", settings, ...fallbackFor(provider, model, process.env.OPENAI_FALLBACK_MODEL, settings) };
-  };
-  const gemini = (): ModelRuntime | null => {
-    const apiKey = process.env.GEMINI_API_KEY;
-    const model = process.env.GEMINI_MODEL?.trim() || GEMINI_DEFAULT_MODEL;
-    if (!apiKey) return null;
-    // geminiFetch keeps Gemini 3 "thought signatures" across tool calls and sets the thinking level.
-    const client = new OpenAI({ apiKey, baseURL: GEMINI_BASE_URL, fetch: geminiFetch(), timeout: 150_000, maxRetries: 0 });
-    const provider = new OpenAIProvider({ openAIClient: client, useResponses: false });
-    // The second Gemini model has its own free daily quota (GEMINI_FALLBACK_MODEL, optional).
-    return { provider, model, kind: "gemini", ...fallbackFor(provider, model, process.env.GEMINI_FALLBACK_MODEL) };
-  };
-  const preferred = process.env.AI_PROVIDER?.trim().toLowerCase();
-  if (preferred === "gemini") return gemini();
-  if (preferred === "openai") return openai();
-  return openai() ?? gemini();
+  const apiKey = process.env.OPENAI_API_KEY;
+  const model = process.env.OPENAI_MODEL?.trim();
+  if (!apiKey || !model) return null;
+  // Responses API (the SDK default). Explicit timeout and one retry; responses aren't stored at OpenAI (the run
+  // and its answer are already stored here, and history is rebuilt from our own rows).
+  const client = new OpenAI({ apiKey, timeout: 120_000, maxRetries: 1 });
+  const provider = new OpenAIProvider({ openAIClient: client });
+  const effort = process.env.OPENAI_REASONING_EFFORT?.trim().toLowerCase();
+  const settings: ModelSettings = { store: false, ...(effort && REASONING_EFFORTS.has(effort) ? { reasoning: { effort: effort as "minimal" | "low" | "medium" | "high" } } : {}) };
+  return { provider, model, kind: "openai", settings, ...fallbackFor(provider, model, process.env.OPENAI_FALLBACK_MODEL, settings) };
 }
 
 /** @deprecated kept for older call sites; use modelRuntime(). */

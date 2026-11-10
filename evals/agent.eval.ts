@@ -3,7 +3,7 @@
  *   retrieval/citation (8) · schedule feasibility (8) · tool selection (8, live model) · approval (5) · security (4)
  *   · robustness (5: invalid tool arguments, invalid model output, duplicate drafts, missing data, malicious documents).
  * Retrieval, approval and security use a real local Supabase stack with ingested synthetic PDFs; scheduling runs
- * the deterministic engine; tool selection needs a real model (GEMINI_API_KEY, or OPENAI_API_KEY + OPENAI_MODEL) and is
+ * the deterministic engine; tool selection needs a real model (OPENAI_API_KEY + OPENAI_MODEL) and is
  * reported as SKIPPED otherwise — never simulated. Robustness uses the scripted harness so failures are reproducible. Writes evals/results/latest.json and evals/REPORT.md.
  *
  *   npm run db:start && npm run eval
@@ -127,7 +127,7 @@ afterAll(async () => {
       "| --- | --- | --- | --- | --- |",
       ...summary.map((s) => `| ${s.category} | ${s.total} | ${s.pass} | ${s.fail} | ${s.skipped} |`),
       "",
-      "Live cases not selected in this run keep their latest real result, marked \"from the run at …\". Skipped cases require a real model and are not simulated. Re-run with GEMINI_API_KEY (or OPENAI_API_KEY + OPENAI_MODEL) set to evaluate them. Live-case details include latency and tokens from the stored run.",
+      "Live cases not selected in this run keep their latest real result, marked \"from the run at …\". Skipped cases require a real model and are not simulated. Re-run with OPENAI_API_KEY + OPENAI_MODEL set to evaluate them. Live-case details include latency and tokens from the stored run.",
       "",
       "| ID | Category | Case | Result | Detail | ms |",
       "| --- | --- | --- | --- | --- | --- |",
@@ -216,7 +216,7 @@ describe("evaluation suite", () => {
     const toolCase = (id: string, prompt: string, expected: string[], forbid?: (out: Out, used: Set<string>) => void) =>
       record(id, "tool_selection", `"${prompt}" ${expected.length ? `uses ${expected.join(" + ")}` : "uses no tool that can approve or save"}`, async () => {
         if (!runtime) return { skipped: "live model not requested (EVAL_LIVE=1 or LIVE_CASES) or no model key configured" };
-        // LIVE_CASES=T1,T2 runs only those live cases (the Gemini free tier allows 20 requests a day per model).
+        // LIVE_CASES=T1,T2 runs only those live cases (each live case is a paid model call).
         if (process.env.LIVE_CASES && !process.env.LIVE_CASES.split(",").includes(id)) return { skipped: "not selected for this run (LIVE_CASES quota budget)" };
         await livePause();
         const started = Date.now();

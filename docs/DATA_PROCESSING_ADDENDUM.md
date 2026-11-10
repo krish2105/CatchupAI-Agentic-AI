@@ -23,7 +23,7 @@ processor), for the school's organisation on CatchUp AI.
 | --- | --- | --- |
 | Supabase | Database, sign-in, file storage | Seoul, South Korea |
 | Vercel | Hosting | Seoul, South Korea |
-| Google Gemini API | AI answers and search embeddings | Google infrastructure (free tier: may be used to improve Google's products) |
+| OpenAI API | AI answers, search embeddings and reading scanned PDFs (responses not stored; API data not used for training by default) | OpenAI infrastructure |
 | Gmail SMTP | Sign-in codes, opt-in reminders, invites | Google |
 | Cloudflare Turnstile | Bot check | Cloudflare |
 | Stripe | Payments for paid organisation plans (admin's email, card details stay with Stripe) | Stripe |

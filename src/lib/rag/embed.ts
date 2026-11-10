@@ -2,13 +2,12 @@ import "server-only";
 import OpenAI from "openai";
 
 export const EMBEDDING_DIMENSIONS = 1536;
-const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
 
-export type Embedder = { model: string; provider: "openai" | "gemini"; embed(texts: string[]): Promise<number[][]> };
+export type Embedder = { model: string; provider: "openai"; embed(texts: string[]): Promise<number[][]> };
 
 /**
- * gemini-embedding-001 is trained so that a prefix of its vector is itself a valid embedding (Matryoshka), so a
- * longer vector is cut to 1536 values and re-normalised. Vectors shorter than 1536 are rejected.
+ * The column holds 1536 values. OpenAI returns that size when asked (`dimensions`); a longer vector from a model
+ * that ignores it is cut to 1536 values and re-normalised. Vectors shorter than 1536 are rejected.
  */
 export function fitDimensions(values: number[]): number[] {
   if (values.length === EMBEDDING_DIMENSIONS) return values;
@@ -18,10 +17,10 @@ export function fitDimensions(values: number[]): number[] {
   return cut.map((v) => v / norm);
 }
 
-function openAiCompatible(provider: Embedder["provider"], client: OpenAI, model: string, batch: number): Embedder {
+function openAiEmbedder(client: OpenAI, model: string, batch: number): Embedder {
   return {
     model,
-    provider,
+    provider: "openai",
     async embed(texts) {
       const out: number[][] = [];
       for (let i = 0; i < texts.length; i += batch) {
@@ -34,43 +33,23 @@ function openAiCompatible(provider: Embedder["provider"], client: OpenAI, model:
 }
 
 type Env = Record<string, string | undefined>;
-const pick = (value: string | undefined) => {
-  const v = value?.trim().toLowerCase();
-  return v === "openai" || v === "gemini" ? v : null;
-};
 
-/**
- * Which provider embeds documents and queries. Vectors from two models live in the same column but in different
- * spaces, so this must not change by accident: EMBEDDING_PROVIDER wins (e.g. keep Gemini vectors while chat moves
- * to OpenAI), then AI_PROVIDER, then the chat model's own rule (OpenAI only when OPENAI_MODEL is set too).
- * An explicit choice without its key gives null (lexical search) rather than silently using the other provider.
- */
-export function embeddingProvider(env: Env = process.env): "openai" | "gemini" | null {
-  const has = { openai: Boolean(env.OPENAI_API_KEY), gemini: Boolean(env.GEMINI_API_KEY) };
-  const explicit = pick(env.EMBEDDING_PROVIDER) ?? pick(env.AI_PROVIDER);
-  if (explicit) return has[explicit] ? explicit : null;
-  if (has.openai && env.OPENAI_MODEL?.trim()) return "openai";
-  if (has.gemini) return "gemini";
-  return has.openai ? "openai" : null;
+/** Embeddings come from OpenAI whenever an OpenAI key is set; without one, search is lexical only. */
+export function embeddingProvider(env: Env = process.env): "openai" | null {
+  return env.OPENAI_API_KEY ? "openai" : null;
 }
 
 /**
- * Embeddings for semantic search: OpenAI (`text-embedding-3-small`) or Gemini (`gemini-embedding-001`) through its
- * OpenAI-compatible endpoint, chosen by `embeddingProvider`. Without a key: null, and retrieval uses lexical search
- * only. Query and documents must use the same model (stored per document; see scripts/reembed-documents.ts).
+ * Embeddings for semantic search: OpenAI (`text-embedding-3-small` unless OPENAI_EMBEDDING_MODEL says otherwise).
+ * Without a key: null, and retrieval uses lexical search only. Query and documents must use the same model (stored
+ * per document; see scripts/reembed-documents.ts).
  */
 export function getEmbedder(): Embedder | null {
   // Local automated tests (scripted model on a local stack) never call a real embeddings API: it would spend
-  // the free quota and make tests flaky. Same rule as the chat model (agents/runtime.ts); never true in a deployment.
+  // money and make tests flaky. Same rule as the chat model (agents/runtime.ts); never true in a deployment.
   if (process.env.CATCHUP_TEST_MODEL === "scripted" && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(process.env.NEXT_PUBLIC_SUPABASE_URL ?? "")) return null;
-  const provider = embeddingProvider();
-  if (provider === "openai") {
-    return openAiCompatible("openai", new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30_000, maxRetries: 2 }), process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small", 64);
-  }
-  if (provider === "gemini") {
-    return openAiCompatible("gemini", new OpenAI({ apiKey: process.env.GEMINI_API_KEY, baseURL: GEMINI_BASE_URL, timeout: 30_000, maxRetries: 2 }), process.env.GEMINI_EMBEDDING_MODEL || "gemini-embedding-001", 32);
-  }
-  return null;
+  if (embeddingProvider() !== "openai") return null;
+  return openAiEmbedder(new OpenAI({ apiKey: process.env.OPENAI_API_KEY, timeout: 30_000, maxRetries: 2 }), process.env.OPENAI_EMBEDDING_MODEL || "text-embedding-3-small", 64);
 }
 
 export function toPgVector(values: number[]): string {

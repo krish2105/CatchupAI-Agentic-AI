@@ -11,7 +11,7 @@ export function scriptedRuntimeAllowed() {
   return process.env.CATCHUP_TEST_MODEL === "scripted" && /^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url);
 }
 
-export type RuntimeInfo = { kind: "openai" | "gemini"; model: string; fallbackModel?: string } | { kind: "scripted"; model: string } | { kind: "none" };
+export type RuntimeInfo = { kind: "openai"; model: string; fallbackModel?: string } | { kind: "scripted"; model: string } | { kind: "none" };
 
 /**
  * An explicit local test request (CATCHUP_TEST_MODEL=scripted on a local stack) wins over a real key in

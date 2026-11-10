@@ -6,7 +6,7 @@ import type { ServerSupabase } from "@/lib/supabase/server";
  * Multi-turn conversations. The model sees the last few turns of the thread as plain context: the student's
  * messages and the copilot's verified answers (facts, suggestions, question), never the old source ids (they
  * belong to the run that retrieved them; a fact must be checked again in this run before it is stated).
- * Built from the database rather than provider-side state, so it works the same on Gemini and OpenAI.
+ * Built from the database rather than provider-side state (responses aren't stored at OpenAI).
  */
 export const HISTORY_LIMITS = { turns: 4, maxChars: 4000 } as const;
 

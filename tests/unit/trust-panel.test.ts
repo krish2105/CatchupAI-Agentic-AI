@@ -40,12 +40,12 @@ describe("AI-use disclosure", () => {
       {
         createdAt: "2026-11-08T09:00:00.000Z",
         question: "Explain residuals from my notes",
-        model: "gemini-3.6-flash",
+        model: "gpt-5.4-mini",
         facts: [{ statement: "A residual is the observed value minus the predicted value.", sources: [{ filename: "module4.pdf", page: 2 }] }],
         suggestions: ["Practise two residual plots."],
         offTopic: false,
       },
-      { createdAt: "2026-11-08T10:00:00.000Z", question: "Write me a poem", model: "gemini-3.6-flash", facts: [], suggestions: [], offTopic: true },
+      { createdAt: "2026-11-08T10:00:00.000Z", question: "Write me a poem", model: "gpt-5.4-mini", facts: [], suggestions: [], offTopic: true },
     ],
     plans: [
       { createdAt: "2026-11-08T09:01:00.000Z", origin: "copilot", scenario: "balanced", status: "approved", decidedAt: "2026-11-08T09:05:00.000Z" },
@@ -60,7 +60,7 @@ describe("AI-use disclosure", () => {
     expect(md).toMatch(/^# AI-use disclosure/);
     expect(md).toContain("Explain residuals from my notes");
     expect(md).toContain("module4.pdf, p. 2");
-    expect(md).toContain("gemini-3.6-flash");
+    expect(md).toContain("gpt-5.4-mini");
     expect(md).toContain("Approved by the student");
     expect(md).toContain("Dismissed by the student");
     expect(md).toMatch(/copilot/i);

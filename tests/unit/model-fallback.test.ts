@@ -31,29 +31,27 @@ describe("model fallback: error classification", () => {
 });
 
 describe("model fallback: configuration", () => {
-  const gemini = () => {
+  const openai = () => {
     vi.stubEnv("CATCHUP_TEST_MODEL", "");
-    vi.stubEnv("OPENAI_API_KEY", "");
-    vi.stubEnv("AI_PROVIDER", "gemini");
-    vi.stubEnv("GEMINI_API_KEY", "test-not-real");
-    vi.stubEnv("GEMINI_MODEL", "gemini-primary");
+    vi.stubEnv("OPENAI_API_KEY", "sk-test-not-real");
+    vi.stubEnv("OPENAI_MODEL", "gpt-primary");
   };
 
-  it("has no fallback unless GEMINI_FALLBACK_MODEL is set", () => {
-    gemini();
-    vi.stubEnv("GEMINI_FALLBACK_MODEL", "");
-    expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-primary" });
+  it("has no fallback unless OPENAI_FALLBACK_MODEL is set", () => {
+    openai();
+    vi.stubEnv("OPENAI_FALLBACK_MODEL", "");
+    expect(runtimeInfo()).toEqual({ kind: "openai", model: "gpt-primary" });
   });
 
-  it("exposes the second Gemini model, which has its own daily quota", () => {
-    gemini();
-    vi.stubEnv("GEMINI_FALLBACK_MODEL", "gemini-second");
-    expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-primary", fallbackModel: "gemini-second" });
+  it("exposes the second OpenAI model, tried once when the first hits its quota, is overloaded or times out", () => {
+    openai();
+    vi.stubEnv("OPENAI_FALLBACK_MODEL", "gpt-second");
+    expect(runtimeInfo()).toEqual({ kind: "openai", model: "gpt-primary", fallbackModel: "gpt-second" });
   });
 
   it("ignores a fallback that names the primary model (it would share the quota)", () => {
-    gemini();
-    vi.stubEnv("GEMINI_FALLBACK_MODEL", "gemini-primary");
-    expect(runtimeInfo()).toEqual({ kind: "gemini", model: "gemini-primary" });
+    openai();
+    vi.stubEnv("OPENAI_FALLBACK_MODEL", "gpt-primary");
+    expect(runtimeInfo()).toEqual({ kind: "openai", model: "gpt-primary" });
   });
 });

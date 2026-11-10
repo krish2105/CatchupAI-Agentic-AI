@@ -27,7 +27,7 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 
 ## How agentic is it?
 
-One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **nine tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp and how to use the app (from the app's own guide), and suggests follow-up questions. A "Guide me, don't tell me" switch turns it into a Socratic tutor: one guiding question at a time from the student's notes, the answer after two attempts or on request. The model decides which to call, in what order and with what arguments, for up to 8 turns:
+One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, OpenAI model), with **nine tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp and how to use the app (from the app's own guide), and suggests follow-up questions. A "Guide me, don't tell me" switch turns it into a Socratic tutor: one guiding question at a time from the student's notes, the answer after two attempts or on request. The model decides which to call, in what order and with what arguments, for up to 8 turns:
 
 | Tool | Purpose | Can it change data? |
 | --- | --- | --- |
@@ -69,7 +69,7 @@ each database query stays inside one region.
 | Deterministic planner: **essential / balanced / full** routes, honest shortfall in minutes, what-if availability | ✅ |
 | Human approval gate: atomic, idempotent, refuses stale/expired/infeasible plans | ✅ |
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
-| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 9 permission-checked tools, multi-turn conversations, an on-topic guardrail and follow-up suggestions, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see reviews/LIVE_AGENT_EVALUATION_REPORT.md) |
+| **LearningRecoveryAgent** (OpenAI Agents SDK, OpenAI model): 9 permission-checked tools, multi-turn conversations, an on-topic guardrail and follow-up suggestions, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live-tested (see reviews/LIVE_AGENT_EVALUATION_REPORT.md); runs on OpenAI (ADR-088), not yet live-tested there |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
@@ -128,7 +128,7 @@ flowchart LR
   APPROVE --> DB[(Supabase Postgres + RLS<br/>private Storage · pgvector)]
   RAG --> DB
   PLAN --> DB
-  AGENT -. model + embeddings .-> OAI[Gemini or OpenAI]
+  AGENT -. model + embeddings .-> OAI[OpenAI]
 ```
 
 ```text
@@ -144,7 +144,7 @@ Next.js Route Handlers (Zod validation · structured errors · per-user DB rate 
    ▼
 Supabase: Auth · Postgres + RLS (composite owner FKs, column grants) · private Storage · pgvector
           SECURITY DEFINER RPCs: approve_proposal / reject_proposal / consume_rate_limit
-AI (optional until configured): Gemini Flash (gemini-3.8-flash) + gemini-embedding-001 (or OpenAI model + text-embedding-3-small)
+AI (optional until configured): an OpenAI model (OPENAI_MODEL) + text-embedding-3-small
 ```
 
 **Security model in one paragraph:** identity always comes from the verified session (never from the browser or the model). Every child row carries `owner_id` and references its parent through a composite `(id, owner_id)` foreign key, so cross-tenant links are impossible at the schema level; RLS is `owner_id = auth.uid()`; the browser role has column-level grants only. Server-owned tables (chunks, agent runs, proposals, plans, quiz keys) are read-only or invisible to students. The agent can only read and *draft*; approval is a separate locked, idempotent database transaction the student triggers. PDF text is treated as untrusted data everywhere.
@@ -173,16 +173,15 @@ Then upload `data/statistics_module_4_synthetic.pdf` to the Applied Statistics c
 
 ### Enable the AI copilot
 
-Easiest (Gemini free tier): `python3 scripts/configure-ai.py` asks for the key with hidden input and can also write it to
-`.env.local`. Or add it yourself and restart:
+Easiest: `python3 scripts/configure-ai.py` asks for an OpenAI key with hidden input, checks it and can also write it to
+`.env.local`. Or add it to `.env.local` yourself and restart:
 
 ```bash
-GEMINI_API_KEY=...        # never commit; from https://aistudio.google.com/apikey
-AI_PROVIDER=gemini        # model defaults to gemini-3.8-flash; embeddings to gemini-embedding-001
-# or OpenAI: OPENAI_API_KEY=...  OPENAI_MODEL=<a model your project can use>  AI_PROVIDER=openai
+OPENAI_API_KEY=...        # never commit; from https://platform.openai.com/api-keys
+OPENAI_MODEL=...          # a tool-calling model your project can use, e.g. a "mini" model
 ```
 
-Switching an existing deployment from Gemini to OpenAI changes the embedding model too. Either keep the old vectors with `EMBEDDING_PROVIDER=gemini`, or re-embed: `npx tsx scripts/reembed-documents.ts` (dry run), then `--apply`. Scanned-PDF reading (OCR) needs a Gemini key.
+The same key turns on `text-embedding-3-small` embeddings and scanned-PDF reading (OCR). A deployment whose documents were embedded with another model must re-embed them once: `npx tsx scripts/reembed-documents.ts` (dry run), then `--apply`. Set a monthly usage limit in your OpenAI project.
 
 Without a key, everything except the copilot works and search is keyword-only. Embeddings are added for documents processed after a key is configured.
 
@@ -199,7 +198,7 @@ npm run preflight           # environment checks (add -- --production before dep
 
 Security: [SECURITY_AUDIT.md](SECURITY_AUDIT.md) · [THREAT_MODEL.md](THREAT_MODEL.md) · [reviews/SECURITY_TEST_REPORT.md](reviews/SECURITY_TEST_REPORT.md).
 
-Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, SMTP, Turnstile, Vercel, Gemini or OpenAI).
+Deploying: see [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) (Supabase cloud, SMTP, Turnstile, Vercel, OpenAI).
 
 The agent is tested with a **scripted stand-in model** that speaks the Agents SDK protocol, so the run loop, tools, database and persistence execute for real while the LLM is replaced. That model can be enabled only with `CATCHUP_TEST_MODEL=scripted` **and** a local Supabase URL, and the UI labels it "Scripted test model · not AI".
 

@@ -25,14 +25,15 @@ export type Citation = {
 export const EVIDENCE_THRESHOLD = { lexicalCoverage: 0.34, lexicalRank: 0.08, vectorSimilarity: 0.3 } as const;
 
 /**
- * Cosine similarity needed to count as support, per embedding provider. Gemini embeddings score unrelated text
- * higher than OpenAI's, so its bar is higher. Starting values: re-check with `npm run eval` (RAG abstention cases)
- * once a key is configured. EVIDENCE_VECTOR_THRESHOLD overrides both.
+ * Cosine similarity needed to count as support. Starting value: re-check with `npm run eval` (RAG abstention cases)
+ * once a key is configured. EVIDENCE_VECTOR_THRESHOLD overrides it. The embedder is passed so a model with a
+ * different score range can get its own bar here without changing callers.
  */
 export function vectorThreshold(embedder: Embedder | null) {
+  void embedder;
   const override = Number(process.env.EVIDENCE_VECTOR_THRESHOLD);
   if (Number.isFinite(override) && override > 0) return override;
-  return embedder?.provider === "gemini" ? 0.6 : EVIDENCE_THRESHOLD.vectorSimilarity;
+  return EVIDENCE_THRESHOLD.vectorSimilarity;
 }
 
 /**

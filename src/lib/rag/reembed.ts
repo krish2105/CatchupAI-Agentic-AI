@@ -8,7 +8,7 @@ export type ReembedReport = { applied: boolean; model: string; documents: number
 /**
  * Re-embeds every ready document whose vectors came from another model (or none: keyword-only documents), so
  * semantic search compares vectors from one model only. Needed after the embedding provider changes (e.g.
- * Gemini to OpenAI): both are 1536-dimensional, so old vectors would not error, they would just rank badly.
+ * one model to another): both are 1536-dimensional, so old vectors would not error, they would just rank badly.
  * Owner-run with the service role; a dry run unless `apply` is true. `ownerId` limits it to one student.
  */
 export async function reembedDocuments({ admin, embedder, ownerId, apply, batch = 32 }: { admin: AdminSupabase; embedder: Embedder; ownerId?: string; apply: boolean; batch?: number }): Promise<ReembedReport> {

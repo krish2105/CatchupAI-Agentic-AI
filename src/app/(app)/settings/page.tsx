@@ -43,7 +43,7 @@ export default async function SettingsPage() {
         <div className="card setting-card">
           <div className="split-head"><h3>About this workspace</h3></div>
           <div className="setting-line">
-            <div><strong>AI runtime</strong><p>The copilot needs a configured AI model (Gemini or OpenAI) on the server. Quizzes, packs and plans work without one.</p></div>
+            <div><strong>AI runtime</strong><p>The copilot needs a configured OpenAI model on the server. Quizzes, packs and plans work without one.</p></div>
             {ai.kind === "scripted" ? <Chip tone="warn">Scripted test model</Chip> : ai.configured ? <Chip tone="good">{ai.model}</Chip> : <Chip tone="warn">Not configured</Chip>}
           </div>
           <div className="setting-line">

@@ -118,31 +118,27 @@ export async function judgeClaims(items: JudgeItem[], client: JudgeClient, cache
   return result;
 }
 
-const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai/";
-
 /**
- * The judge model client, or null when no key is configured. Gemini (OpenAI-compatible endpoint) or OpenAI, using
- * FAITHFULNESS_JUDGE_MODEL, else the chat model. No retries: a failed judge call simply leaves the word check's result.
+ * The judge model client, or null when no key is configured: OpenAI, using FAITHFULNESS_JUDGE_MODEL, else the chat
+ * model. No retries: a failed judge call simply leaves the word check's result.
  */
 type Env = Record<string, string | undefined>;
 
-/** OpenAI's reasoning models (o-series, GPT-5) reject a fixed temperature; Gemini and older chat models accept it. */
-export function supportsTemperature(model: string, gemini: boolean): boolean {
-  return gemini || !/^(o\d|gpt-5)/i.test(model.trim());
+/** OpenAI's reasoning models (o-series, GPT-5 and later) reject a fixed temperature; older chat models accept it. */
+export function supportsTemperature(model: string): boolean {
+  return !/^(o\d|gpt-[5-9])/i.test(model.trim());
 }
 
 export function judgeClientFromEnv(env: Env = process.env): JudgeClient | null {
-  const provider = env.AI_PROVIDER?.trim().toLowerCase();
-  const useGemini = provider === "gemini" || (provider !== "openai" && !env.OPENAI_API_KEY && Boolean(env.GEMINI_API_KEY));
-  const apiKey = useGemini ? env.GEMINI_API_KEY : env.OPENAI_API_KEY;
-  const model = env.FAITHFULNESS_JUDGE_MODEL?.trim() || (useGemini ? env.GEMINI_MODEL?.trim() : env.OPENAI_MODEL?.trim());
+  const apiKey = env.OPENAI_API_KEY;
+  const model = env.FAITHFULNESS_JUDGE_MODEL?.trim() || env.OPENAI_MODEL?.trim();
   if (!apiKey || !model) return null;
-  const openai = new OpenAI({ apiKey, maxRetries: 0, ...(useGemini ? { baseURL: GEMINI_BASE_URL } : {}) });
+  const openai = new OpenAI({ apiKey, maxRetries: 0 });
   return {
     model,
     async complete(system, user, signal) {
       const res = await openai.chat.completions.create(
-        { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], response_format: { type: "json_object" }, ...(supportsTemperature(model, useGemini) ? { temperature: 0 } : {}) },
+        { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], response_format: { type: "json_object" }, ...(supportsTemperature(model) ? { temperature: 0 } : {}) },
         { signal },
       );
       return { text: res.choices[0]?.message?.content ?? "", usage: { inputTokens: res.usage?.prompt_tokens ?? 0, outputTokens: res.usage?.completion_tokens ?? 0 } };

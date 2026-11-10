@@ -527,7 +527,7 @@ test("public status page reports the app, database and AI live, with uptime and 
     const incidents = page.getByRole("list", { name: "Incident notes, newest first" });
     await expect(incidents.getByRole("listitem").first()).toContainText("Resolved");
     // Public, so nothing about accounts or configuration values is shown.
-    await expect(page.locator("body")).not.toContainText(/@|sb_secret|GEMINI_API_KEY=/);
+    await expect(page.locator("body")).not.toContainText(/@|sb_secret|OPENAI_API_KEY=/);
   } finally {
     await context.close();
   }
@@ -542,7 +542,7 @@ test("privacy notice and terms are public, linked from the landing page and sign
     await expect(page).toHaveURL(/\/privacy$/); // no sign-in needed
     await expect(page.getByRole("heading", { level: 1, name: "Privacy, in plain language" })).toBeVisible();
     for (const name of ["What we store", "Who processes it, and where", "How long we keep it", "Your rights and controls"]) await expect(page.getByRole("heading", { level: 2, name })).toBeVisible();
-    await expect(page.getByText(/Google may use that content to improve its products/)).toBeVisible();
+    await expect(page.getByText(/sent through the API isn.t used to train its models by default/)).toBeVisible();
     await expect(page.getByText(/deleted automatically after 24 hours/)).toBeVisible();
     await expect(page.getByRole("link", { name: /Preferences → Privacy and data → Export/ })).toHaveAttribute("href", "/settings");
     // The table of contents jumps to each section.

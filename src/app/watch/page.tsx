@@ -26,7 +26,7 @@ export default function WatchPage() {
         <div className="eyebrow">Recorded on a real model</div>
         <h1>Watch a real run.</h1>
         <p className="quality-lead">
-          These are real runs on Google Gemini, recorded by the evaluation suite and played back here step by step. Nothing on this page calls a model,
+          These are real runs on a live model, recorded by the evaluation suite and played back here step by step. Nothing on this page calls a model,
           so it works without signing in. To try it yourself, use the live demo.
         </p>
         <ReplayPlayer replays={REPLAYS} />

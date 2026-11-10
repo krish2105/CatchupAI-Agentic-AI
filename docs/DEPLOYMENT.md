@@ -3,7 +3,7 @@
 Everything below uses free tiers. Steps marked **(you)** need your accounts; nothing in this repository creates paid resources.
 
 ## 0. Before you start
-- Node ≥ 20.9, the Supabase CLI, a Vercel account, a Google AI Studio key (Gemini, free tier) or an OpenAI API project, an SMTP sender (Gmail app password or Resend), a Cloudflare account.
+- Node ≥ 20.9, the Supabase CLI, a Vercel account, an OpenAI API project, an SMTP sender (Gmail app password or Resend), a Cloudflare account.
 - Locally: `npm run typecheck && npm run lint && npm test && npm run test:integration && npm run test:e2e && npm run eval` all green.
 
 ## 1. Supabase project (you)
@@ -26,11 +26,11 @@ Everything below uses free tiers. Steps marked **(you)** need your accounts; not
 Create a Turnstile widget for your Vercel domain. The **site key** goes to Vercel (`NEXT_PUBLIC_TURNSTILE_SITE_KEY`), the **secret** to Supabase (step 1.7). The app then sends a token with email sign-in and the demo button.
 
 ## 3. AI model (you)
-**Gemini (used in production):** create a key at https://aistudio.google.com/apikey, then run `python3 scripts/configure-ai.py`.
-It reads the key with hidden input, checks it, runs one tool-call test, sets `GEMINI_API_KEY` (sensitive), `GEMINI_MODEL` and
-`AI_PROVIDER=gemini` on Vercel, and redeploys. The same key turns on `gemini-embedding-001` embeddings for semantic search.
-**OpenAI (alternative):** set `OPENAI_API_KEY` and `OPENAI_MODEL` and a monthly usage limit.
-Either way, the app limits each student (30 copilot runs a day), keeps one run at a time, and enforces a global daily token budget
+Create a key at https://platform.openai.com/api-keys and set a monthly usage limit, then run `python3 scripts/configure-ai.py`.
+It reads the key with hidden input, checks it (model list, one tool-call test, one embedding), sets `OPENAI_API_KEY` (sensitive),
+`OPENAI_MODEL` and `OPENAI_EMBEDDING_MODEL` on Vercel, and redeploys. The same key turns on embeddings for semantic search and
+scanned-PDF reading. If documents were embedded with another model, re-embed them once with `scripts/reembed-documents.ts`.
+The app limits each student (30 copilot runs a day), keeps one run at a time, and enforces a global daily token budget
 and a kill switch (`ops_flags`; see reviews/INCIDENT_RESPONSE_RUNBOOK.md).
 
 ## 4. Vercel (you)
@@ -42,9 +42,9 @@ and a kill switch (`ops_flags`; see reviews/INCIDENT_RESPONSE_RUNBOOK.md).
    | `NEXT_PUBLIC_SUPABASE_URL` | Supabase project URL |
    | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | publishable key |
    | `SUPABASE_SECRET_KEY` | secret key (server only) |
-   | `GEMINI_API_KEY` / `GEMINI_MODEL` / `AI_PROVIDER` | set by `scripts/configure-ai.py` (or `OPENAI_API_KEY` / `OPENAI_MODEL`) |
-   | `GEMINI_FALLBACK_MODEL` (optional) | a second Gemini model, tried once when the first hits its daily quota, is overloaded or times out. Use `gemini-3.1-flash-lite` (verified 5 Nov to have its own free quota); not `gemini-3.5-flash`, which shares gemini-3.6-flash's quota. Plain config, not a secret |
-   | `GEMINI_OCR_MODEL` / `PDF_OCR` (optional) | scanned PDFs are read with Gemini OCR (needs migration 0021): defaults to `GEMINI_MODEL`; `PDF_OCR=off` turns it off. Plain config |
+   | `OPENAI_API_KEY` / `OPENAI_MODEL` / `OPENAI_EMBEDDING_MODEL` | set by `scripts/configure-ai.py` |
+   | `OPENAI_FALLBACK_MODEL` (optional) | a second OpenAI model, tried once when the first hits its quota, is overloaded or times out. Must differ from `OPENAI_MODEL`. Plain config, not a secret |
+   | `OPENAI_OCR_MODEL` / `PDF_OCR` (optional) | scanned PDFs are read by an OpenAI model that accepts PDF input (needs migration 0021): defaults to `OPENAI_MODEL`; `PDF_OCR=off` turns it off. Plain config |
    | `STRIPE_SECRET_KEY` (sk_test_…), `STRIPE_WEBHOOK_SECRET` (whsec_…), `STRIPE_PRICE_CLASS` (price_…) — optional | organisation billing in Stripe **test mode**; off unless all three are set. Webhook endpoint: `https://<app>/api/billing/webhook` with events `customer.subscription.created/updated/deleted`. Optional `STRIPE_CLASS_SEATS` (default 300) and `STRIPE_PRICE_CLASS_LABEL` (the price text on /pricing, must match Stripe) |
    | `NEXT_PUBLIC_APP_URL` | `https://<your-app>.vercel.app` |
    | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | from step 2 |

@@ -342,7 +342,7 @@ export default function Copilot({
         <div className="chat-scroll" ref={scroller} aria-live="polite" aria-busy={running}>
           {!runtime.configured ? (
             <Notice title="The AI runtime isn't configured on this server">
-              The server has no AI model key yet (<code>GEMINI_API_KEY</code>, or <code>OPENAI_API_KEY</code> with <code>OPENAI_MODEL</code>). Until one is added the copilot can&apos;t run, and nothing here is simulated. The recovery lab&apos;s deterministic planner works without AI.
+              The server has no AI model key yet (<code>OPENAI_API_KEY</code> with <code>OPENAI_MODEL</code>). Until one is added the copilot can&apos;t run, and nothing here is simulated. The recovery lab&apos;s deterministic planner works without AI.
             </Notice>
           ) : runs.length === 0 && !running ? (
             <div className="chat-bubble">Tell me what you missed and what&apos;s due. I&apos;ll check your assignments, availability and course notes before suggesting anything — and I&apos;ll only draft plans for you to approve.</div>

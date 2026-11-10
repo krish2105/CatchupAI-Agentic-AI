@@ -30,7 +30,7 @@ export const POST = route(async (request: Request) => {
   const input = body.parse(await readJson(request, 8 * 1024));
   if (input.courseId) await getCourse(supabase, input.courseId);
   const runtime = resolveRuntime(input.courseId, input.message);
-  if (!runtime) throw new ApiError(503, "ai_not_configured", "The AI runtime isn't configured on this server (GEMINI_API_KEY, or OPENAI_API_KEY and OPENAI_MODEL).");
+  if (!runtime) throw new ApiError(503, "ai_not_configured", "The AI runtime isn't configured on this server (OPENAI_API_KEY and OPENAI_MODEL).");
   // Kill switch, daily token budget and one-run-at-a-time are checked before any quota is spent.
   await assertAiAvailable(adminClient(), user.id);
   // Members of a Class-plan organisation get a higher daily copilot limit.
