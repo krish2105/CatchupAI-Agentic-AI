@@ -5,6 +5,7 @@ import ThemeButton from "@/components/shell/theme-button";
 import PhotoHero from "@/components/nature/photo-hero";
 import { ButtonLink, Chip } from "@/components/ui/primitives";
 import DemoButton from "@/components/features/demo/demo-button";
+import DismissibleRunProof from "@/components/features/replay/dismissible-run-proof";
 import { REPLAYS } from "@/lib/quality/replay";
 
 const steps = [
@@ -61,7 +62,7 @@ export default function Home() {
         </div>
       </header>
       <main id="main">
-        <PhotoHero labelledBy="hero-heading" aside={<RunProof />}>
+        <PhotoHero labelledBy="hero-heading" aside={<DismissibleRunProof><RunProof /></DismissibleRunProof>}>
           <div className="eyebrow">Agentic learning recovery</div>
           <h1 id="hero-heading">Missed a lecture? Get back on track, realistically.</h1>
           <p>
