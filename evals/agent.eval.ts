@@ -22,6 +22,7 @@ import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { admin, anon, deleteUser, signedInUser, type Db } from "../tests/integration/helpers";
 import { livePause, liveRequested, recordLiveRun } from "./live-history";
+import { mergeCaseResults, shouldWriteEvidence, type CaseResult } from "./report-merge";
 
 type Category = "retrieval" | "schedule" | "tool_selection" | "approval" | "security" | "robustness";
 type Outcome = { id: string; category: Category; name: string; status: "pass" | "fail" | "skipped"; detail: string; ms: number };
@@ -74,30 +75,45 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await Promise.all([a && deleteUser(a.id), b && deleteUser(b.id)]);
-  const summary = (["retrieval", "schedule", "tool_selection", "approval", "security", "robustness"] as Category[]).map((c) => {
-    const r = results.filter((x) => x.category === c);
-    return { category: c, total: r.length, pass: r.filter((x) => x.status === "pass").length, fail: r.filter((x) => x.status === "fail").length, skipped: r.filter((x) => x.status === "skipped").length };
-  });
+  const summarise = (list: Outcome[]) =>
+    (["retrieval", "schedule", "tool_selection", "approval", "security", "robustness"] as Category[]).map((c) => {
+      const r = list.filter((x) => x.category === c);
+      return { category: c, total: r.length, pass: r.filter((x) => x.status === "pass").length, fail: r.filter((x) => x.status === "fail").length, skipped: r.filter((x) => x.status === "skipped").length };
+    });
+  const totals = (list: Outcome[]) => ({ cases: list.length, pass: list.filter((r) => r.status === "pass").length, fail: list.filter((r) => r.status === "fail").length, skipped: list.filter((r) => r.status === "skipped").length });
   const runtime = liveRequested() ? openAiRuntime() : null;
   const meta = {
     ranAt: new Date().toISOString(),
     retrievalMode: embedder ? `hybrid (${embedder.model})` : "lexical only (no OPENAI_API_KEY)",
     agentModel: runtime ? `${runtime.kind}:${runtime.model}${runtime.fallback ? ` + fallback ${runtime.fallback.model}` : ""}` : "not configured — tool-selection cases skipped",
-    totals: { cases: results.length, pass: results.filter((r) => r.status === "pass").length, fail: results.filter((r) => r.status === "fail").length, skipped: results.filter((r) => r.status === "skipped").length },
+    totals: totals(results),
   };
   // The committed report holds live evidence: only a live run rewrites it. Offline runs (CI, no EVAL_LIVE) still pass or
   // fail this suite, and leave their results in a git-ignored file.
   if (!runtime) {
-    writeFileSync("evals/results/offline-latest.json", JSON.stringify({ meta, summary, results }, null, 2));
+    writeFileSync("evals/results/offline-latest.json", JSON.stringify({ meta, summary: summarise(results), results }, null, 2));
     return;
   }
-  writeFileSync("evals/results/latest.json", JSON.stringify({ meta, summary, results }, null, 2));
-  // Live runs only: each tool-selection case that actually ran adds to the per-case pass rate shown on /quality.
-  if (runtime) {
-    const live = results.filter((r) => r.category === "tool_selection");
-    recordLiveRun({ ranAt: meta.ranAt, model: meta.agentModel, cases: Object.fromEntries(live.filter((r) => r.status !== "skipped").map((r) => [r.id, r.status as "pass" | "fail"])) }, Object.fromEntries(live.map((r) => [r.id, r.name])));
+  // A run where no case ran (for example the local database was down) must not touch the committed evidence.
+  if (!shouldWriteEvidence(results as CaseResult[])) {
+    console.warn("[eval] no case ran (setup failed?): evals/REPORT.md and evals/results/latest.json left unchanged");
+    return;
   }
-  const rows = results.map((r) => `| ${r.id} | ${r.category} | ${r.name} | ${r.status === "pass" ? "PASS" : r.status === "fail" ? "**FAIL**" : "SKIPPED"} | ${r.detail.replace(/\|/g, "/").replace(/\n/g, " ")} | ${r.ms} |`);
+  // Live runs only: each tool-selection case that actually ran in THIS run adds to the per-case pass rate on /quality.
+  const live = results.filter((r) => r.category === "tool_selection");
+  recordLiveRun({ ranAt: meta.ranAt, model: meta.agentModel, cases: Object.fromEntries(live.filter((r) => r.status !== "skipped").map((r) => [r.id, r.status as "pass" | "fail"])) }, Object.fromEntries(live.map((r) => [r.id, r.name])));
+  // Cases not selected this time (LIVE_CASES) keep their latest real result instead of showing as skipped.
+  let previous: { meta?: { ranAt?: string }; results?: CaseResult[] } = {};
+  try {
+    previous = JSON.parse(readFileSync("evals/results/latest.json", "utf8"));
+  } catch {
+    // No earlier report: nothing to carry over.
+  }
+  const merged = mergeCaseResults(previous.results, results as CaseResult[], previous.meta?.ranAt ?? "an earlier run") as Outcome[];
+  const summary = summarise(merged);
+  Object.assign(meta, { totals: totals(merged) });
+  writeFileSync("evals/results/latest.json", JSON.stringify({ meta, summary, results: merged }, null, 2));
+  const rows = merged.map((r) => `| ${r.id} | ${r.category} | ${r.name} | ${r.status === "pass" ? "PASS" : r.status === "fail" ? "**FAIL**" : "SKIPPED"} | ${r.detail.replace(/\|/g, "/").replace(/\n/g, " ")} | ${r.ms} |`);
   writeFileSync(
     "evals/REPORT.md",
     [
@@ -111,7 +127,7 @@ afterAll(async () => {
       "| --- | --- | --- | --- | --- |",
       ...summary.map((s) => `| ${s.category} | ${s.total} | ${s.pass} | ${s.fail} | ${s.skipped} |`),
       "",
-      "Skipped cases require a real model and are not simulated. Re-run with GEMINI_API_KEY (or OPENAI_API_KEY + OPENAI_MODEL) set to evaluate them. Live-case details include latency and tokens from the stored run.",
+      "Live cases not selected in this run keep their latest real result, marked \"from the run at …\". Skipped cases require a real model and are not simulated. Re-run with GEMINI_API_KEY (or OPENAI_API_KEY + OPENAI_MODEL) set to evaluate them. Live-case details include latency and tokens from the stored run.",
       "",
       "| ID | Category | Case | Result | Detail | ms |",
       "| --- | --- | --- | --- | --- | --- |",
