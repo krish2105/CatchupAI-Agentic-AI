@@ -1,6 +1,8 @@
 import { readFileSync } from "node:fs";
 import { afterAll, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { answerItem, getMasteryMap, startDiagnostic, startPractice, takeHint, type SessionInfo } from "@/lib/mastery/service";
+import { runRecoveryAgent } from "@/lib/agents/recovery-agent";
+import { ScriptedModel, ScriptedProvider, type ScriptStep } from "@/lib/agents/testing/scripted-model";
 import { processDocument } from "@/lib/rag/ingest";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
@@ -122,6 +124,32 @@ describe("Quizmaster practice", () => {
     const warmup = await startDiagnostic({ ...deps(b), documentId: docB });
     for (const item of warmup.items) await answerItem({ ...deps(b), itemId: item.id, chosen: ((await keyOf(item.id)) + 1) % 4, confidence: "guess", elapsedMs: 5000 });
     await expect(startPractice({ ...deps(b), documentId: docB, mode: "rehearsal" })).rejects.toMatchObject({ status: 409, code: "rehearsal_locked" });
+  });
+});
+
+describe("Coach calls the specialists", () => {
+  it("the Coach asks the Diagnostician what the student knows, then the Quizmaster for practice (once per run)", async () => {
+    const steps: ScriptStep[] = [
+      { call: "check_understanding", args: { courseId: null } },
+      { call: "start_practice", args: { documentId: docA } },
+      { call: "start_practice", args: { documentId: docA } },
+      { answer: { scope: "catchup", facts: [], suggestions: ["Start with the concepts you were confidently wrong about."], clarifyingQuestion: null, followUps: [] } },
+    ];
+    const outcome = await runRecoveryAgent({
+      supabase: asServer(a.db), admin: adminDb(), userId: a.id, courseId: null, message: "I missed module 4. What should I study first?",
+      runtime: { provider: new ScriptedProvider(new ScriptedModel(steps)), model: "scripted-test-model" }, embedder: null, judge: null, now: Date.now(),
+    });
+    expect(outcome.status).toBe("completed");
+    const [understanding, practice, again] = outcome.events;
+    expect(understanding).toMatchObject({ tool: "check_understanding", status: "completed" });
+    expect(understanding.outcome).toMatch(/1 lecture · \d+ gaps?/);
+    expect(practice).toMatchObject({ tool: "start_practice", status: "completed" });
+    expect(practice.outcome).toMatch(/^Quizmaster prepared \d+ questions?$/);
+    expect(again).toMatchObject({ tool: "start_practice", status: "denied" });
+    // The Quizmaster's own run is recorded next to the Coach's.
+    const runs = await a.db.from("agent_runs").select("agent, status").gte("created_at", new Date(Date.now() - 60_000).toISOString());
+    expect(runs.data!.some((r) => r.agent === "quizmaster" && r.status === "completed")).toBe(true);
+    expect(runs.data!.some((r) => r.agent === "coach" && r.status === "completed")).toBe(true);
   });
 });
 

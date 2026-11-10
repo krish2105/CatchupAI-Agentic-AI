@@ -21,8 +21,10 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     await s.page.getByRole("button", { name: "Send message" }).click();
 
     const timeline = s.page.getByRole("list", { name: "Executed tool calls" });
-    await expect(timeline.getByRole("listitem")).toHaveCount(5, { timeout: 30_000 });
+    // Six tools: the Coach also asks the Diagnostician what the student already knows (agent team).
+    await expect(timeline.getByRole("listitem")).toHaveCount(6, { timeout: 30_000 });
     await expect(timeline).toContainText("Read what you asked it to remember · completed");
+    await expect(timeline).toContainText("Asked the Diagnostician what you know · completed");
     await expect(timeline).toContainText("Searched your course notes · completed");
     await expect(timeline).toContainText("Drafted a plan (not saved) · completed");
 
@@ -63,10 +65,11 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
     await trust.getByRole("link", { name: "Open the full agent trace" }).click();
     await s.page.waitForURL(/\/runs\/[0-9a-f-]{36}$/);
     const traceUrl = s.page.url();
-    await expect(s.page.getByRole("heading", { level: 1, name: "Agent trace" })).toBeVisible();
+    await expect(s.page.getByRole("heading", { level: 1, name: "Coach trace" })).toBeVisible();
     const steps = s.page.getByRole("list", { name: "Tool calls in the order the agent chose them" });
-    await expect(steps.getByRole("listitem")).toHaveCount(5);
+    await expect(steps.getByRole("listitem")).toHaveCount(6);
     await expect(steps).toContainText("search_course_material");
+    await expect(steps).toContainText("check_understanding");
     await expect(steps).toContainText('query: "What does a residual mean?"');
     await expect(steps).toContainText(/\d+ ms/);
     await expect(s.page.getByRole("region", { name: "Run summary" })).toContainText("scripted-test-model");
@@ -80,7 +83,7 @@ test("copilot runs real tools, cites the page, drafts a plan that the student ap
       await other.page.goto(traceUrl);
       await expect(other.page.getByRole("heading", { name: "This page doesn't exist." })).toBeVisible();
       await expect(other.page.getByText("What does a residual mean?")).toHaveCount(0);
-      await expect(other.page.getByRole("heading", { name: "Agent trace" })).toHaveCount(0);
+      await expect(other.page.getByRole("heading", { name: /trace$/ })).toHaveCount(0);
       await other.page.goto("/runs/not-a-uuid");
       await expect(other.page.getByRole("heading", { name: "This page doesn't exist." })).toBeVisible();
     } finally {

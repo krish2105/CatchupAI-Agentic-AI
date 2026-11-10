@@ -13,10 +13,10 @@ import AssessmentRunner from "./assessment-runner";
  * mastery map shows each concept's status with its page; the Quizmaster practises the gaps (or, opt-in, runs a
  * timed rehearsal on what's already known).
  */
-export default function MasteryPanel({ documentId, initialMap }: { documentId: string; initialMap: MasteryMap }) {
+export default function MasteryPanel({ documentId, initialMap, initialSession = null }: { documentId: string; initialMap: MasteryMap; initialSession?: SessionInfo | null }) {
   const [map, setMap] = useState(initialMap);
-  const [session, setSession] = useState<SessionInfo | null>(null);
-  const [lastRun, setLastRun] = useState<SessionInfo["agent"] | null>(null);
+  const [session, setSession] = useState<SessionInfo | null>(initialSession);
+  const [lastRun, setLastRun] = useState<SessionInfo["agent"] | null>(initialSession?.agent ?? null);
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [score, setScore] = useState<{ correct: number; total: number } | null>(null);
@@ -53,7 +53,13 @@ export default function MasteryPanel({ documentId, initialMap }: { documentId: s
   const agentLine = lastRun ? (
     <p className="agent-line">
       <Users className="ic" aria-hidden="true" /> Questions by the <b>{lastRun.name}</b>
-      {lastRun.model ? <> ({lastRun.model}) · {lastRun.agentWritten} written by the agent{lastRun.fallback ? `, ${lastRun.fallback} fill-the-gap` : ""}</> : <> · fill-the-gap questions (AI unavailable)</>}
+      {lastRun.model ? (
+        <> ({lastRun.model}) · {lastRun.agentWritten} written by the agent{lastRun.fallback ? `, ${lastRun.fallback} fill-the-gap` : ""}</>
+      ) : lastRun.agentWritten ? (
+        <> · prepared when your Coach asked</>
+      ) : (
+        <> · fill-the-gap questions (AI unavailable)</>
+      )}
       {lastRun.runId ? <> · <Link href={`/runs/${lastRun.runId}`}>View its run</Link></> : null}
     </p>
   ) : null;

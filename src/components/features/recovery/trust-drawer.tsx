@@ -18,6 +18,8 @@ const TOOL_LABEL: Record<string, string> = {
   draft_recovery_plan: "Drafted a plan (not saved)",
   get_student_memory: "Read what you asked it to remember",
   suggest_memory: "Suggested something to remember (needs your OK)",
+  check_understanding: "Asked the Diagnostician what you know",
+  start_practice: "Asked the Quizmaster for a practice session",
 };
 
 const when = (iso: string) => new Date(iso).toLocaleString("en-GB", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });

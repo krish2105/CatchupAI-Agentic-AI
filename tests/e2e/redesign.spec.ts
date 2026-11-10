@@ -45,7 +45,7 @@ test("mission control briefing reflects real data and missed class rescue runs t
 
     await s.page.getByRole("link", { name: "Missed class rescue" }).click();
     await expect(s.page).toHaveURL(/\/assistant$/);
-    await expect(s.page.getByRole("list", { name: "Executed tool calls" }).getByRole("listitem")).toHaveCount(5, { timeout: 30_000 });
+    await expect(s.page.getByRole("list", { name: "Executed tool calls" }).getByRole("listitem")).toHaveCount(6, { timeout: 30_000 });
     await expect(s.page.getByText("I missed my last class. Help me catch up before my next deadline without overloading my week.")).toBeVisible();
     await s.page.reload();
     const { data } = await s.db.from("agent_runs").select("id").eq("owner_id", s.userId);
@@ -660,6 +660,20 @@ test("agent team: the Diagnostician's warm-up builds a mastery map, then the Qui
     await panel.getByRole("radio", { name: "Think so" }).click();
     await panel.getByRole("button", { name: "Check my answer" }).click();
     await expect(panel.getByText(/Right\.|Not quite\./)).toBeVisible();
+
+    // "Start my recovery": four steps, each with its agent; the warm-up and practice show as done.
+    await s.page.getByRole("link", { name: /Start my recovery/ }).first().click();
+    await expect(s.page).toHaveURL(/\/recover$/);
+    const steps = s.page.getByRole("list", { name: /^Recovery steps for / });
+    await expect(steps.getByRole("listitem")).toHaveCount(4);
+    for (const agent of ["Diagnostician", "Coach", "Planner", "Quizmaster"]) await expect(steps.getByText(agent, { exact: true })).toBeVisible();
+    await expect(steps.getByRole("listitem").filter({ hasText: "Find where you are" })).toContainText("Done");
+    await expect(steps.getByRole("listitem").filter({ hasText: "Practise until it sticks" })).toContainText("Done");
+    const team = s.page.getByRole("region", { name: "What your agent team did recently" });
+    await expect(team.getByText("Quizmaster", { exact: true }).first()).toBeVisible();
+    await team.getByRole("listitem").filter({ hasText: "Diagnostician" }).getByRole("link", { name: "Trace" }).click();
+    await expect(s.page.getByRole("heading", { level: 1, name: "Diagnostician trace" })).toBeVisible();
+    await expect(s.page.getByText(/questions? written/).first()).toBeVisible();
   } finally {
     await s.cleanup();
   }

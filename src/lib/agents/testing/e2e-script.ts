@@ -17,6 +17,8 @@ export function e2eScript(courseId: string | null, message: string): ScriptStep[
   // "Remember: ..." in the request exercises the suggest-then-confirm memory flow.
   const remember = /remember:\s*([^.\n]{3,200})/i.exec(message);
   if (remember) steps.push({ call: "suggest_memory", args: { text: remember[1].trim() } });
+  // The Coach asks the Diagnostician what the student already knows before planning (agent team).
+  steps.push({ call: "check_understanding", args: { courseId } });
   if (courseId) steps.push({ call: "search_course_material", args: { courseId, query: message.slice(0, 300), topK: 3 } });
   steps.push({
     call: "draft_recovery_plan",

@@ -9,6 +9,8 @@ export const TOOL_LABEL: Record<string, string> = {
   get_student_memory: "Read what you asked it to remember",
   suggest_memory: "Suggested something to remember (needs your OK)",
   get_app_help: "Read the CatchUp guide",
+  check_understanding: "Asked the Diagnostician what you know",
+  start_practice: "Asked the Quizmaster for a practice session",
 };
 
 /** The privacy-safe argument summary recorded with each call, as `tool(key: value, …)`. */

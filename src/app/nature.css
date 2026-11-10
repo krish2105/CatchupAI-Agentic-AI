@@ -1252,3 +1252,24 @@ html[data-theme="dark"] .mastery-chip.confidently_wrong { color: #fdba8c; }
 .assessment-feedback blockquote { margin: 0; padding-left: 12px; border-left: 3px solid var(--stroke-strong); font-size: 14px; }
 .assessment-feedback .btn { justify-self: start; }
 .form-error { color: #b42318; margin: 0; }
+
+/* Start my recovery: guided steps by agent */
+.recover-steps { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
+.recover-step { display: grid; gap: 10px; align-content: start; }
+.recover-step.done { border-color: color-mix(in srgb, #2f8f5b 45%, var(--stroke)); }
+.recover-step-head { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.recover-step-head h2 { margin: 0; font-size: 17px; flex: 1 1 100%; order: 2; }
+.recover-step-head .ic { width: 18px; height: 18px; color: var(--accent); }
+.recover-step-n { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 13px; background: var(--accent); color: var(--on-accent, #fff); }
+.recover-done, .recover-todo { margin-left: auto; display: inline-flex; align-items: center; gap: 4px; font-size: 12.5px; font-weight: 600; }
+.recover-done { color: #1f6b42; }
+html[data-theme="dark"] .recover-done { color: #8fe0b2; }
+.recover-todo { color: var(--muted); }
+.recover-done .ic, .recover-todo .ic { width: 15px; height: 15px; color: inherit; }
+.recover-step p { margin: 0; }
+.recover-step .btn { justify-self: start; }
+.recover-team h2 { margin: 0 0 10px; display: flex; align-items: center; gap: 8px; font-size: 17px; }
+.recover-team h2 .ic { color: var(--accent); }
+.recover-team ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.recover-team li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.recover-team li span:not(.chip) { flex: 1 1 14em; min-width: 0; }

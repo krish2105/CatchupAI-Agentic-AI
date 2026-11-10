@@ -22,6 +22,9 @@ const STATUS_ICON = { completed: CheckCircle2, denied: CircleSlash, failed: XCir
  * nothing for anyone else's run, so another student (or a guessed id) gets a 404. Everything shown was
  * recorded by the server while the run executed; arguments are the privacy-safe summaries stored then.
  */
+/** The agent team: the copilot is the Coach; specialists have their own runs. */
+const AGENT_NAME: Record<string, string> = { coach: "Coach", diagnostician: "Diagnostician", quizmaster: "Quizmaster", night_coach: "Night Coach" };
+
 export default async function RunTracePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const parsed = uuid.safeParse(id);
@@ -44,8 +47,8 @@ export default async function RunTracePage({ params }: { params: Promise<{ id: s
     <>
       <PageHeading
         eyebrow={`Run ${run.id.slice(0, 8)} · ${formatDateTime(run.createdAt, tz)}`}
-        title="Agent trace"
-        description="Every tool the copilot chose for this request, in order, as recorded by the server while it ran. Only you can see this page."
+        title={`${AGENT_NAME[run.agent] ?? "Coach"} trace`}
+        description={run.agent === "coach" ? "Every tool the copilot (your Coach) chose for this request, in order, as recorded by the server while it ran. Only you can see this page." : `What the ${AGENT_NAME[run.agent] ?? "agent"} of your agent team did for this request, as recorded by the server. It only writes questions from your own pages; grading is done by code. Only you can see this page.`}
         actions={<Link className="btn small" href="/assistant">Back to the copilot</Link>}
       />
       <div className="trace-grid">

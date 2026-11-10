@@ -30,6 +30,8 @@ const TOOL_LABEL: Record<string, string> = {
   get_student_memory: "Read what you asked it to remember",
   suggest_memory: "Suggested something to remember",
   get_app_help: "Read the CatchUp guide",
+  check_understanding: "Asked the Diagnostician what you know",
+  start_practice: "Asked the Quizmaster for a practice session",
 };
 
 const ERROR_TEXT: Record<string, string> = {

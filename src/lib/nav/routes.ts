@@ -8,6 +8,7 @@ import {
   LifeBuoy,
   type LucideIcon,
   Orbit,
+  Route,
   Settings,
   Sparkles,
   TrendingUp,
@@ -25,6 +26,7 @@ export type AppRoute = {
 /** The app screens shown in the sidebar and command palette. */
 export const APP_ROUTES: AppRoute[] = [
   { href: "/dashboard", label: "Mission control", crumb: "Mission control", icon: House, group: "workspace" },
+  { href: "/recover", label: "Start my recovery", crumb: "Start my recovery", icon: Route, badge: "Agents", group: "workspace" },
   { href: "/universe", label: "Learning universe", crumb: "Learning universe", icon: Orbit, badge: "3D", group: "workspace" },
   { href: "/assistant", label: "AI copilot", crumb: "AI copilot", icon: Sparkles, group: "workspace" },
   { href: "/catch-up", label: "Catch-up pack", crumb: "Catch-up pack", icon: LifeBuoy, group: "workspace" },

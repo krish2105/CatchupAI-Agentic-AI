@@ -43,6 +43,8 @@ export type AgentContext = {
   /** 1 for the primary model, 2 after falling back. Per-request tool budgets count per attempt. */
   attempt: number;
   onEvent?: (event: ToolEvent) => void;
+  /** Practice sessions the Coach asked the Quizmaster for in this run (at most one). */
+  practiceStarted?: number;
 };
 
 export function shortId(id: string | null | undefined) {

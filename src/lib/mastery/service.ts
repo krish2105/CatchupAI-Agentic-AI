@@ -202,3 +202,22 @@ export async function getMasteryMap(supabase: ServerSupabase, documentId: string
   const concepts = data.map((c) => ({ ...c, status: c.status as MasteryStatus }));
   return { documentId, filename: doc.filename, concepts, bridge: bridge(concepts), tested: concepts.filter((c) => c.status !== "untested").length };
 }
+
+/** An unfinished session (e.g. one the Coach asked the Quizmaster to prepare), with only the unanswered questions. */
+export async function getSession(supabase: ServerSupabase, sessionId: string): Promise<SessionInfo | null> {
+  const { data: items, error } = await supabase.from("assessment_items").select("id, position, concept, page, prompt, options, source, time_limit_seconds, mode").eq("session_id", sessionId).order("position");
+  if (error) throw fromDbError(error);
+  if (!items?.length) return null;
+  const { data: attempts } = await supabase.from("assessment_attempts").select("item_id").in("item_id", items.map((i) => i.id));
+  const done = new Set((attempts ?? []).map((a) => a.item_id));
+  const open = items.filter((i) => !done.has(i.id));
+  if (!open.length) return null;
+  const mode = items[0].mode as AssessmentMode;
+  const agentWritten = items.filter((i) => i.source === "agent").length;
+  return {
+    sessionId,
+    mode,
+    items: open.map((r) => ({ id: r.id, position: r.position, concept: r.concept, page: r.page, prompt: r.prompt, options: r.options as string[], source: r.source as "agent" | "cloze", timeLimitSeconds: r.time_limit_seconds })),
+    agent: { name: mode === "diagnostic" ? "Diagnostician" : "Quizmaster", model: null, runId: null, agentWritten, fallback: items.length - agentWritten },
+  };
+}

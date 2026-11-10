@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BookOpen, FileText, LifeBuoy } from "lucide-react";
 import { AddToPlan, CheckQuestions, PackCheck } from "@/components/features/catchup/pack-actions";
 import MasteryPanel from "@/components/features/mastery/mastery-panel";
-import { getMasteryMap } from "@/lib/mastery/service";
+import { getMasteryMap, getSession } from "@/lib/mastery/service";
 import { catchupGains, packTopic } from "@/lib/catchup/gain";
 import { getPracticeEvidence } from "@/lib/quiz/service";
 import { renderTime } from "@/lib/server/clock";
@@ -20,7 +20,7 @@ import { uuid } from "@/lib/validation/common";
 
 export const metadata: Metadata = { title: "Catch-up pack" };
 
-export default async function CatchupPage({ searchParams }: { searchParams: Promise<{ doc?: string }> }) {
+export default async function CatchupPage({ searchParams }: { searchParams: Promise<{ doc?: string; session?: string }> }) {
   const { supabase } = await requirePageUser("/catch-up");
   const [courses, documents, params] = await Promise.all([listCourses(supabase), listDocuments(supabase), searchParams]);
   const ready = documents.filter((d) => d.status === "ready");
@@ -38,6 +38,9 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
   const pack = result?.pack;
   // The agent team's mastery map (hidden if the database doesn't have migration 0025 yet).
   const masteryMap = result && docId ? await getMasteryMap(supabase, docId).catch(() => null) : null;
+  // A practice session the Coach asked the Quizmaster to prepare (link from the copilot).
+  const sessionId = params.session && uuid.safeParse(params.session).success ? params.session : null;
+  const openSession = masteryMap && sessionId ? await getSession(supabase, sessionId).catch(() => null) : null;
   const evidence = result ? await getPracticeEvidence(supabase, await renderTime()) : null;
   const packGain = result ? catchupGains(evidence!.progress.filter((p) => p.courseId === result!.courseId && p.topic === packTopic(result!.filename)), { includePending: true })[0] ?? null : null;
   const listenText = pack
@@ -76,7 +79,7 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
             </div>
             <ListenButton text={listenText} />
           </header>
-          {masteryMap ? <MasteryPanel documentId={docId!} initialMap={masteryMap} /> : null}
+          {masteryMap ? <MasteryPanel documentId={docId!} initialMap={masteryMap} initialSession={openSession} /> : null}
           <div className="pack-grid">
             <section className="card pack-card" aria-labelledby="pack-summary">
               <h3 id="pack-summary">Summary</h3>

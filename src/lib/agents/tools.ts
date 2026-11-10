@@ -14,6 +14,7 @@ import { confirmedMemories, suggestMemory } from "@/lib/memory/service";
 import { createProposal } from "@/lib/planner/service";
 import { looksLikeInjection } from "@/lib/rag/injection";
 import { searchCourseMaterial } from "@/lib/rag/retrieve";
+import { getMasteryMap, startPractice } from "@/lib/mastery/service";
 import { shortId, type AgentContext, type ToolEvent } from "./context";
 import { cachedRead, invalidateStudent } from "./tool-cache";
 
@@ -25,7 +26,7 @@ class ToolDenied extends Error {}
  * Tools whose results are the student's own data, or the app's own guide, so facts taken from them need no page
  * citation (see tool-fact-support.ts).
  */
-const DATA_TOOLS = new Set(["get_study_preferences", "list_courses", "list_assignments", "get_learning_progress", "draft_recovery_plan", "get_student_memory", "get_app_help"]);
+const DATA_TOOLS = new Set(["get_study_preferences", "list_courses", "list_assignments", "get_learning_progress", "draft_recovery_plan", "get_student_memory", "get_app_help", "check_understanding", "start_practice"]);
 
 /** Wraps a tool body: records a real event for every execution and returns model-safe errors. */
 async function traced<T>(
@@ -304,4 +305,67 @@ export const getAppHelpTool = tool({
     }),
 });
 
-export const RECOVERY_TOOLS = [getStudyPreferences, listCoursesTool, listAssignmentsTool, searchCourseMaterialTool, getLearningProgress, draftRecoveryPlan, getStudentMemory, suggestMemoryTool, getAppHelpTool];
+/**
+ * Agent team: the Coach (this agent) asks the Diagnostician what the student already knows. Reads the mastery map
+ * the Diagnostician and Quizmaster maintain; it never runs a warm-up itself (the student has to answer it).
+ */
+export const checkUnderstandingTool = tool({
+  name: "check_understanding",
+  description:
+    "Ask the Diagnostician what the student already knows about their lectures: per concept known, shaky, not yet or confidently wrong (from their warm-ups and practice), and the bridge (gaps in the order to work on). Call it before planning recovery for a missed lecture. If no warm-up was taken, suggest the 3-minute warm-up link.",
+  parameters: z.object({ courseId: courseIdParam }),
+  execute: (input, ctx?: RunContext<AgentContext>) =>
+    traced(ctx, "check_understanding", { courseId: shortId(input.courseId) }, async (c) => {
+      if (input.courseId) await assertCourse(c, input.courseId);
+      let query = c.supabase.from("documents").select("id, filename, course_id").eq("status", "ready").order("created_at", { ascending: false }).limit(5);
+      if (input.courseId) query = query.eq("course_id", input.courseId);
+      const { data: docs, error } = await query;
+      if (error) throw error;
+      const lectures = await Promise.all(
+        (docs ?? []).map(async (d) => {
+          const map = await getMasteryMap(c.supabase, d.id).catch(() => null);
+          return {
+            documentId: d.id,
+            filename: d.filename,
+            courseId: d.course_id,
+            warmupTaken: Boolean(map?.tested),
+            known: (map?.concepts ?? []).filter((x) => x.status === "known").map((x) => x.concept),
+            gaps: (map?.bridge ?? []).slice(0, 5).map((x) => ({ concept: x.concept, status: x.status, page: x.page })),
+            warmupLink: `/catch-up?doc=${d.id}`,
+          };
+        }),
+      );
+      const gaps = lectures.reduce((s, l) => s + l.gaps.length, 0);
+      const untested = lectures.filter((l) => !l.warmupTaken).length;
+      return {
+        result: JSON.stringify({ lectures, note: "Mastery comes from the student's own warm-up and practice answers (Diagnostician and Quizmaster agents)." }),
+        outcome: `${lectures.length} lecture${lectures.length === 1 ? "" : "s"} · ${gaps} gap${gaps === 1 ? "" : "s"}${untested ? ` · ${untested} without a warm-up` : ""}`,
+      };
+    }),
+});
+
+/** Agent team: the Coach asks the Quizmaster (a separate agent with its own run) to prepare practice on the gaps. */
+export const startPracticeTool = tool({
+  name: "start_practice",
+  description:
+    "Ask the Quizmaster to prepare a short practice session on the student's gaps in one lecture (it writes questions from that lecture's pages; hints before answers). Only after a warm-up was taken (see check_understanding). Returns a link where the student starts it. At most once per run.",
+  parameters: z.object({ documentId: z.string().uuid().describe("Lecture document id from check_understanding.") }),
+  execute: (input, ctx?: RunContext<AgentContext>) =>
+    traced(ctx, "start_practice", { documentId: shortId(input.documentId) }, async (c) => {
+      if ((c.practiceStarted ?? 0) >= 1) throw new ToolDenied("A practice session was already prepared in this run.");
+      try {
+        const session = await startPractice({ supabase: c.supabase, admin: c.admin, userId: c.userId, documentId: input.documentId, mode: "practice" });
+        c.practiceStarted = (c.practiceStarted ?? 0) + 1;
+        const link = `/catch-up?doc=${input.documentId}&session=${session.sessionId}`;
+        return {
+          result: JSON.stringify({ preparedBy: "Quizmaster", questions: session.items.length, concepts: [...new Set(session.items.map((i) => i.concept))], link, startsWhen: "the student opens the link" }),
+          outcome: `Quizmaster prepared ${session.items.length} question${session.items.length === 1 ? "" : "s"}`,
+        };
+      } catch (e) {
+        if (e instanceof ApiError && e.status === 409) return { result: `NO_PRACTICE: ${e.message} Warm-up link: /catch-up?doc=${input.documentId}`, outcome: e.message };
+        throw e;
+      }
+    }),
+});
+
+export const RECOVERY_TOOLS = [getStudyPreferences, listCoursesTool, listAssignmentsTool, searchCourseMaterialTool, getLearningProgress, draftRecoveryPlan, getStudentMemory, suggestMemoryTool, getAppHelpTool, checkUnderstandingTool, startPracticeTool];
