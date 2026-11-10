@@ -1,24 +1,39 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { scriptedRuntimeAllowed } from "@/lib/agents/runtime";
+import { runCheckins, type CheckinResult } from "@/lib/checkin/service";
 import { nudgeMailer } from "@/lib/nudges/mailer";
 import { sendDueNudges } from "@/lib/nudges/service";
 import { adminClient } from "@/lib/supabase/admin";
 
 /**
- * Daily opt-in study nudges. Called by the scheduler with `Authorization: Bearer $CRON_SECRET`.
- * Each message carries RFC 8058 one-click unsubscribe headers as well as a visible link.
+ * Daily job, called by the scheduler with `Authorization: Bearer $CRON_SECRET`:
+ * 1. proactive check-ins (drafts a re-plan for students who are slipping; never approves anything), always;
+ * 2. opt-in study nudges, only when SMTP is configured. Each message carries RFC 8058 one-click unsubscribe
+ *    headers as well as a visible link.
  */
 export async function GET(request: Request) {
   const secret = process.env.CRON_SECRET;
   if (!secret || secret.length < 32 || !sameSecret(request.headers.get("authorization") ?? "", `Bearer ${secret}`)) {
     return NextResponse.json({ error: { code: "forbidden" } }, { status: 403 });
   }
+  const now = Date.now();
+  // Local automated tests only (same gate as the scripted model): limit the run to one student, so parallel tests
+  // never get drafts they didn't ask for. Ignored in every deployed environment.
+  const owner = new URL(request.url).searchParams.get("owner");
+  const only = scriptedRuntimeAllowed() && owner && /^[0-9a-f-]{36}$/i.test(owner) ? [owner] : undefined;
+  let checkins: CheckinResult | { error: "failed" };
+  try {
+    checkins = await runCheckins({ admin: adminClient(), now, ownerIds: only });
+  } catch {
+    checkins = { error: "failed" };
+  }
   const mailer = nudgeMailer();
-  if (!mailer) return NextResponse.json({ error: { code: "mail_not_configured", message: "SMTP_* is not set on the server." } }, { status: 503 });
+  if (!mailer) return NextResponse.json({ checkins, nudges: { skipped: "mail_not_configured" } });
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, "");
-  const result = await sendDueNudges({
+  const nudges = await sendDueNudges({
     admin: adminClient(),
-    now: Date.now(),
+    now,
     appUrl,
     send: async (mail) => {
       await mailer.transport.sendMail({
@@ -31,7 +46,7 @@ export async function GET(request: Request) {
       });
     },
   });
-  return NextResponse.json(result);
+  return NextResponse.json({ checkins, nudges });
 }
 
 /** Constant-time comparison so response timing doesn't reveal how much of the secret matched. */

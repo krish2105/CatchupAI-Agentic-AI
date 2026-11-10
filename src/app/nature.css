@@ -592,6 +592,13 @@ button.focus-pill[aria-pressed="true"] { border-color: var(--accent); color: var
 .nf-replan h2 { margin: 0 0 4px; font-size: 16px; font-weight: 800; color: var(--heading); }
 .nf-replan p { margin: 0; font-size: 14px; line-height: 1.55; color: var(--muted); }
 @media (max-width: 720px) { .nf-replan { flex-wrap: wrap; } .nf-replan .btn { width: 100%; justify-content: center; } }
+/* Daily check-in card (proactive re-plan draft): reason, self-check and two actions. */
+.checkin-card { align-items: flex-start; }
+.checkin-card p + p { margin-top: 6px; }
+.checkin-card .checkin-reason { color: var(--heading); font-weight: 750; }
+.checkin-card .checkin-check { margin-top: 10px; }
+.nf-replan > .checkin-actions { display: flex; flex-direction: column; gap: 8px; flex: none; min-width: 190px; }
+@media (max-width: 720px) { .nf-replan > .checkin-actions { width: 100%; } }
 
 /* ---------- Forest at night refinements (dark theme) ---------- */
 html[data-theme="dark"] .card, html[data-theme="dark"] .nf-stat, html[data-theme="dark"] .scenario { border-color: var(--stroke); box-shadow: 0 1px 0 rgba(255, 255, 255, 0.03) inset, 0 18px 40px -28px rgba(0, 0, 0, 0.7); }

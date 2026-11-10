@@ -33,8 +33,10 @@ export function toAssignment(row: Row): Assignment {
   };
 }
 
-export async function listAssignments(supabase: ServerSupabase, opts: { courseId?: string; from?: string; to?: string } = {}): Promise<Assignment[]> {
+/** `ownerId` adds an explicit owner filter on top of RLS (required when a server job reads with the service role). */
+export async function listAssignments(supabase: ServerSupabase, opts: { courseId?: string; from?: string; to?: string; ownerId?: string } = {}): Promise<Assignment[]> {
   let query = supabase.from("assignments").select(SELECT).order("due_at");
+  if (opts.ownerId) query = query.eq("owner_id", opts.ownerId);
   if (opts.courseId) query = query.eq("course_id", opts.courseId);
   if (opts.from) query = query.gte("due_at", opts.from);
   if (opts.to) query = query.lte("due_at", opts.to);

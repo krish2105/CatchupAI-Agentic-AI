@@ -35,6 +35,8 @@ export default defineConfig({
       STRIPE_WEBHOOK_SECRET: "whsec_e2e_not_a_real_secret",
       STRIPE_PRICE_CLASS: "price_e2e_not_real",
       STRIPE_CLASS_SEATS: "300",
+      // Fake cron secret so the check-in test can call the daily job (tests/e2e/checkin.spec.ts uses the same value).
+      CRON_SECRET: "e2e-cron-secret-not-real-0123456789abcdef",
     },
     url: `${baseURL}/api/health`,
     reuseExistingServer: !process.env.CI,

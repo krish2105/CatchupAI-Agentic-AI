@@ -40,8 +40,10 @@ function toPrefs(row: Row): LocalCalendarPrefs {
  * The student's local calendar settings and when a planning rule last changed. No row yet, or a database that
  * doesn't have the table yet (code deployed before migration 0022), means the defaults: everything off.
  */
-export async function getCalendarState(supabase: ServerSupabase): Promise<{ prefs: LocalCalendarPrefs; rulesChangedAt: string | null }> {
-  const { data, error } = await supabase.from("calendar_prefs").select(COLUMNS).maybeSingle();
+export async function getCalendarState(supabase: ServerSupabase, ownerId?: string): Promise<{ prefs: LocalCalendarPrefs; rulesChangedAt: string | null }> {
+  let query = supabase.from("calendar_prefs").select(COLUMNS);
+  if (ownerId) query = query.eq("owner_id", ownerId);
+  const { data, error } = await query.maybeSingle();
   if (error) {
     if (isMissingSchema(error)) return { prefs: DEFAULT_LOCAL_CALENDAR, rulesChangedAt: null };
     throw fromDbError(error);
@@ -49,8 +51,8 @@ export async function getCalendarState(supabase: ServerSupabase): Promise<{ pref
   return data ? { prefs: toPrefs(data), rulesChangedAt: data.rules_changed_at } : { prefs: DEFAULT_LOCAL_CALENDAR, rulesChangedAt: null };
 }
 
-export async function getCalendarPrefs(supabase: ServerSupabase): Promise<LocalCalendarPrefs> {
-  return (await getCalendarState(supabase)).prefs;
+export async function getCalendarPrefs(supabase: ServerSupabase, ownerId?: string): Promise<LocalCalendarPrefs> {
+  return (await getCalendarState(supabase, ownerId)).prefs;
 }
 
 /** owner_id comes from the column default (auth.uid()); students can write only the settings columns. */
