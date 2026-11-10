@@ -27,7 +27,7 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 
 ## How agentic is it?
 
-One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **eight tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp, and suggests follow-up questions. A "Guide me, don't tell me" switch turns it into a Socratic tutor: one guiding question at a time from the student's notes, the answer after two attempts or on request. The model decides which to call, in what order and with what arguments, for up to 8 turns:
+One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **nine tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp and how to use the app (from the app's own guide), and suggests follow-up questions. A "Guide me, don't tell me" switch turns it into a Socratic tutor: one guiding question at a time from the student's notes, the answer after two attempts or on request. The model decides which to call, in what order and with what arguments, for up to 8 turns:
 
 | Tool | Purpose | Can it change data? |
 | --- | --- | --- |
@@ -39,6 +39,7 @@ One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model)
 | `draft_recovery_plan` | asks the deterministic planner for a route | creates a **pending** draft only |
 | `get_student_memory` | notes you asked it to remember | no |
 | `suggest_memory` | proposes one note | stored as a suggestion until you keep it |
+| `get_app_help` | sections of CatchUp's own help guide, for questions about the app | no |
 
 A typical request makes 4–6 real tool calls (deadlines → availability → notes → draft), each recorded and shown in the timeline. Facts must cite a passage that actually supports them. Passages that try to instruct an AI are flagged and can't be cited. Nothing is saved, approved or deleted by the AI.
 
@@ -68,7 +69,7 @@ each database query stays inside one region.
 | Deterministic planner: **essential / balanced / full** routes, honest shortfall in minutes, what-if availability | ✅ |
 | Human approval gate: atomic, idempotent, refuses stale/expired/infeasible plans | ✅ |
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
-| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 8 permission-checked tools, multi-turn conversations, an on-topic guardrail and follow-up suggestions, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see reviews/LIVE_AGENT_EVALUATION_REPORT.md) |
+| **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model): 9 permission-checked tools, multi-turn conversations, an on-topic guardrail and follow-up suggestions, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live on gemini-3.6-flash (see reviews/LIVE_AGENT_EVALUATION_REPORT.md) |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
@@ -119,7 +120,7 @@ flowchart LR
   U[Student browser<br/>Next.js App Router · R3F 3D + DOM fallback] -->|cookie session · SSE| API[Route Handlers<br/>Zod · rate limits · structured errors]
   API --> RAG[Document pipeline<br/>PDF validation → page chunks → hybrid search]
   API --> PLAN[Deterministic planner<br/>EDF · 3 scenarios · shortfall]
-  API --> AGENT[LearningRecoveryAgent<br/>8 permission-checked tools]
+  API --> AGENT[LearningRecoveryAgent<br/>9 permission-checked tools]
   AGENT --> RAG
   AGENT --> PLAN
   AGENT -->|draft only| PROP[(Pending proposal)]

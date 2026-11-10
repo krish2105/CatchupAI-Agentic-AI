@@ -7,7 +7,7 @@ import { useSyncExternalStore } from "react";
 /** The judge's path through the product, one real screen per stop (synthetic demo data). */
 export const TOUR = [
   { href: "/dashboard", title: "Mission control", body: "The week at a glance: deadlines, study capacity and whether the balanced recovery route fits. Every number is computed from the account's data." },
-  { href: "/assistant", title: "Missed class rescue", body: "The copilot reads deadlines, availability and notes through seven permission-checked tools, cites the pages it used and drafts a plan. It can't save anything itself." },
+  { href: "/assistant", title: "Missed class rescue", body: "The copilot reads deadlines, availability and notes through permission-checked tools, cites the pages it used and drafts a plan. It can't save anything itself." },
   { href: "/recovery", title: "Recovery lab", body: "Three deterministic routes. Drag the weekly-time slider to watch feasibility change; routes that don't fit can't be approved. Review the exact changes, then approve once." },
   { href: "/planner", title: "Study schedule", body: "Approved blocks become a calendar in the student's time zone. Missed sessions trigger a replan, and the plan exports to Google or Apple Calendar with a private link." },
   { href: "/quizzes", title: "Teach it back", body: "Explain “residuals” in your own words: each key concept is checked against the notes and cited to its page, and missed concepts become a targeted retest." },

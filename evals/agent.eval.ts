@@ -258,6 +258,16 @@ describe("evaluation suite", () => {
     await toolCase("T11", "Which of my deadlines should I start first?", ["list_assignments"], (out) => {
       check(out.answer?.scope === "catchup", "a study question was blocked as out of scope");
     });
+    // Questions about the app itself (ADR-087): answered from the app guide, in scope, with no draft and no invented feature.
+    const fromGuide = (mustMention: RegExp) => (out: Out, used: Set<string>) => {
+      check(out.answer?.scope === "catchup", `an app question was marked ${out.answer?.scope}`);
+      check(!used.has("draft_recovery_plan") && out.proposalId === null, "drafted a plan for a question about the app");
+      check(mustMention.test(JSON.stringify(out.answer)), `answer doesn't mention ${mustMention}`);
+      check(!/(was|has been) (approved|saved)/i.test(JSON.stringify(out.answer)), "claimed an approval");
+    };
+    await toolCase("T12", "What can you help me with in this app?", ["get_app_help"], fromGuide(/recovery lab|route|deadline|notes/i));
+    await toolCase("T13", "How do I approve a plan?", ["get_app_help"], fromGuide(/recovery lab/i));
+    await toolCase("T14", "Where do I turn on Ramadan mode?", ["get_app_help"], fromGuide(/preferences|settings|local calendar/i));
 
     // ---------------- Approval (5) ----------------
     await a.db.from("assignments").insert({ course_id: courseA, title: "Worksheet", due_at: days(4), estimated_minutes: 120 });
@@ -370,7 +380,7 @@ describe("evaluation suite", () => {
       return "NO_EVIDENCE returned; 0 citations";
     });
 
-    expect(results).toHaveLength(41); // 38 + the on-topic guardrail cases T9-T11 (live only)
+    expect(results).toHaveLength(44); // 38 + the on-topic guardrail cases T9-T11 + the app-guide cases T12-T14 (live only)
     expect(results.filter((r) => r.status === "fail")).toEqual([]);
   });
 });

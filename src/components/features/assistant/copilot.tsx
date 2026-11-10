@@ -29,6 +29,7 @@ const TOOL_LABEL: Record<string, string> = {
   draft_recovery_plan: "Drafted a plan (not saved)",
   get_student_memory: "Read what you asked it to remember",
   suggest_memory: "Suggested something to remember",
+  get_app_help: "Read the CatchUp guide",
 };
 
 const ERROR_TEXT: Record<string, string> = {
