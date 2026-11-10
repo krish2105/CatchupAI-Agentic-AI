@@ -1,6 +1,6 @@
 {
   "tests": {
-    "unit": 305,
+    "unit": 306,
     "integration": 190,
     "e2e": 82
   },
