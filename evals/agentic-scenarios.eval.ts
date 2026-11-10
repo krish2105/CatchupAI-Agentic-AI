@@ -14,6 +14,7 @@ import { modelRuntime, runRecoveryAgent } from "@/lib/agents/recovery-agent";
 import { scriptedRuntime } from "@/lib/agents/testing/e2e-script";
 import { getEmbedder } from "@/lib/rag/embed";
 import { livePause, liveRequested, recordLiveRun } from "./live-history";
+import { mergeScenarioSummary, shouldWriteEvidence, type ScenarioEntry } from "./report-merge";
 import { processDocument } from "@/lib/rag/ingest";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { ServerSupabase } from "@/lib/supabase/server";
@@ -122,9 +123,26 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await Promise.all(users.map((u) => deleteUser(u.id)));
-  // Only a live run rewrites the committed SUMMARY.json; the scripted plumbing check writes its own file.
-  if (live || scripted) writeFileSync(`docs/evidence/agent-traces/SUMMARY${live ? "" : "-scripted"}.json`, JSON.stringify({ ranAt: new Date().toISOString(), mode: live ? `${live.kind}:${live.model}` : "scripted plumbing check", scenarios: summary }, null, 2) + "\n");
-  // Live runs only: each scenario that actually ran adds to the per-case pass rate shown on /quality.
+  // A run where no scenario ran (for example the local database was down) leaves the committed evidence alone.
+  if (live && !shouldWriteEvidence(summary as ScenarioEntry[])) {
+    console.warn("[eval] no scenario ran (setup failed?): docs/evidence/agent-traces/SUMMARY.json left unchanged");
+    return;
+  }
+  // Only a live run rewrites the committed SUMMARY.json; the scripted plumbing check writes its own file. Scenarios not
+  // selected this time (LIVE_CASES) keep their latest real result, marked with the run it came from.
+  if (live) {
+    let previous: { ranAt?: string; scenarios?: ScenarioEntry[] } = {};
+    try {
+      previous = JSON.parse(readFileSync("docs/evidence/agent-traces/SUMMARY.json", "utf8"));
+    } catch {
+      // No earlier summary: nothing to carry over.
+    }
+    const scenarios = mergeScenarioSummary(previous.scenarios, summary as ScenarioEntry[], previous.ranAt ?? "an earlier run");
+    writeFileSync("docs/evidence/agent-traces/SUMMARY.json", JSON.stringify({ ranAt: new Date().toISOString(), mode: `${live.kind}:${live.model}`, scenarios }, null, 2) + "\n");
+  } else if (scripted) {
+    writeFileSync("docs/evidence/agent-traces/SUMMARY-scripted.json", JSON.stringify({ ranAt: new Date().toISOString(), mode: "scripted plumbing check", scenarios: summary }, null, 2) + "\n");
+  }
+  // Live runs only: each scenario that actually ran in THIS run adds to the per-case pass rate shown on /quality.
   if (live) {
     const ran = summary.filter((s) => s.status === "PASS" || s.status === "FAIL");
     recordLiveRun({ ranAt: new Date().toISOString(), model: `${live.kind}:${live.model}${live.fallback ? ` + fallback ${live.fallback.model}` : ""}`, cases: Object.fromEntries(ran.map((s) => [s.id, s.status === "PASS" ? "pass" : "fail"])) }, Object.fromEntries(summary.map((s) => [s.id, s.title])));
