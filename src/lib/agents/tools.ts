@@ -3,6 +3,7 @@ import { tool, type RunContext } from "@openai/agents";
 import { z } from "zod";
 import { getCalendarPrefs } from "@/lib/calendar-prefs/service";
 import { listAssignments } from "@/lib/db/assignments";
+import { listCourses } from "@/lib/db/courses";
 import { getProfile } from "@/lib/db/profiles";
 import { localCalendarSummary } from "@/lib/planner/local-calendar";
 import { getActivePlan } from "@/lib/db/tasks";
@@ -20,7 +21,7 @@ const LIMITS = { maxSearches: 4, maxStudyItems: 6, maxDrafts: 1, maxRefusedDraft
 class ToolDenied extends Error {}
 
 /** Tools whose results are the student's own data, so facts taken from them need no page citation (see tool-fact-support.ts). */
-const DATA_TOOLS = new Set(["get_study_preferences", "list_assignments", "get_learning_progress", "draft_recovery_plan", "get_student_memory"]);
+const DATA_TOOLS = new Set(["get_study_preferences", "list_courses", "list_assignments", "get_learning_progress", "draft_recovery_plan", "get_student_memory"]);
 
 /** Wraps a tool body: records a real event for every execution and returns model-safe errors. */
 async function traced<T>(
@@ -270,4 +271,21 @@ export const suggestMemoryTool = tool({
     }),
 });
 
-export const RECOVERY_TOOLS = [getStudyPreferences, listAssignmentsTool, searchCourseMaterialTool, getLearningProgress, draftRecoveryPlan, getStudentMemory, suggestMemoryTool];
+export const listCoursesTool = tool({
+  name: "list_courses",
+  description: "List the student's courses (course id and title) with how many indexed documents and assignments each has. Use it to find course ids, e.g. in 'All courses' mode before searching notes.",
+  parameters: z.object({}),
+  execute: (_input, ctx?: RunContext<AgentContext>) =>
+    traced(ctx, "list_courses", {}, async (c) => {
+      const courses = await listCourses(c.supabase);
+      const rows = courses.map((course) => ({
+        courseId: course.id,
+        title: looksLikeInjection(course.title) ? "[title hidden: looked like an instruction]" : course.title,
+        documents: course.documentCount,
+        assignments: course.assignmentCount,
+      }));
+      return { result: JSON.stringify(rows), outcome: `${rows.length} course${rows.length === 1 ? "" : "s"}` };
+    }),
+});
+
+export const RECOVERY_TOOLS = [getStudyPreferences, listCoursesTool, listAssignmentsTool, searchCourseMaterialTool, getLearningProgress, draftRecoveryPlan, getStudentMemory, suggestMemoryTool];

@@ -1,7 +1,7 @@
 "use client";
 
 import { fallbackNote } from "@/lib/agents/fallback-text";
-import { ArrowRight, BookOpen, Check, CheckCircle2, CircleSlash, FileText, Leaf, OctagonX, Sparkles, Square, X, XCircle } from "lucide-react";
+import { ArrowRight, BookOpen, Check, CheckCircle2, CircleSlash, FileText, Leaf, MessageSquarePlus, OctagonX, Sparkles, Square, X, XCircle } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { Chip, Notice } from "@/components/ui/primitives";
@@ -21,6 +21,7 @@ const PROMPTS = [
 
 const TOOL_LABEL: Record<string, string> = {
   get_study_preferences: "Read your availability",
+  list_courses: "Listed your courses",
   list_assignments: "Listed your assignments",
   search_course_material: "Searched your course notes",
   get_learning_progress: "Checked your plan progress",
@@ -68,9 +69,20 @@ function Timeline({ events, running }: { events: ToolEvent[]; running: boolean }
   );
 }
 
-function AnswerView({ run }: { run: AgentRunDto }) {
+function AnswerView({ run, onFollowUp }: { run: AgentRunDto; onFollowUp?: (text: string) => void }) {
   if (run.status === "failed") return <Notice tone="danger" title={ERROR_TEXT[run.errorCode ?? ""] ?? "The copilot failed. Nothing was changed."} />;
   if (!run.answer) return null;
+  if (run.answer.scope === "out_of_scope") {
+    return (
+      <div className="answer">
+        <span className="answer-avatar" aria-hidden="true"><Leaf className="ic" /></span>
+        <div className="answer-body">
+          <div className="answer-eyebrow">CatchUp AI · Outside what I can help with</div>
+          <p>{run.answer.suggestions[0]}</p>
+        </div>
+      </div>
+    );
+  }
   const cite = (id: string) => run.citations.find((c) => c.sourceId === id);
   const grounded = run.answer.facts.length > 0;
   return (
@@ -113,6 +125,11 @@ function AnswerView({ run }: { run: AgentRunDto }) {
               {run.proposal.status === "pending" ? " See “Awaiting your decision”." : ` Status: ${run.proposal.status}.`}
             </span>
           </p>
+        ) : null}
+        {onFollowUp && run.answer.followUps.length ? (
+          <div className="follow-ups" role="group" aria-label="Ask a follow-up">
+            {run.answer.followUps.map((f) => <button key={f} type="button" className="prompt-chip" onClick={() => onFollowUp(f)}>{f}</button>)}
+          </div>
         ) : null}
         {run.status === "completed" ? <Thumbs kind="answer" refId={run.id} question="Was this answer helpful?" /> : null}
       </div>
@@ -198,17 +215,21 @@ function Decision({ run, onDecided }: { run: AgentRunDto; onDecided: (status: st
 
 export default function Copilot({
   initialRuns,
+  initialThreadId = null,
   courses,
   runtime,
   rescue = null,
 }: {
   initialRuns: AgentRunDto[];
+  /** The conversation the initial runs belong to; the next message continues it. */
+  initialThreadId?: string | null;
   courses: { id: string; title: string }[];
   runtime: { configured: boolean; kind: string; model: string | null };
   /** One-click Missed Class Rescue: run this request once on arrival. */
   rescue?: { prompt: string; courseId: string | null } | null;
 }) {
   const [runs, setRuns] = useState(initialRuns);
+  const [threadId, setThreadId] = useState<string | null>(initialThreadId);
   const [message, setMessage] = useState("");
   const [courseId, setCourseId] = useState<string>(rescue?.courseId ?? courses[0]?.id ?? "");
   const rescueStarted = useRef(false);
@@ -231,7 +252,7 @@ export default function Copilot({
       const res = await fetch("/api/agent/run", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ message: trimmed, courseId: courseId || null }),
+        body: JSON.stringify({ message: trimmed, courseId: courseId || null, threadId }),
         signal: controller.signal,
       });
       if (!res.ok || !res.body) {
@@ -257,6 +278,7 @@ export default function Copilot({
             const run = (data as { run: AgentRunDto }).run;
             setRuns((r) => [...r, run]);
             setSelectedRun(run.id);
+            if (run.threadId) setThreadId(run.threadId);
             if (run.events.some((e) => e.tool === "suggest_memory" && e.status === "completed")) window.dispatchEvent(new Event("catchup:memories"));
           }
           if (event === "error") setError((data as { message: string }).message);
@@ -285,7 +307,16 @@ export default function Copilot({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  /** Starts a fresh conversation: earlier turns stay in history but are no longer sent as context. */
+  function newChat() {
+    setRuns([]);
+    setThreadId(null);
+    setSelectedRun(null);
+    setError(null);
+  }
+
   const shown = runs.find((r) => r.id === selectedRun);
+  const lastRunId = runs.at(-1)?.id;
   const pending = [...runs].reverse().find((r) => r.proposal?.status === "pending") ?? null;
 
   return (
@@ -297,7 +328,12 @@ export default function Copilot({
             <span>{courses.find((c) => c.id === courseId)?.title ?? "All courses"}</span>
             <Chip tone="good">{courseId ? "Active course" : "Every course"}</Chip>
           </div>
-          {runtime.kind === "scripted" ? <Chip tone="warn">Scripted test model · not AI</Chip> : runtime.configured ? <Chip tone="good">{runtime.model}</Chip> : <Chip tone="warn">Not configured</Chip>}
+          <div style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+            {runtime.kind === "scripted" ? <Chip tone="warn">Scripted test model · not AI</Chip> : runtime.configured ? <Chip tone="good">{runtime.model}</Chip> : <Chip tone="warn">Not configured</Chip>}
+            {runtime.configured && (runs.length > 0 || threadId) ? (
+              <button type="button" className="btn small" onClick={newChat} disabled={running}><MessageSquarePlus className="ic" aria-hidden="true" /> New chat</button>
+            ) : null}
+          </div>
         </div>
         <div className="chat-scroll" ref={scroller} aria-live="polite" aria-busy={running}>
           {!runtime.configured ? (
@@ -310,7 +346,7 @@ export default function Copilot({
           {runs.map((run) => (
             <div key={run.id} style={{ display: "grid", gap: 10 }} onFocus={() => setSelectedRun(run.id)} onMouseEnter={() => setSelectedRun(run.id)}>
               <div className="chat-bubble user">{run.request}</div>
-              <AnswerView run={run} />
+              <AnswerView run={run} onFollowUp={run.id === lastRunId && !running ? (text) => void send(text) : undefined} />
             </div>
           ))}
           {live ? <div className="chat-bubble user">{live.request}</div> : null}

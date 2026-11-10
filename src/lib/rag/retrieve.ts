@@ -1,6 +1,7 @@
 import "server-only";
 import { fromDbError } from "@/lib/http/errors";
 import type { ServerSupabase } from "@/lib/supabase/server";
+import { bestWindow } from "./best-window";
 import { toPgVector, type Embedder } from "./embed";
 
 export type Citation = {
@@ -72,7 +73,7 @@ export async function searchCourseMaterial(
       filename: r.filename,
       pageStart: r.page_start,
       pageEnd: r.page_end,
-      snippet: r.content.length > 700 ? `${r.content.slice(0, 700)}…` : r.content,
+      snippet: bestWindow(r.content, query, 700),
       score: r.score,
       lexicalRank: r.lexical_rank,
       lexicalCoverage: r.lexical_coverage,

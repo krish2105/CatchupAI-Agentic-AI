@@ -12,7 +12,7 @@
  */
 export type PartialFact = { statement: string; sourceIds: string[] };
 /** midString: the text ends inside a string value (the last suggestion/question is still being written). */
-export type PartialAnswer = { facts: PartialFact[]; suggestions: string[]; clarifyingQuestion: string | null; midString: boolean };
+export type PartialAnswer = { scope: "catchup" | "out_of_scope" | null; facts: PartialFact[]; suggestions: string[]; clarifyingQuestion: string | null; midString: boolean };
 
 type Frame = { kind: "{" | "["; key: string | null; phase: "key" | "colon" | "value" | "comma"; lastKey: string | null };
 
@@ -119,5 +119,7 @@ export function parsePartialAnswer(text: string): PartialAnswer | null {
   );
   const suggestions = Array.isArray(obj.suggestions) ? obj.suggestions.filter((s): s is string => typeof s === "string") : [];
   const clarifyingQuestion = typeof obj.clarifyingQuestion === "string" ? obj.clarifyingQuestion : null;
-  return { facts, suggestions, clarifyingQuestion, midString: inString && !stringIsKey };
+  // Only a complete, known value counts (a half-written "out_of_sc" is not a scope yet).
+  const scope = obj.scope === "catchup" || obj.scope === "out_of_scope" ? obj.scope : null;
+  return { scope, facts, suggestions, clarifyingQuestion, midString: inString && !stringIsKey };
 }

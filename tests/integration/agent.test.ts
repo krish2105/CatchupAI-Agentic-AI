@@ -76,8 +76,8 @@ afterAll(async () => {
 });
 
 describe("LearningRecoveryAgent", () => {
-  it("exposes exactly seven tools, none of which can commit, delete or approve (memories are only suggested)", () => {
-    expect(RECOVERY_TOOLS.map((t) => t.name).sort()).toEqual(["draft_recovery_plan", "get_learning_progress", "get_student_memory", "get_study_preferences", "list_assignments", "search_course_material", "suggest_memory"]);
+  it("exposes exactly eight tools, none of which can commit, delete or approve (memories are only suggested)", () => {
+    expect(RECOVERY_TOOLS.map((t) => t.name).sort()).toEqual(["draft_recovery_plan", "get_learning_progress", "get_student_memory", "get_study_preferences", "list_assignments", "list_courses", "search_course_material", "suggest_memory"]);
   });
 
   it("runs real tools, cites only retrieved pages, drafts a pending proposal and persists the trace", async () => {

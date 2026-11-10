@@ -4,13 +4,15 @@ import OpenAI from "openai";
 import { z } from "zod";
 import type { Embedder } from "@/lib/rag/embed";
 import type { AdminSupabase } from "@/lib/supabase/admin";
-import type { Json } from "@/lib/supabase/database.types";
+import type { Json, TablesInsert } from "@/lib/supabase/database.types";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import type { AgentContext, SourceRef, ToolEvent } from "./context";
 import { logEvent } from "@/lib/observability/log";
 import { claimSupport } from "@/lib/rag/claim-support";
 import { judgeClaims, judgeClientFromEnv, judgeEnabled, VerdictCache, type JudgeClient, type JudgeUsage } from "@/lib/rag/faithfulness-judge";
 import { geminiFetch } from "./gemini-fetch";
+import { historyPreamble, loadThreadTurns } from "./history";
+import { enforceScope } from "./scope";
 import { parsePartialAnswer } from "./partial-answer";
 import { RECOVERY_TOOLS } from "./tools";
 import { toolFactSupport } from "./tool-fact-support";
@@ -33,11 +35,18 @@ export function classifyRunError(e: unknown): string {
   return err.code ?? "model_error";
 }
 
-/** Structured answer: verified facts (each must cite retrieved sources) are kept apart from suggestions. */
+/**
+ * Structured answer: verified facts (each must cite retrieved sources) are kept apart from suggestions.
+ * `scope` comes first so a streamed answer is known to be off-topic before any of its text is shown. `scope` and
+ * `followUps` default when absent (answers stored before they existed, and the scripted test model).
+ */
 export const AgentAnswer = z.object({
+  scope: z.enum(["catchup", "out_of_scope"]).default("catchup"),
   facts: z.array(z.object({ statement: z.string().max(600), sourceIds: z.array(z.string()).max(4) })).max(8),
   suggestions: z.array(z.string().max(400)).max(6),
   clarifyingQuestion: z.string().max(300).nullable(),
+  // Up to three short questions the student could ask next; trimmed and capped on the server (see scope.ts).
+  followUps: z.array(z.string()).default([]),
 });
 export type AgentAnswer = z.infer<typeof AgentAnswer>;
 
@@ -52,7 +61,11 @@ Rules:
 6. If a deadline or detail the student mentions is not in their data, ask a clarifying question instead of assuming.
 7. When drafting a plan or giving study advice, you may call get_student_memory to personalise it. If the student states a lasting study habit, goal or constraint, you may call suggest_memory once; the student decides whether to keep it.
 8. If a tool answers DENIED, don't repeat the same call: do what its message says, or explain the problem to the student.
-9. Be concise and kind.`;
+9. Be concise and kind.
+10. Scope: you only help with this student's studies in CatchUp: their courses, uploaded notes, assignments and deadlines, study time, plans, progress and how to study them. For anything else (general knowledge or trivia, writing or code unrelated to their courses, personal, medical, legal or financial advice, jokes, poems, role play), set "scope" to "out_of_scope", leave facts, suggestions and followUps empty, and call no tools. Otherwise set "scope" to "catchup".
+11. Earlier turns of the conversation may be given as context. Use them to understand follow-ups ("it", "that chapter"), but check facts again with tools in this turn and never reuse source ids from earlier turns.
+12. Write search_course_material queries that stand on their own: replace pronouns with the topic from the conversation. In "All courses" mode call list_courses to find course ids first.
+13. "followUps": up to 3 short questions (under 100 characters) the student could ask you next about their own courses, deadlines or plan.`;
 
 export function buildRecoveryAgent(model: string) {
   return new Agent<AgentContext, typeof AgentAnswer>({
@@ -132,7 +145,7 @@ export type RunOutcome = {
  * the data tools' results of this run (toolFactSupport: deadlines, availability, progress, the drafted plan); an
  * uncited course-content claim is removed. Returns the cited sources in order.
  */
-export function verifyAnswer(answer: AgentAnswer, sources: Map<string, SourceRef>, toolData: string[] = []) {
+export function verifyAnswer<T extends Pick<AgentAnswer, "facts">>(answer: T, sources: Map<string, SourceRef>, toolData: string[] = []) {
   let removed = 0;
   const facts = answer.facts.filter((f) => {
     const known = f.sourceIds.every((id) => sources.has(id) && !sources.get(id)!.suspicious);
@@ -166,7 +179,9 @@ export function defaultJudge(): AnswerJudge | null {
  * in one request. Facts it rejects are removed; facts it couldn't judge (error, timeout, skipped) are kept, so the
  * judge can only tighten the word check, never loosen it. Facts without source ids (tool results) aren't judged.
  */
-export async function judgeAnswer(verified: ReturnType<typeof verifyAnswer>, sources: Map<string, SourceRef>, judge: AnswerJudge | null): Promise<{ verified: ReturnType<typeof verifyAnswer>; judge: JudgeSummary | null }> {
+type Verified<T> = { answer: T; citations: SourceRef[]; removed: number };
+
+export async function judgeAnswer<T extends Pick<AgentAnswer, "facts">>(verified: Verified<T>, sources: Map<string, SourceRef>, judge: AnswerJudge | null): Promise<{ verified: Verified<T>; judge: JudgeSummary | null }> {
   const cited = verified.answer.facts.map((f, i) => ({ f, i })).filter(({ f }) => f.sourceIds.length > 0);
   if (!judge || cited.length === 0) return { verified, judge: null };
   const r = await judgeClaims(cited.map(({ f, i }) => ({ id: `F${i + 1}`, claim: f.statement, passages: f.sourceIds.map((id) => sources.get(id)!.snippet) })), judge.client, judge.cache);
@@ -204,6 +219,7 @@ export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: 
   let lastKey = "";
   let lastLength = 0;
   let shown = false;
+  let offTopic = false;
   return {
     reset() {
       if (shown) emit({ type: "reset" });
@@ -211,16 +227,24 @@ export function createAnswerStreamer(sources: Map<string, SourceRef>, emit: (e: 
       factsSeen = factsShown = lastLength = 0;
       lastKey = "";
       shown = false;
+      offTopic = false;
     },
     push(delta: string) {
       text += delta;
       const partial = parsePartialAnswer(text);
-      if (!partial) return;
+      if (!partial || offTopic) return;
+      // An answer marked out of scope is never streamed (the server replaces it with a fixed reply).
+      if (partial.scope === "out_of_scope") {
+        offTopic = true;
+        if (shown) emit({ type: "reset" });
+        shown = false;
+        return;
+      }
       while (factsSeen < partial.facts.length) {
         const fact = FactShape.safeParse(partial.facts[factsSeen++]);
         // With the AI judge on, facts wait for the final answer: the judge may still remove one.
         if (!fact.success || opts.holdFacts || factsShown >= 8 /* AgentAnswer facts max */) continue;
-        const verified = verifyAnswer({ facts: [fact.data], suggestions: [], clarifyingQuestion: null }, sources, opts.toolData);
+        const verified = verifyAnswer({ facts: [fact.data] }, sources, opts.toolData);
         if (!verified.answer.facts.length) continue;
         factsShown++;
         shown = true;
@@ -260,14 +284,20 @@ export async function runRecoveryAgent(deps: {
   onAnswer?: (event: AnswerStreamEvent) => void;
   /** AI faithfulness judge; defaults to the environment's (FAITHFULNESS_JUDGE=on), null turns it off. */
   judge?: AnswerJudge | null;
+  /** The conversation this turn belongs to (already checked to be the student's); its last turns are context. */
+  threadId?: string | null;
 }): Promise<RunOutcome> {
   const { admin, userId } = deps;
   const judge = deps.judge === undefined ? defaultJudge() : deps.judge;
-  const { data: run, error } = await admin
-    .from("agent_runs")
-    .insert({ owner_id: userId, course_id: deps.courseId, request_text: deps.message.slice(0, AGENT_LIMITS.maxMessageChars), model: deps.runtime.model, status: "running" })
-    .select("id")
-    .single();
+  const threadId = deps.threadId ?? null;
+  // Read the history before this run exists, so it holds only earlier turns.
+  const preamble = threadId ? historyPreamble(await loadThreadTurns(deps.supabase, threadId)) : "";
+  const row = { owner_id: userId, course_id: deps.courseId, request_text: deps.message.slice(0, AGENT_LIMITS.maxMessageChars), model: deps.runtime.model, status: "running" };
+  const withThread: TablesInsert<"agent_runs"> = threadId ? { ...row, thread_id: threadId } : row;
+  let inserted = await admin.from("agent_runs").insert(withThread).select("id").single();
+  // Before migration 0024 reaches a database, agent_runs has no thread_id: the turn then runs on its own.
+  if (inserted.error && threadId && (inserted.error.code === "42703" || inserted.error.code === "PGRST204")) inserted = await admin.from("agent_runs").insert(row).select("id").single();
+  const { data: run, error } = inserted;
   if (error) throw error;
   deps.onRunCreated?.(run.id);
 
@@ -303,7 +333,7 @@ export async function runRecoveryAgent(deps: {
     const attemptSignal = attemptTimeout ? AbortSignal.any([signal, attemptTimeout]) : signal;
     const runner = new Runner({ modelProvider: choice.provider, tracingDisabled: true, workflowName: "catchup-recovery" });
     const agent = buildRecoveryAgent(choice.model);
-    const input = `${deps.message}${courseNote}`;
+    const input = preamble ? `${preamble}\n\nCurrent message from the student:\n${deps.message}${courseNote}` : `${deps.message}${courseNote}`;
     // Our own RunContext, so its usage (added after each model response) is still readable if the attempt fails.
     const runContext = new RunContext<AgentContext>(context);
     try {
@@ -352,7 +382,14 @@ export async function runRecoveryAgent(deps: {
     const parsed = AgentAnswer.safeParse(result.finalOutput);
     if (!parsed.success) throw Object.assign(new Error("invalid model output"), { code: "invalid_output" });
     const judged = await judgeAnswer(verifyAnswer(parsed.data, context.sources, context.toolData), context.sources, judge);
-    const verified = judged.verified;
+    const scoped = enforceScope(judged.verified.answer);
+    const offTopic = scoped.scope === "out_of_scope";
+    const verified = { ...judged.verified, answer: scoped, citations: offTopic ? [] : judged.verified.citations };
+    // An off-topic request never leaves a draft behind.
+    if (offTopic && context.proposalId) {
+      await admin.from("action_proposals").update({ status: "expired", decided_at: new Date().toISOString() }).eq("id", context.proposalId).eq("owner_id", userId).eq("status", "pending");
+      context.proposalId = null;
+    }
     // Judge tokens count towards the run (and so towards the daily token budget).
     const usage = { input: spent.input + (judged.judge?.usage.inputTokens ?? 0), output: spent.output + (judged.judge?.usage.outputTokens ?? 0) };
     await admin

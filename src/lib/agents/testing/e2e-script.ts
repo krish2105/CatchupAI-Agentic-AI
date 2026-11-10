@@ -6,6 +6,9 @@ import { ScriptedModel, ScriptedProvider, type ScriptStep, type ScriptView } fro
  * flow are exercised end to end without an LLM. It is NOT an AI and is labelled as such in the UI.
  */
 export function e2eScript(courseId: string | null, message: string): ScriptStep[] {
+  if (/\b(poem|joke|riddle)\b/i.test(message)) {
+    return [{ answer: { scope: "out_of_scope", facts: [], suggestions: ["Here is a poem about the sea: the waves roll in…"], clarifyingQuestion: null, followUps: ["Another poem?"] } }];
+  }
   const steps: ScriptStep[] = [
     { call: "get_student_memory", args: {} },
     { call: "get_study_preferences", args: {} },
@@ -28,11 +31,13 @@ export function e2eScript(courseId: string | null, message: string): ScriptStep[
       const source = /<source id="S1" file="([^"]+)" page="(\d+)">\n([\s\S]*?)\n<\/source>/.exec(all);
       const draft = v.lastToolOutput.startsWith("{") ? (JSON.parse(v.lastToolOutput) as { feasible?: boolean; shortfallMinutes?: number }) : {};
       return {
+        scope: "catchup",
         facts: source ? [{ statement: `Your notes say: "${source[3].slice(0, 160)}"`, sourceIds: ["S1"] }] : [],
         suggestions: [
           draft.feasible ? "The essential route fits your time. Review the draft in the Recovery lab." : `The essential route is short by ${draft.shortfallMinutes ?? "?"} minutes; consider more study time or the essential items only.`,
         ],
         clarifyingQuestion: source || !courseId ? null : "I couldn't verify that in your uploaded materials. Can you upload the notes for this topic?",
+        followUps: ["What should I study first this week?", "Which pages cover this topic?"],
       };
     },
   });
