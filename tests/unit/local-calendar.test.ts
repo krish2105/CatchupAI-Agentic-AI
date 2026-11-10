@@ -10,7 +10,6 @@ import {
   localCalendarSummary,
   localYmd,
   PRAYER_BREAK,
-  PRE_IFTAR_MINUTES,
   prayerTimes,
   UAE_CITIES,
   type LocalCalendarPrefs,
@@ -121,7 +120,7 @@ describe("buildCalendarRules", () => {
     expect(buildCalendarRules(prefs({ prayerBreaks: true }), "Asia/Dubai", FROM, TO)).toBeUndefined();
   });
 
-  it("lists Ramadan days and keeps the hour before Maghrib free on them only", () => {
+  it("lists Ramadan days and keeps the hour before Maghrib and 30 minutes after it free on them only", () => {
     const from = Date.parse("2027-02-05T00:00:00Z");
     const rules = buildCalendarRules(prefs({ ramadanMode: true, ramadanReductionPercent: 30, city: "dubai", method: "dubai" }), "Asia/Dubai", from, from + 7 * DAY)!;
     expect(rules.ramadan?.dates).toEqual(expect.arrayContaining(["2027-02-08", "2027-02-09", "2027-02-12"]));
@@ -130,10 +129,11 @@ describe("buildCalendarRules", () => {
     const iftar = rules.breaks.filter((b) => b.reason === "pre_iftar");
     expect(iftar.length).toBeGreaterThan(0);
     for (const b of iftar) {
-      const day = localYmd(b.end, "Asia/Dubai");
+      const day = localYmd(b.start, "Asia/Dubai");
+      const maghrib = prayerTimes(day, "dubai", "dubai").maghrib;
       expect(rules.ramadan?.dates).toContain(day);
-      expect(b.end).toBe(prayerTimes(day, "dubai", "dubai").maghrib);
-      expect(b.end - b.start).toBe(PRE_IFTAR_MINUTES * MIN);
+      expect(b.start).toBe(maghrib - 60 * MIN);
+      expect(b.end).toBe(maghrib + 30 * MIN);
     }
   });
 
@@ -161,7 +161,7 @@ describe("localCalendarSummary (what the copilot is told)", () => {
     );
     expect(summary).toMatchObject({
       keptFree: ["Fridays 12:00-14:00 local time", "15 minutes at five set times each day"],
-      reducedDays: { todayIsReduced: true, dailyMinutesReducedByPercent: 30, eveningMinutesKeptFree: 60, startTimeOnReducedDays: "21:30" },
+      reducedDays: { todayIsReduced: true, dailyMinutesReducedByPercent: 30, eveningMinutesKeptFree: 90, startTimeOnReducedDays: "21:30" },
     });
     const text = JSON.stringify(summary).toLowerCase();
     expect(text).not.toMatch(/prayer|ramadan|maghrib|iftar|fast|islam|muslim|mosque|hijri|religio|fujairah|umm al-qura|dubai/);
@@ -185,6 +185,23 @@ describe("planner with local calendar rules", () => {
       const start = clock(Date.parse(t.startsAt), "Europe/London");
       const end = clock(Date.parse(t.endsAt), "Europe/London");
       expect(end <= "12:00" || start >= "14:00").toBe(true);
+    }
+  });
+
+  it("on a Ramadan day, schedules nothing from an hour before Maghrib to 30 minutes after it, without losing minutes", () => {
+    // Wednesdays only, 180 minutes from 17:30 local, which falls inside the break (Maghrib in Dubai is a little after 18:00 in February).
+    const availability: Availability = { timezone: "Asia/Dubai", weeklyMinutes: [0, 0, 180, 0, 0, 0, 0], studyStartTime: "17:30" };
+    const now = Date.parse("2027-02-09T04:00:00Z");
+    const calendar = buildCalendarRules(prefs({ ramadanMode: true, ramadanReductionPercent: 0, city: "dubai", method: "dubai" }), "Asia/Dubai", now - DAY, now + 23 * DAY);
+    const plan = planScenarios({ items: [item("essay", 120, "2027-02-11T00:00:00Z")], availability: { ...availability, calendar }, now });
+    const maghrib = prayerTimes("2027-02-10", "dubai", "dubai").maghrib;
+    expect(clock(maghrib)).toMatch(/^18:/);
+    // One Wednesday (10 Feb 2027) before the deadline: the break moves the 180 minutes later, it doesn't remove them.
+    expect(plan.availableMinutes).toBe(180);
+    const tasks = plan.scenarios[0].tasks;
+    expect(tasks.reduce((s, t) => s + t.minutes, 0)).toBe(120);
+    for (const t of tasks) {
+      expect(Date.parse(t.endsAt) <= maghrib - 60 * MIN || Date.parse(t.startsAt) >= maghrib + 30 * MIN).toBe(true);
     }
   });
 });

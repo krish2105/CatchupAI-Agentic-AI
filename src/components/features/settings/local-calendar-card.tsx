@@ -101,7 +101,7 @@ export default function LocalCalendarCard({ initial }: { initial: LocalCalendarP
         <Switch checked={prefs.prayerBreaks} onChange={(v) => void save({ ...prefs, prayerBreaks: v })} label="Prayer-time breaks" disabled={busy || !located} />
       </div>
       <div className="setting-line">
-        <div><strong>Ramadan</strong><p>Study less each day and keep the hour before Maghrib free. Dates follow the Umm al-Qura calendar unless you set your own.</p></div>
+        <div><strong>Ramadan</strong><p>Study less each day, and keep the hour before Maghrib and 30 minutes after it free. Dates follow the Umm al-Qura calendar unless you set your own.</p></div>
         <Switch checked={prefs.ramadanMode} onChange={(v) => void save({ ...prefs, ramadanMode: v })} label="Ramadan mode" disabled={busy || !located} />
       </div>
 
