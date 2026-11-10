@@ -49,6 +49,18 @@ describe("findNextStep", () => {
     expect(step?.why).toMatch(/every route/i);
   });
 
+  it("never suggests more than 8 hours of study on any day: an extension is the practical step instead", () => {
+    // 2,300 minutes by Friday fits under the 12-hour scheduling cap, but only at more than 8 hours a day.
+    const step = nextStepFor([item("Thesis draft", 2300, FRIDAY_NIGHT)]);
+    expect(step?.kind).toBe("extension");
+  });
+
+  it("a practical fix keeps every study day at 8 hours or less", () => {
+    const step = nextStepFor([item("Regression worksheet", 600, FRIDAY_NIGHT)]);
+    if (step?.kind !== "more_time") throw new Error("expected more_time");
+    expect(Math.max(...scaleWeekly(DUBAI.weeklyMinutes, step.weeklyTotal))).toBeLessThanOrEqual(480);
+  });
+
   it("drafts an extension request when no amount of daily study can make the deadline", () => {
     const tuesdayNight = "2026-11-10T20:00:00.000Z";
     const step = nextStepFor([item("Lab report", 2000, tuesdayNight)]);

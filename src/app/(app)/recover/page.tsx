@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CheckCircle2, CircleDashed, FileText, Gauge, MessageSquareText, Route, Sparkles, Target, Timer } from "lucide-react";
+import { CheckCircle2, CircleDashed, FileText, Gauge, MessageSquareText, Route, Sparkles, Sprout, Target, Timer } from "lucide-react";
 import PageHeading from "@/components/ui/page-heading";
 import { ButtonLink, Chip, EmptyCard } from "@/components/ui/primitives";
 import { requirePageUser } from "@/lib/auth/session";
@@ -31,6 +31,17 @@ export default async function RecoverPage({ searchParams }: { searchParams: Prom
   const { data: runs } = await supabase.from("agent_runs").select("id, agent, status, summary, request_text, created_at").order("created_at", { ascending: false }).limit(6);
 
   const tested = Boolean(map?.tested);
+
+  // Growth: every lecture's standing and the next move (check it, practise its gaps, or rehearse under time).
+  const growth = await Promise.all(
+    ready.slice(0, 6).map(async (d) => {
+      const m = d.id === doc?.id ? map : await getMasteryMap(supabase, d.id).catch(() => null);
+      const total = m?.concepts.length ?? 0;
+      const known = m?.concepts.filter((c) => c.status === "known").length ?? 0;
+      const next = !m?.tested ? "Check what you know (3-minute warm-up)" : known < total ? `Practise ${m.bridge[0]?.concept ?? "your gaps"} next` : "All known: try a timed exam rehearsal";
+      return { id: d.id, filename: d.filename, total: m?.tested ? total : 0, known, next, href: `/catch-up?doc=${d.id}` };
+    }),
+  );
   const steps: Step[] = doc
     ? [
         {
@@ -117,6 +128,27 @@ export default async function RecoverPage({ searchParams }: { searchParams: Prom
           </ol>
         </>
       )}
+
+      {growth.length ? (
+        <section className="card recover-growth" aria-labelledby="growth-head">
+          <h2 id="growth-head"><Sprout className="ic" aria-hidden="true" /> Keep growing</h2>
+          <p className="muted small">Not just catching up: where each lecture stands, and the next move that grows what you know.</p>
+          <ul>
+            {growth.map((g) => (
+              <li key={g.id}>
+                <div className="growth-row">
+                  <b>{g.filename}</b>
+                  <span className="growth-meter" role="img" aria-label={g.total ? `${g.known} of ${g.total} concepts known` : "Not checked yet"}>
+                    <span style={{ width: `${g.total ? Math.round((g.known / g.total) * 100) : 0}%` }} />
+                  </span>
+                  <span className="muted small">{g.total ? `${g.known}/${g.total} known` : "Not checked"}</span>
+                </div>
+                <Link className="text-link" href={g.href}>{g.next}</Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <section className="card recover-team" aria-labelledby="team-head">
         <h2 id="team-head"><Sparkles className="ic" aria-hidden="true" /> What your agent team did recently</h2>

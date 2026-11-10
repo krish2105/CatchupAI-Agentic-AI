@@ -578,6 +578,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_briefs: {
+        Row: {
+          brief_on: string
+          cards: Json
+          created_at: string
+          id: string
+          owner_id: string
+          run_id: string | null
+        }
+        Insert: {
+          brief_on: string
+          cards: Json
+          created_at?: string
+          id?: string
+          owner_id: string
+          run_id?: string | null
+        }
+        Update: {
+          brief_on?: string
+          cards?: Json
+          created_at?: string
+          id?: string
+          owner_id?: string
+          run_id?: string | null
+        }
+        Relationships: []
+      }
       concept_mastery: {
         Row: {
           attempts: number

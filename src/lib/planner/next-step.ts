@@ -15,6 +15,8 @@ export type NextStep =
 const DAY = 86_400_000;
 const MINUTE = 60_000;
 const MAX_WEEKLY = 7 * 720;
+/** The most study on one day that a next step may suggest (8 hours). */
+export const PRACTICAL_DAY_MINUTES = 480;
 export const WEEKDAY_NAMES = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"] as const;
 
 const sum = (xs: number[]) => xs.reduce((s, x) => s + x, 0);
@@ -59,11 +61,14 @@ export function findNextStep(input: { items: WorkItem[]; availability: Availabil
       else lo = mid;
     }
     const weekly = scaleWeekly(base, hi);
-    const days = weekly.map((m, weekday) => ({ weekday, extra: m - base[weekday] })).filter((d) => d.extra > 0);
-    return { kind: "more_time", why, currentWeekly, weeklyTotal: hi, extraPerWeek: hi - currentWeekly, days };
+    // A fix is only practical if no study day goes past 8 hours; otherwise the honest next step is an extension.
+    if (Math.max(...weekly) <= PRACTICAL_DAY_MINUTES) {
+      const days = weekly.map((m, weekday) => ({ weekday, extra: m - base[weekday] })).filter((d) => d.extra > 0);
+      return { kind: "more_time", why, currentWeekly, weeklyTotal: hi, extraPerWeek: hi - currentWeekly, days };
+    }
   }
 
-  // No amount of daily study fits: ask for more time on the earliest short deadline.
+  // No practical amount of daily study fits: ask for more time on the earliest short deadline.
   const target = [...blocking].sort((a, b) => due(a.deadline) - due(b.deadline))[0];
   const dueAt = target.deadline ?? plan.horizon.end;
   const averageDaily = Math.max(60, currentWeekly / 7);
@@ -71,7 +76,7 @@ export function findNextStep(input: { items: WorkItem[]; availability: Availabil
   const request =
     `Dear [lecturer's name],\n\n` +
     `I missed a recent lecture and I'm working hard to catch up. I want to hand in good work for "${target.title}", which is due ${formatDay(dueAt, availability.timezone)}. ` +
-    `Even studying every day I can, I'm about ${formatMinutes(target.unscheduledMinutes)} short. ` +
+    `Even studying as much as I realistically can each day, I'm about ${formatMinutes(target.unscheduledMinutes)} short. ` +
     `Could I please have an extension until ${formatDay(proposedDueAt, availability.timezone)}? I'm happy to share my study plan.\n\n` +
     `Thank you,\n[Your name]`;
   return { kind: "extension", why, assignmentTitle: target.title, dueAt, shortMinutes: target.unscheduledMinutes, proposedDueAt, request };

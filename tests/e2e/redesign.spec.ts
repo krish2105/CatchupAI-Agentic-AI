@@ -113,7 +113,7 @@ test("when every route is short, the lab explains why and its one next step make
   const s = await freshStudent(browser);
   try {
     const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
-    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Big worksheet", dueAt: new Date(Date.now() + 3 * 86400_000).toISOString(), estimatedMinutes: 900 } });
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Big worksheet", dueAt: new Date(Date.now() + 3 * 86400_000).toISOString(), estimatedMinutes: 600 } });
     await s.page.goto("/recovery");
     const card = s.page.getByRole("region", { name: "Why every route is short" });
     await expect(card).toBeVisible();
@@ -674,6 +674,48 @@ test("agent team: the Diagnostician's warm-up builds a mastery map, then the Qui
     await team.getByRole("listitem").filter({ hasText: "Diagnostician" }).getByRole("link", { name: "Trace" }).click();
     await expect(s.page.getByRole("heading", { level: 1, name: "Diagnostician trace" })).toBeVisible();
     await expect(s.page.getByText(/questions? written/).first()).toBeVisible();
+  } finally {
+    await s.cleanup();
+  }
+});
+
+test("Night Coach: Check now leaves a morning brief from real data; Listen plays a two-voice lesson; growth shows the next move", async ({ browser }) => {
+  test.setTimeout(120_000);
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Applied Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Regression worksheet", dueAt: new Date(Date.now() + 2 * 86400_000).toISOString(), estimatedMinutes: 60 } });
+    await s.page.goto(`/courses/${course.course.id}`);
+    await s.page.waitForLoadState("networkidle");
+    await s.page.locator('input[type="file"]').setInputFiles("tests/fixtures/statistics_module_4.pdf");
+    await expect(s.page.getByText(/Indexed · 4 pages/)).toBeVisible({ timeout: 30_000 });
+
+    // The Night Coach, on demand: deadline and warm-up cards, each linking to something the student chooses.
+    await s.page.goto("/dashboard");
+    const night = s.page.getByRole("region", { name: /While you slept|Night Coach/ });
+    await night.getByRole("button", { name: "Check now" }).click();
+    const cards = night.getByRole("list", { name: "Morning brief" });
+    await expect(cards.getByText("Regression worksheet is due", { exact: false })).toBeVisible();
+    await expect(cards.getByText("Diagnostician")).toBeVisible();
+    await expect(night.getByRole("link", { name: "see what it did" })).toBeVisible();
+    await cards.getByRole("listitem").filter({ hasText: "Diagnostician" }).getByRole("link", { name: "Open" }).click();
+    await expect(s.page).toHaveURL(/\/catch-up\?doc=/);
+
+    // Learn your way: Listen shows a host-and-tutor transcript where every tutor line has its page.
+    await s.page.getByRole("group", { name: "Learn your way" }).getByRole("button", { name: "Listen" }).click();
+    const transcript = s.page.getByRole("list", { name: "Lesson transcript" });
+    await expect(transcript.getByText("Host").first()).toBeVisible();
+    await expect(transcript.getByText("Tutor").first()).toBeVisible();
+    await expect(transcript.getByRole("link", { name: /^p\. \d$/ }).first()).toBeVisible();
+    await expect(s.page.getByRole("heading", { name: "Summary" })).toBeHidden();
+    await s.page.getByRole("group", { name: "Learn your way" }).getByRole("button", { name: "Read" }).click();
+    await expect(s.page.getByRole("heading", { name: "Summary" })).toBeVisible();
+
+    // Growth: Start my recovery shows each lecture's standing and the next move.
+    await s.page.goto("/recover");
+    const growth = s.page.getByRole("region", { name: "Keep growing" });
+    await expect(growth).toContainText("statistics_module_4.pdf");
+    await expect(growth.getByRole("link", { name: /3-minute warm-up/ })).toBeVisible();
   } finally {
     await s.cleanup();
   }

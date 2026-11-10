@@ -9,8 +9,11 @@ import { formatMinutes } from "@/lib/time";
 export const sliderTotal = (weeklyTotal: number) => Math.ceil(weeklyTotal / 30) * 30;
 
 function dayList(days: { weekday: number; extra: number }[]) {
+  const set = days.map((d) => d.weekday).join(",");
+  if (set === "0,1,2,3,4,5,6") return "every day";
+  if (set === "0,1,2,3,4") return "every weekday";
   const names = days.map((d) => WEEKDAY_NAMES[d.weekday]);
-  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0];
+  return `on ${names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : names[0]}`;
 }
 
 /** "Why every route is short" plus one practical next step (computed by the planner, never by the AI). */
@@ -31,7 +34,7 @@ export default function NextStepCard({ step, currentWeekly, onTryWeekly }: { ste
       {step.kind === "more_time" ? (
         <>
           <p className="next-step-fix">
-            <strong>Your next step:</strong> add about {formatMinutes(Math.round((sliderTotal(step.weeklyTotal) - currentWeekly) / step.days.length / 5) * 5)} on{" "}
+            <strong>Your next step:</strong> add about {formatMinutes(Math.round((sliderTotal(step.weeklyTotal) - currentWeekly) / step.days.length / 5) * 5)}{" "}
             {dayList(step.days)} ({formatMinutes(sliderTotal(step.weeklyTotal) - currentWeekly)} more a week). Then the deadline-first route fits.
           </p>
           <button type="button" className="btn small primary" onClick={() => onTryWeekly(sliderTotal(step.weeklyTotal))}>
@@ -41,7 +44,7 @@ export default function NextStepCard({ step, currentWeekly, onTryWeekly }: { ste
       ) : (
         <>
           <p className="next-step-fix">
-            <strong>Your next step:</strong> even studying 12 hours a day can&apos;t fit &quot;{step.assignmentTitle}&quot; in time, so ask your lecturer for an
+            <strong>Your next step:</strong> even 8 hours of study a day can&apos;t fit &quot;{step.assignmentTitle}&quot; in time, so ask your lecturer for an
             extension. Here&apos;s a request you can edit and send.
           </p>
           <details className="next-step-request">

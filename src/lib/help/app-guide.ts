@@ -121,6 +121,34 @@ export const APP_GUIDE: GuideSection[] = [
       "The Learning universe is a 3D map where every island is one of your courses, coloured by your approved plan progress.",
   },
   {
+    id: "agent-team",
+    title: "Your agent team and Start my recovery",
+    where: "Start my recovery (/recover) in the sidebar; Where you are panel on each catch-up pack (/catch-up)",
+    keywords: ["agent", "agents", "team", "diagnostician", "quizmaster", "warm", "warmup", "mastery", "map", "bridge", "know", "start", "recover", "practise", "practice", "rehearsal", "timed", "hint"],
+    text:
+      "CatchUp works as a small agent team. The Diagnostician writes a 3-minute warm-up from a missed lecture's own pages; you tap how sure you are after each answer, and the mastery map shows each concept as known, shaky, not yet or confidently wrong, with the bridge: the gaps in the order to work on them. " +
+      "The Quizmaster practises those gaps with hints before answers and a soft timer; a timed exam rehearsal (45 seconds a question, no hints) opens once a concept is known. You can answer by voice where the browser supports it. " +
+      "I am the Coach: I can read your mastery map and ask the Quizmaster to prepare practice. Start my recovery shows the four steps and what each agent did. Grading and plan numbers are done by code, not by AI.",
+  },
+  {
+    id: "night-coach",
+    title: "The Night Coach and your morning brief",
+    where: "Mission control (/dashboard), card While you slept; turn it off in Preferences (/settings) under Daily check-in",
+    keywords: ["night", "coach", "morning", "brief", "overnight", "slept", "background", "scheduled", "automatic"],
+    text:
+      "Each night the Night Coach checks your deadlines, what you know and your plan. It leaves a morning brief of up to four cards on Mission control: a re-plan waiting for approval, the next deadline, a warm-up for a lecture you haven't checked, and a short practice the Quizmaster prepared on your biggest gap. " +
+      "It never saves a plan or changes anything; every card is yours to open or dismiss. Use Check now to run it straight away. It follows the same Daily check-in switch.",
+  },
+  {
+    id: "listen",
+    title: "Learn your way: read, listen or practise",
+    where: "Catch-up pack (/catch-up), Learn your way buttons above the summary",
+    keywords: ["listen", "audio", "read", "aloud", "voice", "podcast", "hear", "learn", "way", "style", "accessibility"],
+    text:
+      "Each catch-up pack can be read (summary and key terms with pages), heard as a two-voice lesson (a host asks, a tutor answers only with sentences from your notes, read aloud on your device), or practised with the agent team. " +
+      "Switch any time; your choice is remembered on this device. CatchUp personalises on what you know, not on a learning-style label.",
+  },
+  {
     id: "checkin",
     title: "The daily check-in",
     where: "Mission control (/dashboard); switch it off in Preferences (/settings) under Daily check-in",

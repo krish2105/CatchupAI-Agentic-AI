@@ -5,6 +5,7 @@ import { useEffect, useRef, useState } from "react";
 import { api, ClientApiError } from "@/lib/client/api";
 import { STATUS_LABEL, type Confidence } from "@/lib/mastery/elo";
 import type { AnswerResult, SessionInfo } from "@/lib/mastery/service";
+import VoiceAnswer from "./voice-answer";
 
 const CONFIDENCE: { value: Confidence; label: string }[] = [
   { value: "sure", label: "Sure" },
@@ -128,6 +129,13 @@ export default function AssessmentRunner({ session, documentId, onDone }: { sess
               </button>
             ))}
           </div>
+          <VoiceAnswer
+            options={item.options}
+            onAnswer={(choice, sureness) => {
+              setChosen(choice);
+              if (sureness) setConfidence(sureness);
+            }}
+          />
           {hints.length ? (
             <ul className="assessment-hints" aria-label="Hints">
               {hints.map((h, i) => <li key={i}><Lightbulb className="ic" aria-hidden="true" /> {h}</li>)}

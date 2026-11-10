@@ -1273,3 +1273,58 @@ html[data-theme="dark"] .recover-done { color: #8fe0b2; }
 .recover-team ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
 .recover-team li { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 .recover-team li span:not(.chip) { flex: 1 1 14em; min-width: 0; }
+
+/* Night Coach: morning brief */
+.morning-brief { margin-bottom: 16px; display: grid; gap: 10px; }
+.morning-brief h2 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; }
+.morning-brief h2 .ic { color: var(--accent); }
+.morning-brief > p { margin: 0; }
+.morning-brief-actions { display: flex; align-items: center; gap: 8px; }
+.brief-cards { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.brief-card { display: flex; gap: 10px; padding: 12px; border: 1px solid var(--stroke); border-radius: 16px; background: var(--surface); }
+.brief-card b { display: block; color: var(--heading); }
+.brief-card p { margin: 4px 0 6px; font-size: 13.5px; }
+.brief-icon { flex: 0 0 34px; height: 34px; border-radius: 12px; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.brief-icon .ic { width: 17px; height: 17px; color: var(--accent); }
+.brief-agent { display: inline-block; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); margin-bottom: 2px; }
+.brief-card.practice { border-color: color-mix(in srgb, var(--accent) 40%, var(--stroke)); }
+
+/* Learn your way: read, listen (two-voice lesson), practise */
+.learn-your-way { display: grid; gap: 12px; margin-bottom: 16px; }
+.learn-modes { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.learn-modes .label { margin-right: 4px; }
+.learn-modes .chip-toggle { display: inline-flex; align-items: center; gap: 6px; }
+.learn-modes .chip-toggle .ic { width: 15px; height: 15px; }
+.listen-lesson { display: grid; gap: 10px; }
+.listen-lesson h3 { display: flex; align-items: center; gap: 8px; margin: 0; }
+.listen-lesson h3 .ic { color: var(--accent); }
+.listen-lesson > p { margin: 0; }
+.listen-controls { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.listen-rate { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--muted); }
+.listen-rate select { font: inherit; padding: 4px 8px; border-radius: 10px; border: 1px solid var(--stroke-strong); background: var(--surface); color: var(--text); }
+.lesson-lines { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.lesson-line { display: grid; grid-template-columns: 64px minmax(0, 1fr); gap: 10px; padding: 9px 12px; border-radius: 14px; border: 1px solid transparent; }
+.lesson-line.tutor { background: color-mix(in srgb, var(--accent) 7%, transparent); }
+.lesson-line.current { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+.lesson-speaker { font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); padding-top: 2px; }
+.voice-answer { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; font-size: 13px; color: var(--muted); }
+
+/* Start my recovery: keep growing */
+.recover-growth { margin-bottom: 16px; display: grid; gap: 8px; }
+.recover-growth h2 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 17px; }
+.recover-growth h2 .ic { color: var(--accent); }
+.recover-growth p { margin: 0; }
+.recover-growth ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+.recover-growth li { display: grid; gap: 4px; }
+.growth-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.growth-row b { flex: 1 1 12em; min-width: 0; overflow-wrap: anywhere; }
+.growth-meter { flex: 0 0 120px; height: 8px; border-radius: 999px; background: var(--stroke); overflow: hidden; }
+.growth-meter span { display: block; height: 100%; background: var(--accent); border-radius: inherit; }
+
+/* Agent-team cards: same inner spacing as the catch-up pack cards */
+.next-step-card, .mastery-panel, .listen-lesson, .morning-brief, .recover-step, .recover-growth, .recover-team { padding: 20px 22px; }
+.recover-team { margin-bottom: 16px; }
+.morning-brief { margin-top: 18px; }
+@media (max-width: 720px) {
+  .next-step-card, .mastery-panel, .listen-lesson, .morning-brief, .recover-step, .recover-growth, .recover-team { padding: 16px; }
+}

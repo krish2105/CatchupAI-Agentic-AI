@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { scriptedRuntimeAllowed } from "@/lib/agents/runtime";
 import { runCheckins, type CheckinResult } from "@/lib/checkin/service";
+import { runNightCoach, type NightCoachResult } from "@/lib/coach/night";
 import { nudgeMailer } from "@/lib/nudges/mailer";
 import { sendDueNudges } from "@/lib/nudges/service";
 import { adminClient } from "@/lib/supabase/admin";
@@ -9,7 +10,8 @@ import { adminClient } from "@/lib/supabase/admin";
 /**
  * Daily job, called by the scheduler with `Authorization: Bearer $CRON_SECRET`:
  * 1. proactive check-ins (drafts a re-plan for students who are slipping; never approves anything), always;
- * 2. opt-in study nudges, only when SMTP is configured. Each message carries RFC 8058 one-click unsubscribe
+ * 2. the Night Coach: a morning brief per student (prepares practice with the Quizmaster; saves nothing else);
+ * 3. opt-in study nudges, only when SMTP is configured. Each message carries RFC 8058 one-click unsubscribe
  *    headers as well as a visible link.
  */
 export async function GET(request: Request) {
@@ -28,8 +30,15 @@ export async function GET(request: Request) {
   } catch {
     checkins = { error: "failed" };
   }
+  // After the check-ins, so a re-plan drafted tonight appears in the brief.
+  let coach: NightCoachResult | { error: "failed" };
+  try {
+    coach = await runNightCoach({ admin: adminClient(), now, ownerIds: only });
+  } catch {
+    coach = { error: "failed" };
+  }
   const mailer = nudgeMailer();
-  if (!mailer) return NextResponse.json({ checkins, nudges: { skipped: "mail_not_configured" } });
+  if (!mailer) return NextResponse.json({ checkins, coach, nudges: { skipped: "mail_not_configured" } });
   const appUrl = (process.env.NEXT_PUBLIC_APP_URL || new URL(request.url).origin).replace(/\/$/, "");
   const nudges = await sendDueNudges({
     admin: adminClient(),
@@ -46,7 +55,7 @@ export async function GET(request: Request) {
       });
     },
   });
-  return NextResponse.json({ checkins, nudges });
+  return NextResponse.json({ checkins, coach, nudges });
 }
 
 /** Constant-time comparison so response timing doesn't reveal how much of the secret matched. */

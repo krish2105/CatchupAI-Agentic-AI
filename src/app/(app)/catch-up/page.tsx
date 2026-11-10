@@ -3,6 +3,9 @@ import Link from "next/link";
 import { BookOpen, FileText, LifeBuoy } from "lucide-react";
 import { AddToPlan, CheckQuestions, PackCheck } from "@/components/features/catchup/pack-actions";
 import MasteryPanel from "@/components/features/mastery/mastery-panel";
+import LearnYourWay from "@/components/features/catchup/learn-your-way";
+import ListenLesson from "@/components/features/catchup/listen-lesson";
+import { buildLesson } from "@/lib/catchup/lesson";
 import { getMasteryMap, getSession } from "@/lib/mastery/service";
 import { catchupGains, packTopic } from "@/lib/catchup/gain";
 import { getPracticeEvidence } from "@/lib/quiz/service";
@@ -80,24 +83,29 @@ export default async function CatchupPage({ searchParams }: { searchParams: Prom
             <ListenButton text={listenText} />
           </header>
           {masteryMap ? <MasteryPanel documentId={docId!} initialMap={masteryMap} initialSession={openSession} /> : null}
-          <div className="pack-grid">
-            <section className="card pack-card" aria-labelledby="pack-summary">
-              <h3 id="pack-summary">Summary</h3>
-              <ul className="pack-summary">
-                {pack.summary.map((s, i) => (
-                  <li key={i}>{s.text} <a className="cite-chip" href={`/api/documents/${docId}/source?page=${s.page}`} target="_blank" rel="noopener noreferrer">p. {s.page}</a></li>
-                ))}
-              </ul>
-            </section>
-            <section className="card pack-card" aria-labelledby="pack-terms">
-              <h3 id="pack-terms">Key terms</h3>
-              <dl className="pack-terms">
-                {pack.keyTerms.map((t) => (
-                  <div key={t.term}><dt>{t.term} <span className="muted">p. {t.page}</span></dt><dd>{t.quote}</dd></div>
-                ))}
-              </dl>
-            </section>
-          </div>
+          <LearnYourWay
+            listen={<ListenLesson lines={buildLesson(pack, result.filename)} documentId={docId!} />}
+            read={
+              <div className="pack-grid">
+                <section className="card pack-card" aria-labelledby="pack-summary">
+                  <h3 id="pack-summary">Summary</h3>
+                  <ul className="pack-summary">
+                    {pack.summary.map((s, i) => (
+                      <li key={i}>{s.text} <a className="cite-chip" href={`/api/documents/${docId}/source?page=${s.page}`} target="_blank" rel="noopener noreferrer">p. {s.page}</a></li>
+                    ))}
+                  </ul>
+                </section>
+                <section className="card pack-card" aria-labelledby="pack-terms">
+                  <h3 id="pack-terms">Key terms</h3>
+                  <dl className="pack-terms">
+                    {pack.keyTerms.map((t) => (
+                      <div key={t.term}><dt>{t.term} <span className="muted">p. {t.page}</span></dt><dd>{t.quote}</dd></div>
+                    ))}
+                  </dl>
+                </section>
+              </div>
+            }
+          />
           <section className="card pack-card" aria-labelledby="pack-check">
             <h3 id="pack-check">Check yourself</h3>
             {pack.questions.length ? <CheckQuestions questions={pack.questions} /> : <p className="muted">This document is too short for check questions.</p>}

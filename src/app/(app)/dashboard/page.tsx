@@ -1,6 +1,8 @@
 import GettingStarted from "@/components/features/activation/getting-started";
 import CheckinCard from "@/components/features/recovery/checkin-card";
 import { getProactiveDraft } from "@/lib/checkin/service";
+import MorningBrief from "@/components/features/coach/morning-brief";
+import { latestBrief } from "@/lib/coach/night";
 import { TrackerGlance } from "@/components/features/insights/recovery-tracker";
 import { getActivationFacts } from "@/lib/activation/service";
 import { getTracker } from "@/lib/db/tracker";
@@ -27,7 +29,7 @@ export default async function DashboardPage() {
   const { supabase, user } = await requirePageUser("/dashboard");
   const now = await renderTime();
   // The glance only uses per-assignment states, which don't depend on the time zone.
-  const [overview, profile, plan, active, runs, practice, tracker, activation, checkin] = await Promise.all([
+  const [overview, profile, plan, active, runs, practice, tracker, activation, checkin, brief] = await Promise.all([
     getOverview(supabase),
     getProfile(supabase, user.id),
     computePlan(supabase, user.id, { now }),
@@ -37,6 +39,7 @@ export default async function DashboardPage() {
     getTracker(supabase, "UTC", now),
     getActivationFacts(supabase),
     getProactiveDraft(supabase, now),
+    latestBrief(supabase, now).catch(() => null),
   ]);
   const tz = profile.timezone;
   const firstName = (profile.displayName ?? "").split(" ")[0] || "there";
@@ -88,6 +91,7 @@ export default async function DashboardPage() {
         </div>
       </PhotoHero>
       <GettingStarted facts={activation} />
+      <MorningBrief initial={brief} />
 
       {checkin ? (
         <CheckinCard proposal={checkin.proposal} reason={checkin.reason} timezone={tz} courseNames={Object.fromEntries(overview.courses.map((c) => [c.id, c.title]))} currentPlan={currentPlan} />
