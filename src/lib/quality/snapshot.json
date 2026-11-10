@@ -2,7 +2,7 @@
   "tests": {
     "unit": 307,
     "integration": 193,
-    "e2e": 82
+    "e2e": 83
   },
   "eval": {
     "ranAt": "2026-11-05T08:17:59.882Z",
