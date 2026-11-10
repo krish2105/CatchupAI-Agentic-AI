@@ -27,7 +27,7 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 
 ## How agentic is it?
 
-One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **eight tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp, and suggests follow-up questions. The model decides which to call, in what order and with what arguments, for up to 8 turns:
+One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, Gemini or OpenAI model), with **eight tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp, and suggests follow-up questions. A "Guide me, don't tell me" switch turns it into a Socratic tutor: one guiding question at a time from the student's notes, the answer after two attempts or on request. The model decides which to call, in what order and with what arguments, for up to 8 turns:
 
 | Tool | Purpose | Can it change data? |
 | --- | --- | --- |
@@ -82,7 +82,7 @@ each database query stays inside one region.
 | Learning trail: student-confirmed prerequisites drawn in the 3D universe with a study order | ✅ |
 | Guided judge tour on the one-click demo; installable app (PWA) | ✅ |
 | One-click judge demo (anonymous account + synthetic data, Turnstile-ready, 24 h cleanup) | ✅ |
-| 38-case evaluation (`npm run eval` → `evals/REPORT.md`) plus 12 live-model cases; recorded live runs replayed at `/watch` | ✅ 38/38 on each case's latest result; live cases 12/12 on their latest run |
+| 41-case evaluation (`npm run eval` → `evals/REPORT.md`) plus live-model cases; recorded live runs replayed at `/watch` | ✅ 38/38 on each case's latest result; live cases 12/12 on their latest run; the 3 on-topic guardrail cases (T9–T11, added 9 Nov) not run live yet |
 | Light / dark / system themes, reduced motion, 3D on/off, no-WebGL fallback, keyboard + screen-reader paths | ✅ |
 | Missed Lecture Catch-up Pack: page-cited summary, key terms, self-check questions and a 30-minute plan (built without AI), plus read-aloud | ✅ |
 | Opt-in study emails (morning digest, missed-block alert, signed one-click unsubscribe) and 👍/👎 + written feedback | ✅ (sending needs SMTP on the server: `python3 scripts/configure-nudge-email.py`) |
@@ -192,7 +192,7 @@ npm run typecheck && npm run lint
 npm test                    # unit (Vitest)
 npm run test:integration    # real local Supabase: RLS, storage, RAG, approval, agent tools
 npm run test:e2e            # Playwright against a production build on :3100
-npm run eval                # 38-case agent eval + RAG eval + 3 agentic scenarios → evals/REPORT.md, evals/RAG_REPORT.md
+npm run eval                # 41-case agent eval + RAG eval + 3 agentic scenarios → evals/REPORT.md, evals/RAG_REPORT.md
 npm run preflight           # environment checks (add -- --production before deploying)
 ```
 

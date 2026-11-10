@@ -1186,3 +1186,6 @@ html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: 
   body, .shell, .main, .content { background: #fff !important; color: #000 !important; }
   .card { box-shadow: none !important; border: 1px solid #ccc !important; break-inside: avoid; }
 }
+
+/* Copilot: "Guide me, don't tell me" switch under the message box. */
+.guide-toggle { display: flex; align-items: center; gap: 10px; padding: 0 23px 8px; font-size: 11px; color: var(--muted); }
