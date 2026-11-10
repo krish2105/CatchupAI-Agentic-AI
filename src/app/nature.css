@@ -1133,6 +1133,12 @@ html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: 
 /* Home hero: the recorded missed-lecture run beside the copy, so the first screen shows the product working. */
 .photo-hero.has-aside { grid-template-columns: minmax(0, 1fr) minmax(0, 440px); }
 .photo-hero-aside { position: relative; z-index: 1; padding: 28px 28px 28px 0; }
+.photo-hero-aside:empty { display: none; }
+.photo-hero.has-aside:has(> .photo-hero-aside:empty) { grid-template-columns: minmax(0, 1fr); }
+.run-proof-wrap { position: relative; }
+.run-proof-wrap .run-proof-meta { padding-right: 40px; }
+.run-proof-close { position: absolute; top: 10px; right: 10px; width: 32px; height: 32px; border-radius: 10px; }
+.run-proof-close .ic { width: 16px; height: 16px; }
 /* Near-opaque, not glass: over the light photo the muted text on --glass fell to 3.9:1. */
 .run-proof { margin: 0; padding: 18px 20px; display: grid; gap: 10px; border-radius: 20px; border: 1px solid var(--stroke-strong); background: color-mix(in srgb, var(--surface) 95%, transparent); box-shadow: 0 18px 40px -24px var(--shadow); font-size: 13px; line-height: 1.45; }
 .run-proof-meta { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; color: var(--muted); font-size: 12px; }

@@ -510,6 +510,28 @@ test("anyone can watch a recorded real run step by step, labelled as recorded, w
   await context.close();
 });
 
+test("the home page's recorded run card can be closed and stays closed for the session; the demo button still works", async ({ browser }) => {
+  const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
+  const page = await context.newPage();
+  try {
+    await page.goto("/");
+    const card = page.locator(".run-proof");
+    await expect(card).toBeVisible();
+    await expect(card.getByText("Recorded real run · not live")).toBeVisible();
+    await page.getByRole("button", { name: "Close the recorded run" }).click();
+    await expect(card).toHaveCount(0);
+    // The hero falls back to one column; its actions keep working.
+    await expect(page.getByRole("heading", { level: 1, name: /Missed a lecture/ })).toBeVisible();
+    await expect(page.getByRole("button", { name: "Try the demo, no sign-up" }).or(page.getByRole("link", { name: "Try the demo, no sign-up" }))).toBeVisible();
+    await page.reload();
+    await expect(page.locator(".run-proof")).toHaveCount(0);
+    await page.getByRole("link", { name: "Watch a real run" }).click();
+    await expect(page).toHaveURL(/\/watch$/);
+  } finally {
+    await context.close();
+  }
+});
+
 test("public status page reports the app, database and AI live, with uptime and incident notes", async ({ browser }) => {
   const context = await browser.newContext({ storageState: { cookies: [], origins: [] } });
   const page = await context.newPage();
