@@ -7,6 +7,7 @@ import { listCourses } from "@/lib/db/courses";
 import { getProfile } from "@/lib/db/profiles";
 import { localCalendarSummary } from "@/lib/planner/local-calendar";
 import { getActivePlan } from "@/lib/db/tasks";
+import { findGuideSections, guideToolResult } from "@/lib/help/app-guide";
 import { ApiError } from "@/lib/http/errors";
 import type { WorkItem } from "@/lib/planner/engine";
 import { confirmedMemories, suggestMemory } from "@/lib/memory/service";
@@ -20,8 +21,11 @@ const LIMITS = { maxSearches: 4, maxStudyItems: 6, maxDrafts: 1, maxRefusedDraft
 
 class ToolDenied extends Error {}
 
-/** Tools whose results are the student's own data, so facts taken from them need no page citation (see tool-fact-support.ts). */
-const DATA_TOOLS = new Set(["get_study_preferences", "list_courses", "list_assignments", "get_learning_progress", "draft_recovery_plan", "get_student_memory"]);
+/**
+ * Tools whose results are the student's own data, or the app's own guide, so facts taken from them need no page
+ * citation (see tool-fact-support.ts).
+ */
+const DATA_TOOLS = new Set(["get_study_preferences", "list_courses", "list_assignments", "get_learning_progress", "draft_recovery_plan", "get_student_memory", "get_app_help"]);
 
 /** Wraps a tool body: records a real event for every execution and returns model-safe errors. */
 async function traced<T>(
@@ -288,4 +292,16 @@ export const listCoursesTool = tool({
     }),
 });
 
-export const RECOVERY_TOOLS = [getStudyPreferences, listCoursesTool, listAssignmentsTool, searchCourseMaterialTool, getLearningProgress, draftRecoveryPlan, getStudentMemory, suggestMemoryTool];
+export const getAppHelpTool = tool({
+  name: "get_app_help",
+  description: "Read CatchUp's own help guide for a question about the app itself: what it can do, where a feature is, how routes, approval, the schedule, the daily check-in, settings or privacy work. Returns the best-matching sections and the list of other topics. Reads no student data.",
+  parameters: z.object({ topic: z.string().min(2).max(200).describe("The student's question about the app, in a few words.") }),
+  execute: (input, ctx?: RunContext<AgentContext>) =>
+    // Only the topic's length goes into the trace: the wording is the student's.
+    traced(ctx, "get_app_help", { length: input.topic.length }, async () => {
+      const sections = findGuideSections(input.topic);
+      return { result: guideToolResult(sections), outcome: `Guide: ${sections.map((s) => s.title).join("; ")}` };
+    }),
+});
+
+export const RECOVERY_TOOLS = [getStudyPreferences, listCoursesTool, listAssignmentsTool, searchCourseMaterialTool, getLearningProgress, draftRecoveryPlan, getStudentMemory, suggestMemoryTool, getAppHelpTool];

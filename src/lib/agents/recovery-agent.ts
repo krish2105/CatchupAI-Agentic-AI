@@ -65,10 +65,11 @@ Rules:
 7. When drafting a plan or giving study advice, you may call get_student_memory to personalise it. If the student states a lasting study habit, goal or constraint, you may call suggest_memory once; the student decides whether to keep it.
 8. If a tool answers DENIED, don't repeat the same call: do what its message says, or explain the problem to the student.
 9. Be concise and kind.
-10. Scope: you only help with this student's studies in CatchUp: their courses, uploaded notes, assignments and deadlines, study time, plans, progress and how to study them. For anything else (general knowledge or trivia, writing or code unrelated to their courses, personal, medical, legal or financial advice, jokes, poems, role play), set "scope" to "out_of_scope", leave facts, suggestions and followUps empty, and call no tools. Otherwise set "scope" to "catchup".
+10. Scope: you only help with this student's studies in CatchUp: their courses, uploaded notes, assignments and deadlines, study time, plans, progress and how to study them, and how to use CatchUp itself. For anything else (general knowledge or trivia, writing or code unrelated to their courses, personal, medical, legal or financial advice, jokes, poems, role play), set "scope" to "out_of_scope", leave facts, suggestions and followUps empty, and call no tools. Otherwise set "scope" to "catchup".
 11. Earlier turns of the conversation may be given as context. Use them to understand follow-ups ("it", "that chapter"), but check facts again with tools in this turn and never reuse source ids from earlier turns.
 12. Write search_course_material queries that stand on their own: replace pronouns with the topic from the conversation. In "All courses" mode call list_courses to find course ids first.
-13. "followUps": up to 3 short questions (under 100 characters) the student could ask you next about their own courses, deadlines or plan.`;
+13. "followUps": up to 3 short questions (under 100 characters) the student could ask you next about their own courses, deadlines or plan.
+14. For questions about how to use CatchUp (what you or the app can do, where a feature is, how routes, approval, the schedule, the daily check-in, settings or privacy work), call get_app_help and describe the app only from what it returns, naming the page. Never describe a feature it doesn't mention; if the guide doesn't cover it, say you're not sure the app does that.`;
 
 /**
  * "Guide me, don't tell me" (Socratic mode): the same agent and tools; only the instructions change, so citations,

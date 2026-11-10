@@ -12,6 +12,6 @@ Record on the **deployed** app in a fresh browser profile, with synthetic data o
 | 2:45–3:05 | Study schedule | Reload; show the week grid; tick one block | "The plan persists, in my time zone." |
 | 3:05–3:30 | Practice arena | Take a 5-question check; open the source link of a wrong answer | "Questions come from my own notes with the source page. Missed concepts come back for revision tomorrow; retests target them." |
 | 3:30–3:50 | Failure + recovery | Edit an assignment's estimate, then try to approve an older draft | "Inputs changed, so the system refuses the stale plan instead of saving something wrong — recompute and approve again." |
-| 3:50–4:00 | Close | README architecture + eval report | "Next.js, Supabase with row-level security, an OpenAI Agents SDK agent with seven permission-checked tools, a deterministic planner, 260+ automated tests and a 30-case evaluation." |
+| 3:50–4:00 | Close | README architecture + eval report | "Next.js, Supabase with row-level security, an OpenAI Agents SDK agent with nine permission-checked tools, a deterministic planner, 260+ automated tests and a 30-case evaluation." |
 
 Capture as stills: briefing, tool timeline with a citation, the three routes, the approval change list, the week schedule, a quiz result with its source.
