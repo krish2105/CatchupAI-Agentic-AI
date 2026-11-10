@@ -126,6 +126,11 @@ const GEMINI_BASE_URL = "https://generativelanguage.googleapis.com/v1beta/openai
  */
 type Env = Record<string, string | undefined>;
 
+/** OpenAI's reasoning models (o-series, GPT-5) reject a fixed temperature; Gemini and older chat models accept it. */
+export function supportsTemperature(model: string, gemini: boolean): boolean {
+  return gemini || !/^(o\d|gpt-5)/i.test(model.trim());
+}
+
 export function judgeClientFromEnv(env: Env = process.env): JudgeClient | null {
   const provider = env.AI_PROVIDER?.trim().toLowerCase();
   const useGemini = provider === "gemini" || (provider !== "openai" && !env.OPENAI_API_KEY && Boolean(env.GEMINI_API_KEY));
@@ -137,7 +142,7 @@ export function judgeClientFromEnv(env: Env = process.env): JudgeClient | null {
     model,
     async complete(system, user, signal) {
       const res = await openai.chat.completions.create(
-        { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], response_format: { type: "json_object" }, temperature: 0 },
+        { model, messages: [{ role: "system", content: system }, { role: "user", content: user }], response_format: { type: "json_object" }, ...(supportsTemperature(model, useGemini) ? { temperature: 0 } : {}) },
         { signal },
       );
       return { text: res.choices[0]?.message?.content ?? "", usage: { inputTokens: res.usage?.prompt_tokens ?? 0, outputTokens: res.usage?.completion_tokens ?? 0 } };

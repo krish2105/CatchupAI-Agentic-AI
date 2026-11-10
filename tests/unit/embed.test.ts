@@ -19,7 +19,11 @@ describe("embeddings", () => {
     expect(getEmbedder()).toBeNull();
     vi.stubEnv("GEMINI_API_KEY", "test-gemini");
     expect(getEmbedder()).toMatchObject({ provider: "gemini", model: "gemini-embedding-001" });
+    // An OpenAI key alone doesn't move embeddings off Gemini (the chat model still runs on Gemini): see ADR-084.
     vi.stubEnv("OPENAI_API_KEY", "test-openai");
+    expect(getEmbedder()?.provider).toBe("gemini");
+    // Once OpenAI is the chat provider (key and model), embeddings follow it.
+    vi.stubEnv("OPENAI_MODEL", "test-model");
     expect(getEmbedder()?.provider).toBe("openai");
     vi.stubEnv("AI_PROVIDER", "gemini");
     expect(getEmbedder()?.provider).toBe("gemini");

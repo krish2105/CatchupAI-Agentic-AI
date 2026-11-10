@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { aiProcessors } from "@/lib/ai/providers";
 import { PolicyPage, type PolicySection } from "@/lib/legal/policy";
+
+// The AI processors this deployment really uses. With none configured, the notice describes Gemini (production).
+const ai = aiProcessors();
+const showGemini = ai.gemini || !ai.openai;
 
 export const metadata: Metadata = { title: "Privacy", description: "What CatchUp AI stores about you, who processes it, how long it is kept and how to export or delete it." };
 
@@ -49,7 +54,10 @@ const sections: PolicySection[] = [
       <>
         <ul>
           <li><strong>Supabase</strong> (database, sign-in, file storage) and <strong>Vercel</strong> (hosting): servers in Seoul, South Korea.</li>
-          <li><strong>Google Gemini API</strong> (the AI model and the search embeddings): your question, the passages from your notes that the copilot retrieves, and the deadlines and study times it reads (including times you keep free, but never the reason for them) are sent to Google to produce an answer. Uploaded notes are also sent in pieces to create search embeddings, and a scanned PDF without selectable text is sent whole so the model can read its text. This project uses Gemini&apos;s free tier; under Google&apos;s terms for unpaid use, Google may use that content to improve its products, and people may review it. <strong>Don&apos;t upload anything sensitive</strong>, such as health or financial details.</li>
+          {ai.openai ? (
+            <li><strong>OpenAI API</strong> (the AI model{process.env.EMBEDDING_PROVIDER?.trim().toLowerCase() === "gemini" ? "" : " and the search embeddings"}): your question, the passages from your notes that the copilot retrieves, and the deadlines and study times it reads (including times you keep free, but never the reason for them) are sent to OpenAI to produce an answer. Uploaded notes may also be sent in pieces to create search embeddings. The app asks OpenAI not to store its responses, and under OpenAI&apos;s API terms, data sent through the API isn&apos;t used to train its models by default. <strong>Don&apos;t upload anything sensitive</strong>, such as health or financial details.</li>
+          ) : null}
+          {showGemini ? <li><strong>Google Gemini API</strong> (the AI model and the search embeddings): your question, the passages from your notes that the copilot retrieves, and the deadlines and study times it reads (including times you keep free, but never the reason for them) are sent to Google to produce an answer. Uploaded notes are also sent in pieces to create search embeddings, and a scanned PDF without selectable text is sent whole so the model can read its text. This project uses Gemini&apos;s free tier; under Google&apos;s terms for unpaid use, Google may use that content to improve its products, and people may review it. <strong>Don&apos;t upload anything sensitive</strong>, such as health or financial details.</li> : null}
           <li><strong>Email delivery</strong> (Gmail SMTP): sign-in codes and, only if you turn them on, study reminder emails.</li>
           <li><strong>Cloudflare Turnstile</strong>: the bot check on the sign-in and demo buttons.</li>
           <li><strong>Stripe</strong> (only for organisations on a paid plan): the admin&apos;s email, the organisation&apos;s id and the payment details they enter at checkout. Card numbers stay with Stripe; CatchUp AI stores only the Stripe customer and subscription ids, the plan and the seat limit.</li>
