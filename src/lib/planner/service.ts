@@ -12,6 +12,7 @@ import { getCalendarPrefs, getCalendarState } from "@/lib/calendar-prefs/service
 import { HORIZON_RULES, planScenarios, scaleWeekly, type PlanResult, type ScenarioKey, type WorkItem } from "./engine";
 import { buildCalendarRules, hasPlanningRules, type LocalCalendarPrefs } from "./local-calendar";
 import { applyCompletedWork } from "./progress";
+import { findNextStep, type NextStep } from "./next-step";
 
 export const PROPOSAL_TTL_MS = 6 * 60 * 60_000;
 export const REVIEW_MINUTES = 30;
@@ -123,7 +124,7 @@ export function inputHash(profile: Profile, assignments: Assignment[], items: Wo
   });
 }
 
-export type ComputedPlan = PlanResult & { inputHash: string; timezone: string; weeklyMinutes: number[]; whatIf: boolean };
+export type ComputedPlan = PlanResult & { inputHash: string; timezone: string; weeklyMinutes: number[]; whatIf: boolean; nextStep: NextStep | null };
 
 /** Computes the three scenarios for the signed-in student. `weeklyTotal` is a what-if override (never saved). */
 export async function computePlan(
@@ -142,7 +143,9 @@ export async function computePlan(
   const calendar = buildCalendarRules(localCalendar, profile.timezone, opts.now - DAY, opts.now + (HORIZON_RULES.maxDays + 2) * DAY);
   const availability = { timezone: profile.timezone, weeklyMinutes, studyStartTime: profile.studyStartTime, ...(calendar ? { calendar } : {}) };
   const plan = planScenarios({ items, availability, now: opts.now });
-  return { ...plan, inputHash: inputHash(profile, assignments, items, localCalendar), timezone: profile.timezone, weeklyMinutes, whatIf };
+  // When every route is short: why, and the smallest change that fixes it (deterministic; see next-step.ts).
+  const nextStep = findNextStep({ items, availability, now: opts.now, plan });
+  return { ...plan, inputHash: inputHash(profile, assignments, items, localCalendar), timezone: profile.timezone, weeklyMinutes, whatIf, nextStep };
 }
 
 export type ProposalDto = {

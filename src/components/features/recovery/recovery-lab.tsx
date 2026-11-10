@@ -9,6 +9,7 @@ import type { ScenarioKey } from "@/lib/planner/engine";
 import type { ComputedPlan, ProposalDto } from "@/lib/planner/service";
 import { formatDateTime, formatMinutes } from "@/lib/time";
 import ApprovalDialog from "./approval-dialog";
+import NextStepCard from "./next-step-card";
 import RouteTimeline from "./route-timeline";
 
 const ICON = { essential: Leaf, balanced: CalendarDays, full: Target } as const;
@@ -113,6 +114,7 @@ export default function RecoveryLab({
           </Notice>
         </div>
       ) : null}
+      {plan.nextStep && !whatIf ? <NextStepCard step={plan.nextStep} currentWeekly={savedTotal} onTryWeekly={setWeekly} /> : null}
       <div className="lab-top">
         <div className="card range-panel">
           <label htmlFor="weekly-range">
@@ -123,7 +125,7 @@ export default function RecoveryLab({
             id="weekly-range"
             type="range"
             min={0}
-            max={Math.max(2400, savedTotal)}
+            max={Math.max(2400, savedTotal, weekly)}
             step={30}
             value={weekly}
             onChange={(e) => setWeekly(Number(e.target.value))}

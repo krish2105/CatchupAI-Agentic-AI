@@ -1195,3 +1195,11 @@ html[data-theme="dark"] { --course-0: #22a47b; --course-1: #a9c3dd; --course-2: 
 
 /* Copilot: "Guide me, don't tell me" switch under the message box. */
 .guide-toggle { display: flex; align-items: center; gap: 10px; padding: 0 23px 8px; font-size: 11px; color: var(--muted); }
+
+/* Recovery lab: why every route is short, and one next step */
+.next-step-card { margin-bottom: 16px; display: grid; gap: 10px; border-color: var(--stroke-strong); }
+.next-step-card h2 { margin: 0; display: flex; align-items: center; gap: 8px; font-size: 18px; }
+.next-step-card h2 .ic { color: var(--accent); }
+.next-step-card p { margin: 0; }
+.next-step-card .btn { justify-self: start; }
+.next-step-request pre { white-space: pre-wrap; font: inherit; font-size: 14px; margin: 8px 0 0; padding: 12px; border-radius: 12px; background: var(--surface-2, var(--surface)); border: 1px solid var(--stroke); }

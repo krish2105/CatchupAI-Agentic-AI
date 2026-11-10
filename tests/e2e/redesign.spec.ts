@@ -109,6 +109,41 @@ test("recovery lab shows route timelines and the exact changes before approval",
   }
 });
 
+test("when every route is short, the lab explains why and its one next step makes the deadline-first route fit", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Statistics" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Big worksheet", dueAt: new Date(Date.now() + 3 * 86400_000).toISOString(), estimatedMinutes: 900 } });
+    await s.page.goto("/recovery");
+    const card = s.page.getByRole("region", { name: "Why every route is short" });
+    await expect(card).toBeVisible();
+    await expect(card).toContainText("Big worksheet");
+    await expect(card).toContainText("Every route includes this work");
+    await card.getByRole("button", { name: /^Try .+ a week$/ }).click();
+    await expect(s.page.getByText("STUDY TIME PER WEEK (WHAT-IF)")).toBeVisible();
+    const deadlineFirst = s.page.getByRole("group", { name: "Recovery routes" }).getByRole("button", { name: /Deadline first/ });
+    await expect(deadlineFirst).toContainText("Fits your time");
+  } finally {
+    await s.cleanup();
+  }
+});
+
+test("when no amount of study fits, the lab offers an extension request to copy", async ({ browser }) => {
+  const s = await freshStudent(browser);
+  try {
+    const course = await (await s.page.request.post("/api/courses", { data: { title: "Biology" } })).json();
+    await s.page.request.post("/api/assignments", { data: { courseId: course.course.id, title: "Lab report", dueAt: new Date(Date.now() + 2 * 86400_000).toISOString(), estimatedMinutes: 5000 } });
+    await s.page.goto("/recovery");
+    const card = s.page.getByRole("region", { name: "Why every route is short" });
+    await expect(card).toContainText("ask your lecturer for an extension");
+    await card.getByText("Show the extension request").click();
+    await expect(card.locator("pre")).toContainText('"Lab report"');
+    await expect(card.getByRole("button", { name: "Copy extension request" })).toBeVisible();
+  } finally {
+    await s.cleanup();
+  }
+});
+
 test("smart syllabus import proposes deadlines and saves only what the student confirms", async ({ browser }) => {
   test.setTimeout(90_000);
   const s = await freshStudent(browser);
