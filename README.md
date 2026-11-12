@@ -27,7 +27,18 @@ A student who has fallen behind uploads course PDFs and deadlines. **CatchUp AI*
 
 ## How agentic is it?
 
-One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, OpenAI model), with **nine tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp and how to use the app (from the app's own guide), and suggests follow-up questions. A "Guide me, don't tell me" switch turns it into a Socratic tutor: one guiding question at a time from the student's notes, the answer after two attempts or on request. The model decides which to call, in what order and with what arguments, for up to 8 turns:
+An **agent team** (OpenAI Agents SDK, OpenAI model), each agent with its own instructions, structured output and recorded run (`agent_runs.agent`), so every trace says which agent did what:
+
+| Agent | Job | What it can't do |
+| --- | --- | --- |
+| **Coach** (the copilot, `LearningRecoveryAgent`) | talks with the student, calls tools and the other agents, drafts plans | save, approve or delete anything |
+| **Diagnostician** | writes a 3-minute warm-up from the student's own lecture pages, to find where they start (known, shaky, not yet, confidently wrong) | grade, rate or plan: grading and mastery are code (`lib/mastery/elo.ts`) |
+| **Quizmaster** | writes practice on the gaps (hints before answers) and an opt-in timed rehearsal | see answer keys in the browser: keys are server-only |
+| **Night Coach** | runs in the daily job and leaves a morning brief; "Check now" runs it on demand | save a plan or change mastery |
+
+Every question an agent writes is checked against its source page, or replaced by a fill-the-gap question built in code; lecture text that reads like instructions to an AI is left out before any model sees it. The planner (and its "next step" when every route is short) is plain code.
+
+The Coach is **LearningRecoveryAgent**, with **eleven tools**. It keeps the conversation (the last few turns are context), answers only about the student's studies in CatchUp and how to use the app (from the app's own guide), and suggests follow-up questions. A "Guide me, don't tell me" switch turns it into a Socratic tutor: one guiding question at a time from the student's notes, the answer after two attempts or on request. The model decides which to call, in what order and with what arguments, for up to 8 turns:
 
 | Tool | Purpose | Can it change data? |
 | --- | --- | --- |
@@ -40,6 +51,8 @@ One agent, **LearningRecoveryAgent** (OpenAI Agents SDK, OpenAI model), with **n
 | `get_student_memory` | notes you asked it to remember | no |
 | `suggest_memory` | proposes one note | stored as a suggestion until you keep it |
 | `get_app_help` | sections of CatchUp's own help guide, for questions about the app | no |
+| `check_understanding` | asks the Diagnostician what the student already knows, per concept, and the order to work on gaps | no (reads warm-up results) |
+| `start_practice` | asks the Quizmaster to prepare practice on one lecture's gaps; returns a link (once per run) | stores practice questions only |
 
 A typical request makes 4–6 real tool calls (deadlines → availability → notes → draft), each recorded and shown in the timeline. Facts must cite a passage that actually supports them. Passages that try to instruct an AI are flagged and can't be cited. Nothing is saved, approved or deleted by the AI.
 
@@ -69,8 +82,9 @@ each database query stays inside one region.
 | Deterministic planner: **essential / balanced / full** routes, honest shortfall in minutes, what-if availability | ✅ |
 | Human approval gate: atomic, idempotent, refuses stale/expired/infeasible plans | ✅ |
 | Study schedule with completion, dashboard outlook, 3D learning universe from real data | ✅ |
-| **LearningRecoveryAgent** (OpenAI Agents SDK, OpenAI model): 9 permission-checked tools, multi-turn conversations, an on-topic guardrail and follow-up suggestions, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live-tested (see reviews/LIVE_AGENT_EVALUATION_REPORT.md); runs on OpenAI (ADR-088), not yet live-tested there |
+| **LearningRecoveryAgent** (OpenAI Agents SDK, OpenAI model): 11 permission-checked tools, multi-turn conversations, an on-topic guardrail and follow-up suggestions, live tool timeline, cited facts kept separate from suggestions, drafts plans for approval; model, time and tokens shown per run | ✅ live-tested (see reviews/LIVE_AGENT_EVALUATION_REPORT.md); runs on OpenAI (ADR-088), not yet live-tested there |
 | Knowledge checks generated from your own notes, server-graded, with source pages | ✅ (deterministic, not LLM-generated) |
+| Agent team: Diagnostician warm-up and mastery map, Quizmaster practice (hints, opt-in timed rehearsal), Night Coach morning brief, Listen lesson and voice answers, "Start my recovery" page | ✅ locally and in CI; in production after migrations 0025/0026 and the OpenAI key (owner steps) |
 | Nature Flow 3.0: alpine-morning / moonlit-forest themes, week schedule, floating-island 3D universe, ⌘K palette | ✅ |
 | One-click Missed Class Rescue, Smart Syllabus Import (confirm before save), Focus Sanctuary, data export and account deletion | ✅ |
 | Spaced revision (1/3/7/14 days from missed concepts), adaptive retests, baseline vs latest per topic | ✅ |
@@ -120,7 +134,7 @@ flowchart LR
   U[Student browser<br/>Next.js App Router · R3F 3D + DOM fallback] -->|cookie session · SSE| API[Route Handlers<br/>Zod · rate limits · structured errors]
   API --> RAG[Document pipeline<br/>PDF validation → page chunks → hybrid search]
   API --> PLAN[Deterministic planner<br/>EDF · 3 scenarios · shortfall]
-  API --> AGENT[LearningRecoveryAgent<br/>9 permission-checked tools]
+  API --> AGENT[Coach agent + specialists<br/>11 permission-checked tools]
   AGENT --> RAG
   AGENT --> PLAN
   AGENT -->|draft only| PROP[(Pending proposal)]
@@ -139,7 +153,9 @@ Next.js Route Handlers (Zod validation · structured errors · per-user DB rate 
    ├─ src/proxy.ts ............ session refresh + page guard (Next 16 "proxy")
    ├─ lib/rag ................. PDF validation (unpdf) → page chunks → hybrid search (RRF)
    ├─ lib/planner/engine.ts ... pure EDF scheduler, 3 scenarios, shortfall (no AI)
-   ├─ lib/agents .............. LearningRecoveryAgent + 8 typed tools (trusted context)
+   ├─ lib/agents .............. Coach (LearningRecoveryAgent) + 11 typed tools (trusted context)
+   ├─ lib/mastery ............. Diagnostician and Quizmaster agents, question validation, Elo mastery (code)
+   ├─ lib/coach ............... Night Coach pipeline (daily job)
    └─ lib/quiz ................ grounded cloze generator + server grading
    ▼
 Supabase: Auth · Postgres + RLS (composite owner FKs, column grants) · private Storage · pgvector
@@ -221,9 +237,10 @@ scripts/                 setup, fixtures, demo recording, uptime and evidence to
 
 ## Known limitations
 
-- The live model runs on Google's free tier: 20 requests a day per model and 10–90 s per answer when Google is busy. Paid quota would remove both limits.
+- The live copilot needs an OpenAI key on the server (`OPENAI_API_KEY`, `OPENAI_MODEL`); until it is set the app says so and the warm-up falls back to fill-the-gap questions. The recorded runs at `/watch` come from the earlier Gemini evaluation (4–9 Nov), before the app moved to OpenAI only.
 - PDF only (no slides, Word files or audio), ≤ 10 MB and ≤ 50 pages, processed synchronously. Scanned PDFs go through OCR (up to 20 pages).
-- Knowledge checks are fill-in-the-blank from your own sentences, not LLM-written questions.
+- The catch-up pack's knowledge checks are fill-in-the-blank from your own sentences; the warm-up and practice questions are written by the Diagnostician and Quizmaster agents and checked against the page, with the same fill-the-gap questions as the fallback.
+- Not yet tried with real students (the volunteer pilot is planned); voice answers need a browser with speech recognition (Chrome, Safari).
 - No institutional LMS integration (Moodle or Canvas) yet. The iOS app (`ios/`) wraps the web app and is not on the App Store.
 - Planner assumes one daily study window per day starting at a fixed local time.
 

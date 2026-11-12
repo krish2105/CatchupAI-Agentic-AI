@@ -9,7 +9,7 @@ import { ApiError } from "@/lib/http/errors";
 import { logEvent } from "@/lib/observability/log";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { Json, TablesInsert } from "@/lib/supabase/database.types";
-import { ItemsOutput, type ConceptSource, type ItemDraft } from "./items";
+import { conceptBlock, ItemsOutput, type ConceptSource, type ItemDraft } from "./items";
 
 /**
  * The agent team's specialists. Each is its own Agents SDK agent with its own instructions and structured output,
@@ -90,7 +90,7 @@ export async function runSpecialist(deps: {
   const startedAt = new Date();
   const input = [
     `Write ${perConcept} question${perConcept === 1 ? "" : "s"} for each concept below.`,
-    ...concepts.map((c, i) => `<concept index="${i + 1}" name="${c.concept.replace(/"/g, "'")}" page="${c.page}">\n${c.quote}\n</concept>`),
+    ...concepts.map((c, i) => conceptBlock(c, i + 1)),
   ].join("\n\n");
   const runContext = new RunContext<Record<string, never>>({});
   const runner = new Runner({ modelProvider: choice.provider, tracingDisabled: true, workflowName: `catchup-${deps.agent}` });

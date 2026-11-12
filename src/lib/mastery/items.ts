@@ -4,6 +4,7 @@
  */
 import { z } from "zod";
 import { claimSupport } from "@/lib/rag/claim-support";
+import { looksLikeInjection } from "@/lib/rag/injection";
 
 export type Difficulty = "easy" | "medium" | "hard";
 export type ItemDraft = { concept: string; prompt: string; options: string[]; answerIndex: number; page: number; difficulty: Difficulty; hint: string };
@@ -23,6 +24,24 @@ export const ItemsOutput = z.object({
     }),
   ),
 });
+
+/**
+ * Lecture text is untrusted data. Concepts whose name or quote looks like instructions aimed at an AI are left out
+ * of the warm-up and practice entirely (no model sees them, and no fill-the-gap question is built from them).
+ */
+export function screenConcepts<T extends ConceptSource>(concepts: T[]): { safe: T[]; flagged: T[] } {
+  const safe: T[] = [];
+  const flagged: T[] = [];
+  for (const c of concepts) (looksLikeInjection(c.concept) || looksLikeInjection(c.quote) ? flagged : safe).push(c);
+  return { safe, flagged };
+}
+
+/** One concept as the specialists see it: the quote can't close the data wrapper early or add look-alike tags. */
+export function conceptBlock(c: ConceptSource, index: number): string {
+  const name = c.concept.replace(/[<>"\r\n]+/g, " ").trim();
+  const quote = c.quote.replace(/<\/?\s*concept\b[^>]*>?/gi, " ");
+  return `<concept index="${index}" name="${name}" page="${c.page}">\n${quote}\n</concept>`;
+}
 
 const norm = (s: string) => s.toLowerCase().replace(/[^\p{L}\p{N} ]+/gu, " ").replace(/\s+/g, " ").trim();
 

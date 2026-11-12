@@ -1,11 +1,12 @@
 import "server-only";
 import { getCatchupPack } from "@/lib/catchup/service";
 import { ApiError, fromDbError } from "@/lib/http/errors";
+import { logEvent } from "@/lib/observability/log";
 import type { AdminSupabase } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/database.types";
 import type { ServerSupabase } from "@/lib/supabase/server";
 import { bridge, DIFFICULTY, statusFor, updateRating, type Confidence, type MasteryStatus } from "./elo";
-import { clozeItem, validateItem, type ConceptSource, type ItemDraft } from "./items";
+import { clozeItem, screenConcepts, validateItem, type ConceptSource, type ItemDraft } from "./items";
 import { runSpecialist, type SpecialistName } from "./specialists";
 
 /**
@@ -26,8 +27,11 @@ type Deps = { supabase: ServerSupabase; admin: AdminSupabase; userId: string };
 
 async function packConcepts(supabase: ServerSupabase, documentId: string) {
   const { pack, filename, courseId } = await getCatchupPack(supabase, documentId);
-  const concepts: ConceptSource[] = pack.keyTerms.slice(0, MAX_CONCEPTS).map((t) => ({ concept: t.term, page: t.page, quote: t.quote }));
-  return { concepts, terms: pack.keyTerms.map((t) => t.term), filename, courseId };
+  // Lecture text is untrusted: a passage that reads like instructions to an AI is never turned into a question.
+  const { safe, flagged } = screenConcepts(pack.keyTerms.map((t): ConceptSource => ({ concept: t.term, page: t.page, quote: t.quote })));
+  if (flagged.length) logEvent("warn", "mastery.concepts_flagged", { documentId, flagged: flagged.length });
+  const concepts = safe.slice(0, MAX_CONCEPTS);
+  return { concepts, terms: safe.map((t) => t.concept), filename, courseId };
 }
 
 async function ensureMasteryRows(admin: AdminSupabase, userId: string, documentId: string, concepts: ConceptSource[]) {

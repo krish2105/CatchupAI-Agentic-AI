@@ -57,3 +57,18 @@ Fixed earlier in this build (recorded in BUILD_STATUS): rejected/rotated session
 **Backup and restore drill (local only):** a full `pg_dump` restored into a scratch database. Row counts identical for 7 core tables and `auth.users`; 25 RLS tables restored with RLS on; 29 restore errors, all platform-privilege items (default privileges, vault, superuser functions), as expected when restoring as `postgres`.
 
 **Residual (unchanged or new):** `style-src 'unsafe-inline'`; 120 s bearer source links; heuristic injection detection (see reviews/AI_SECURITY_RED_TEAM_REPORT.md); no error-alerting service yet (see reviews/OBSERVABILITY_REPORT.md).
+
+## Day 6 delta review (2026-11-12): the agent team and voice answers
+
+Scope: everything added since 4 Nov (Diagnostician and Quizmaster agents, mastery routes, Night Coach, Listen, voice answers; migrations 0025 and 0026).
+
+| # | Finding | Severity | Status |
+| --- | --- | --- | --- |
+| D6-1 | Lecture text went to the Diagnostician and Quizmaster without the injection screening the copilot's search uses (a passage reading "ignore all previous instructions…" could reach the model, or be turned into a quiz question). Impact was limited (questions are validated against the page, answer keys are server-only, the specialists have no write tools), but the screening layer was missing on these two paths. | Medium | Fixed: instruction-like concepts are left out before any model sees them and before any fill-the-gap question is built; the data wrapper strips look-alike tags. Tests: `tests/unit/mastery.test.ts` (3), `tests/integration/mastery.test.ts` (fails without the fix). ADR-097. |
+| D6-2 | `Permissions-Policy: microphone=()` turned the microphone off for the whole site while voice answers (11 Nov) rely on the browser's speech recognition, which can be blocked by that header. | Low (availability) | Fixed: `microphone=(self)`; camera, location and payment stay off and embedded frames cannot use the microphone. Asserted in `tests/e2e/hardening.spec.ts`. ADR-098. Not tried with a real microphone. |
+
+Checked and unchanged: the new mastery routes validate input with strict Zod schemas, derive identity from the session and are rate-limited (`quiz` and `write` buckets); `assessment_keys` has no student grants (the integration test reads it as a student and gets 42501); `coach_briefs` lets a student read and delete only their own rows; the Night Coach and the specialists run with a 60 s timeout and at most 2 turns, and skip when the AI is paused or the daily budget is used.
+
+Dependency and secret checks (12 Nov): `npm audit --omit=dev` found 0 vulnerabilities; a scan of tracked files for key patterns found none; the client bundle contains no key values (two harmless strings: the setup message that names `OPENAI_API_KEY`, and Supabase's own guard that rejects `sb_secret_` keys in a browser); the local Supabase ports listen on 127.0.0.1 only.
+
+**Residual:** the injection screen is a heuristic (paraphrased instructions can pass; the other layers still hold); the specialists have not run against a live OpenAI model yet (the key is an owner step); no real-student pilot yet.

@@ -7,6 +7,12 @@ test("security headers are set and API responses are not cacheable", async ({ re
   expect(page.headers()["x-frame-options"]).toBe("DENY");
   expect(page.headers()["x-content-type-options"]).toBe("nosniff");
   expect(page.headers()["x-powered-by"]).toBeUndefined();
+  // Voice answers need the microphone on this site only; everything else sensitive stays off.
+  const policy = page.headers()["permissions-policy"] ?? "";
+  expect(policy).toContain("microphone=(self)");
+  expect(policy).toContain("camera=()");
+  expect(policy).toContain("geolocation=()");
+  expect(policy).toContain("payment=()");
   const api = await request.get("/api/health");
   expect(api.headers()["cache-control"]).toContain("no-store");
 });
